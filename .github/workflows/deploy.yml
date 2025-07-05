@@ -64,6 +64,23 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # 1. AWS CLI를 사용하여 ECR에 로그인 (EC2에 부여된 IAM 역할 권한을 사용)
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+            # 2. 기존 앱 컨테이너가 있으면 중지 및 삭제
+            docker stop my-app || true
+            docker rm my-app || true
+            
+            # 3. ECR에서 최신 이미지 pull
+            docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+            
+            # 4. 새 컨테이너 실행 (환경 변수로 DB 정보 전달)
+            docker run -d --name my-app -p 8080:8080 \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_NAME=mydatabase \
+              ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
             # 기존 앱 컨테이너가 있으면 중지 및 삭제
             docker stop my-app || true
             docker rm my-app || true
