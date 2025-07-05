@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:my-project-db1.cluucs6oo4j3.ap-northeast-2.rds.amazonaws.com}:${DB_PORT:3306}/${DB_NAME:mydatabase}
+    username: ${DB_USERNAME:adumin}
+    password: ${DB_PASSWORD:Asince2003}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+# Springdoc (Swagger UI) ??
+springdoc:
+  default-produces-media-type: application/json
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    groups-order: ASC
+  paths-to-match:
+    - /api/**
