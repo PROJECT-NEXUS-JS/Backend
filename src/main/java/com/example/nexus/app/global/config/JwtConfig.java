@@ -1,4 +1,4 @@
-package com.example.nexus.app.config;
+package com.example.nexus.app.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

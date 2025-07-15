@@ -37,6 +37,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     // Spring Security Core
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    // Jwt handling
+    implementation 'com.auth0:java-jwt:4.5.0'
 }
 
 tasks.named('test') {
