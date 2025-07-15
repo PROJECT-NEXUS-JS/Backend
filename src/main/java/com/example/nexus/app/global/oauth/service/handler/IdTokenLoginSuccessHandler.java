@@ -1,6 +1,7 @@
 package com.example.nexus.app.global.oauth.service.handler;
 
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
+import com.example.nexus.app.global.security.JwtService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
