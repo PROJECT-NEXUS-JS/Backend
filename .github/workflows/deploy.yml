@@ -54,6 +54,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+# EC2 인스턴스에 배포
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with:
