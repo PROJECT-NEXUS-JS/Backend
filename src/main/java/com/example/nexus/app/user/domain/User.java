@@ -18,10 +18,10 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -66,7 +66,7 @@ public class User {
     private LocalDateTime lastLoginAt;
 
     @Builder
-    public User(String oauthId, String email, String nickname, String profileUrl, RoleType roleType, SocialType socialType, LocalDateTime createdAt, LocalDateTime lastLoginAt) {
+    public User(String oauthId, String email, String nickname, String profileUrl, RoleType roleType, SocialType socialType, LocalDateTime lastLoginAt) {
         this.oauthId = oauthId;
         this.email = email;
         this.nickname = nickname;
@@ -75,7 +75,6 @@ public class User {
         this.roleType = roleType;
         this.socialType = socialType;
         this.statusType = StatusType.ACTIVE;
-        this.createdAt = createdAt;
         this.lastLoginAt = lastLoginAt;
     }
 
