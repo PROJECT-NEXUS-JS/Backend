@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:mydatabase}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:pw}
+    password: ${DB_PASSWORD:password}
 
   jpa:
     hibernate:
@@ -16,14 +16,21 @@ spring:
         format_sql: true
     show-sql: true
 
+jwt:
+  secretKey: ${jwt_secret_key}
+  access:
+    expiration: ${jwt_access_expiration:3600000}
+    header: ${jwt_access_header:Authorization}
+  refresh:
+    expiration: ${jwt_refresh_expiration:3600000}
+    header: ${jwt_refresh_header:RefreshToken}
+
 # Springdoc (Swagger UI)
 springdoc:
-  default-produces-media-type: application/json
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+    url: /v3/api-docs
     display-request-duration: true
     groups-order: ASC
-  paths-to-match:
-    - /api/**
