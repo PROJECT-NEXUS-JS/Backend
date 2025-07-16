@@ -45,7 +45,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-resources/**", "/webjars/**", "/api-test/**"
                         ).permitAll()
-                        .requestMatchers("/signup").authenticated()
+                        .requestMatchers("/signup","/auth/me").authenticated()
                         .anyRequest().permitAll()
                 );
 

@@ -18,10 +18,10 @@ public enum ErrorStatus implements BaseErrorCode {
     UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "COMMON422", "처리할 수 없는 엔티티입니다."),
 
     // 401 Unauthorized
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
-    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증 정보가 올바르지 않습니다."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "토큰이 유효하지 않습니다."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "토큰이 만료되었습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4012", "인증 정보가 올바르지 않습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "토큰이 유효하지 않습니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4014", "토큰이 만료되었습니다."),
 
     // 403 Forbidden
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "접근 권한이 없습니다."),
