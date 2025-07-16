@@ -17,13 +17,13 @@ spring:
     show-sql: true
 
 jwt:
-  secretKey: ${jwt_secret_key}
+  secretKey: ${JWT_SECRET_KEY}
   access:
-    expiration: ${jwt_access_expiration:3600000}
-    header: ${jwt_access_header:Authorization}
+    expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+    header: ${JWT_ACCESS_HEADER:Authorization}
   refresh:
-    expiration: ${jwt_refresh_expiration:3600000}
-    header: ${jwt_refresh_header:RefreshToken}
+    expiration: ${JWT_REFRESH_EXPIRATION:3600000}
+    header: ${JWT_REFRESH_HEADER:RefreshToken}
 
 # Springdoc (Swagger UI)
 springdoc:
