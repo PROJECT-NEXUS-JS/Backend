@@ -3,7 +3,7 @@ project backend repository
 
 # Git 브랜치 전략 및 커밋 컨벤션
 
-## 작업 흐름
+## 작업 흐름 (PR 규칙)
 
 1. **각자 브랜치에서 작업** 후, `main` 브랜치로 **pull request**.
 2. 2명 이상의 BE 개발자가 **코드리뷰 완료시** `main` 브랜치로 **머지 merge 가능**.
@@ -25,7 +25,7 @@ project backend repository
 - **삭제** : `delete`
 - **조회** : `find`
 
-## 주의 사항
+## 코드 컨벤션 설정 정리 및 주의 사항
 
 - 클래스 선언부 아래 **필드**가 오면 한 칸 띄우고 작성하고 그 이외의 경우에는 붙인다.
 - **메서드 길이**는 15줄을 넘지 않는다. (SRP)
@@ -35,4 +35,3 @@ project backend repository
 - 블록 아래는 한 칸 띄우고 작성한다.
 - `else`를 사용을 지양한다.
 - **stream** 사용 시 `stream` 뒤에 줄바꿈을 한다.
-
