@@ -7,6 +7,7 @@ import com.example.nexus.app.global.oauth.domain.userinfo.UserInfo;
 import com.example.nexus.app.user.domain.RoleType;
 import com.example.nexus.app.user.domain.SocialType;
 import com.example.nexus.app.user.domain.User;
+import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.Getter;
 
@@ -26,11 +27,12 @@ public class IdTokenAttributes {
     public User toUser() {
         return User.builder()
                 .socialType(socialType)
-                .oauthId(userInfo.getId())
-                .nickname("")
-                .profileUrl(null)
-                .email(userInfo.getEmail())
                 .roleType(RoleType.ROLE_GUEST)
+                .oauthId(userInfo.getId())
+                .nickname(userInfo.getNickname())
+                .profileUrl(userInfo.getProfileUrl())
+                .email(userInfo.getEmail())
+                .lastLoginAt(LocalDateTime.now())
                 .build();
     }
 }
