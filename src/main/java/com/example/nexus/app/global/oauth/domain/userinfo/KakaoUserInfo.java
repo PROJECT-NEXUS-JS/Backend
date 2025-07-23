@@ -17,4 +17,14 @@ public class KakaoUserInfo extends UserInfo {
     public String getEmail() {
         return (String) attributes.get("email");
     }
+
+    @Override
+    public String getNickname() {
+        return (String) attributes.get("nickname");
+    }
+
+    @Override
+    public String getProfileUrl() {
+        return (String) attributes.get("picture");
+    }
 }

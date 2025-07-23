@@ -1,17 +1,20 @@
 package com.example.nexus.app.global.oauth.service;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-
-import com.example.nexus.app.user.domain.User;
-import com.example.nexus.app.user.domain.SocialType;
-import com.example.nexus.app.user.repository.UserRepository;
+import com.example.nexus.app.global.code.status.ErrorStatus;
+import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.oauth.domain.IdTokenAttributes;
-import lombok.AllArgsConstructor;
+import com.example.nexus.app.user.domain.SocialType;
+import com.example.nexus.app.user.domain.User;
+import com.example.nexus.app.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -19,7 +22,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class IdTokenService {
 
     private final JwtDecoder kakaoJwtDecoder;
@@ -27,41 +30,41 @@ public class IdTokenService {
     private final JwtDecoder appleJwtDecoder;
     private final UserRepository userRepository;
 
-    public CustomUserDetails loadUserByAccessToken(String accessToken){
-
-        DecodedJWT decodedJWT;
-        SocialType socialType;
-        User findUser;
-
+    public CustomUserDetails loadUserByAccessToken(String idToken) {
         try {
+            DecodedJWT decodedJWT = JWT.decode(idToken);
+            SocialType socialType = checkIssuer(decodedJWT.getIssuer());
 
-            decodedJWT = JWT.decode(accessToken);
-            socialType = checkIssuer(decodedJWT.getIssuer());
-
-            Map<String, Object> attributes = tokenToattributes(accessToken, socialType);
+            Map<String, Object> attributes = tokenToattributes(idToken, socialType);
             IdTokenAttributes idTokenAttributes = new IdTokenAttributes(attributes, socialType);
 
-            findUser = checkUser(idTokenAttributes);
-        } catch (Exception e) {
-            throw new RuntimeException("엑세스 토큰 인증 오류 " + e.getMessage());
+            User findUser = checkUser(idTokenAttributes);
+
+            return new CustomUserDetails(
+                    Collections.singleton(new SimpleGrantedAuthority(findUser.getRoleType().toString())),
+                    findUser.getEmail(),
+                    findUser.getRoleType(),
+                    findUser.getId()
+            );
+        } catch (JWTDecodeException | JwtException e) {
+            log.warn("ID 토큰 인증 오류: {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
         }
-        return new CustomUserDetails(
-                Collections.singleton(new SimpleGrantedAuthority(findUser.getRoleType().toString())),
-                findUser.getEmail(),
-                findUser.getRoleType(),
-                findUser.getId()
-        );
     }
 
-    private SocialType checkIssuer(String issuer){
-        if(issuer.equals("https://kauth.kakao.com")) return SocialType.KAKAO;
-        else if(issuer.equals("https://accounts.google.com")) return SocialType.GOOGLE;
-        return SocialType.APPLE;
+    private SocialType checkIssuer(String issuer) {
+        if ("https://kauth.kakao.com".equals(issuer)) return SocialType.KAKAO;
+        if ("https://accounts.google.com".equals(issuer)) return SocialType.GOOGLE;
+        if ("https://appleid.apple.com".equals(issuer)) return SocialType.APPLE;
+        throw new GeneralException(ErrorStatus.INVALID_TOKEN);
     }
 
-    private User checkUser(IdTokenAttributes idTokenAttributes){
+    private User checkUser(IdTokenAttributes idTokenAttributes) {
         User findUser = userRepository.findByEmail(idTokenAttributes.getUserInfo().getEmail()).orElse(null);
-        if (findUser == null) return createUser(idTokenAttributes);
+        if (findUser == null) {
+            return createUser(idTokenAttributes);
+        }
+        findUser.markLogin();
         return findUser;
     }
 
@@ -70,10 +73,15 @@ public class IdTokenService {
         return userRepository.save(createdUser);
     }
 
-    private Map<String, Object> tokenToattributes(String idToken, SocialType socialType){
-        if(socialType == SocialType.GOOGLE) return googleJwtDecoder.decode(idToken).getClaims();
-        if(socialType == SocialType.KAKAO) return kakaoJwtDecoder.decode(idToken).getClaims();
-        if(socialType == SocialType.APPLE) return appleJwtDecoder.decode(idToken).getClaims();
+    private Map<String, Object> tokenToattributes(String idToken, SocialType socialType) {
+        try {
+            if (socialType == SocialType.GOOGLE) return googleJwtDecoder.decode(idToken).getClaims();
+            if (socialType == SocialType.KAKAO) return kakaoJwtDecoder.decode(idToken).getClaims();
+            if (socialType == SocialType.APPLE) return appleJwtDecoder.decode(idToken).getClaims();
+        } catch (JwtException e) {
+            log.warn("ID 토큰 검증 실패 ({}): {}", socialType, e.getMessage());
+            throw e;
+        }
         return null;
     }
 }
