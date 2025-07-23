@@ -1,23 +1,17 @@
 name: CI/CD with AWS ECR and EC2
 
-# 워크플로우 실행 시점 : main 브랜치 push 발생시
+# 1. 워크플로우 실행 시점을 pull_request에도 추가합니다.
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types: [ opened, synchronize, reopened ]
 
-# 환경 : 최신 우분투 이미지 파일 
 jobs:
-  build-and-deploy:
+  # 2. 빌드 및 테스트 잡: PR과 main push 모두에서 실행됩니다.
+  build:
     runs-on: ubuntu-latest
-    
-# 환경변수 바인딩 
-    env:
-      JWT_SECRET_KEY:        ${{ secrets.JWT_SECRET_KEY }}
-      JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
-      JWT_ACCESS_HEADER:     ${{ secrets.JWT_ACCESS_HEADER }}
-      JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
-      JWT_REFRESH_HEADER:    ${{ secrets.JWT_REFRESH_HEADER }}
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
@@ -32,7 +26,28 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
+        # 참고: PR 검증 시에는 테스트를 실행하는 것이 좋습니다. (-x test 제거 권장)
         run: ./gradlew build -x test
+
+  # 3. 배포 잡: main 브랜치에 push될 때만 실행됩니다.
+  deploy:
+    # build 잡이 성공해야만 이 잡이 실행됩니다.
+    needs: build
+    # main 브랜치에 push 이벤트가 발생했을 때만 실행되도록 조건을 추가합니다.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    # 배포에 필요한 환경변수 바인딩
+    env:
+      JWT_SECRET_KEY:         ${{ secrets.JWT_SECRET_KEY }}
+      JWT_ACCESS_EXPIRATION:  ${{ secrets.JWT_ACCESS_EXPIRATION }}
+      JWT_ACCESS_HEADER:      ${{ secrets.JWT_ACCESS_HEADER }}
+      JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+      JWT_REFRESH_HEADER:     ${{ secrets.JWT_REFRESH_HEADER }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -54,7 +69,6 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-# EC2 인스턴스에 배포
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with:
@@ -64,12 +78,12 @@ jobs:
           script: |
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
               | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-
+            
             docker stop my-app || true
             docker rm   my-app || true
-
+            
             docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-
+            
             docker run -d --name my-app -p 8080:8080 \
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
