@@ -42,7 +42,7 @@ public class AuthController {
     @PostMapping("/reissue")
     public ApiResponse<TokenReissueResponseDto> reissueToken(
             @Parameter(description = "Refresh Token (Bearer 스키마 제외)", required = true)
-            @RequestHeader(name = "${jwt.refresh.header}") String refreshToken) {
+            @RequestHeader("RefreshToken") String refreshToken) {
         String newAccessToken = authService.reissueAccessToken(refreshToken);
         return ApiResponse.onSuccess(new TokenReissueResponseDto(newAccessToken));
     }

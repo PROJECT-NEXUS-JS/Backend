@@ -38,47 +38,38 @@ public class JwtService {
     @Value("${jwt.refresh.header}")
     private String refreshHeader;
 
-    @Value("${jwt.access.subject}")
-    private String accessTokenSubject;
-
-    @Value("${jwt.refresh.subject}")
-    private String refreshTokenSubject;
-
-    @Value("${jwt.claims.email}")
-    private String emailClaim;
-
-    @Value("${jwt.claims.userId}")
-    private String userIdClaim;
-
-    @Value("${jwt.bearer}")
-    private String bearerPrefix;
-
     private final UserRepository userRepository;
+
+    private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
+    private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
+    private static final String EMAIL_CLAIM = "email";
+    private static final String USERID_CLAIM = "userId";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     public String createAccessToken(String email, Long userId) {
         Date now = new Date();
         return JWT.create()
-                .withSubject(accessTokenSubject)
+                .withSubject(ACCESS_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod))
-                .withClaim(emailClaim, email)
-                .withClaim(userIdClaim, userId)
+                .withClaim(EMAIL_CLAIM, email)
+                .withClaim(USERID_CLAIM, userId)
                 .sign(Algorithm.HMAC512(secretKey));
     }
 
     public String createRefreshToken() {
         Date now = new Date();
         return JWT.create()
-                .withSubject(refreshTokenSubject)
+                .withSubject(REFRESH_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(now.getTime() + refreshTokenExpirationPeriod))
                 .sign(Algorithm.HMAC512(secretKey));
     }
 
     public void setAccessTokenHeader(HttpServletResponse response, String accessToken){
-        response.setHeader(accessHeader, bearerPrefix + accessToken);
+        response.setHeader(accessHeader, BEARER_PREFIX + accessToken);
     }
 
     public void setRefreshTokenHeader(HttpServletResponse response, String refreshToken) {
-        response.setHeader(refreshHeader, bearerPrefix + refreshToken);
+        response.setHeader(refreshHeader, BEARER_PREFIX + refreshToken);
     }
 
     public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
@@ -88,8 +79,8 @@ public class JwtService {
     }
 
     public Optional<String> extractToken(String bearerToken) {
-        if (bearerToken != null && bearerToken.startsWith(bearerPrefix)) {
-            return Optional.of(bearerToken.replace(bearerPrefix, ""));
+        if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+            return Optional.of(bearerToken.replace(BEARER_PREFIX, ""));
         }
         return Optional.empty();
     }
@@ -109,7 +100,7 @@ public class JwtService {
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                     .build()
                     .verify(accessToken)
-                    .getClaim(emailClaim)
+                    .getClaim(EMAIL_CLAIM)
                     .asString());
         } catch (Exception e) {
             log.error("유효하지 않은 Access Token 입니다. {}", e.getMessage());
