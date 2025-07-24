@@ -1,5 +1,7 @@
 package com.example.nexus.app.user.domain;
 
+import com.example.nexus.notification.domain.Notification;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -8,8 +10,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -65,6 +70,10 @@ public class User {
     @Column(name="last_login_at")
     private LocalDateTime lastLoginAt;
 
+    // notification
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
     @Builder
     public User(String oauthId, String email, String nickname, String profileUrl, RoleType roleType, SocialType socialType, LocalDateTime lastLoginAt) {
         this.oauthId = oauthId;
@@ -96,5 +105,13 @@ public class User {
 
     public void markLogin() {
         this.lastLoginAt = LocalDateTime.now();
+    }
+    // notification
+    public void addNotification(Notification notification) {
+        this.notifications.add(notification);
+    }
+
+    public void removeNotification(Notification notification) {
+        this.notifications.remove(notification);
     }
 }
