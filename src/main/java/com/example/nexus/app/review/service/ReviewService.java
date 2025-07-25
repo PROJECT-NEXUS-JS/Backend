@@ -24,8 +24,15 @@ public class ReviewService {
 
     @Transactional
     public Review createReview(ReviewCreateRequest request, User user) {
-        Review review = buildReview(request, user);
-        return reviewRepository.save(review);
+        return reviewRepository.save(
+            Review.builder()
+                .postId(request.getPostId())
+                .rating(request.getRating())
+                .content(request.getContent())
+                .createdBy(user)
+                .updatedBy(user)
+                .build()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -46,10 +53,7 @@ public class ReviewService {
             return Optional.empty();
         }
         Review review = optionalReview.get();
-        review.setRating(request.getRating());
-        review.setContent(request.getContent());
-        review.setUpdatedAt(LocalDateTime.now());
-        review.setUpdatedBy(user);
+        review.update(request.getRating(), request.getContent(), user);
         return Optional.of(review);
     }
 
@@ -60,18 +64,6 @@ public class ReviewService {
         }
         reviewRepository.deleteById(reviewId);
         return true;
-    }
-
-    private Review buildReview(ReviewCreateRequest request, User user) {
-        Review review = new Review();
-        review.setPostId(request.getPostId());
-        review.setRating(request.getRating());
-        review.setContent(request.getContent());
-        review.setCreatedAt(LocalDateTime.now());
-        review.setUpdatedAt(LocalDateTime.now());
-        review.setCreatedBy(user);
-        review.setUpdatedBy(user);
-        return review;
     }
 
 }

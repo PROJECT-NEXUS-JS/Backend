@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.example.nexus.app.user.domain.User;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
+import lombok.Builder;
 
 /**
  * 리뷰 엔티티 클래스
@@ -14,7 +16,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "reviews")
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review {
 
     @Id
@@ -47,4 +49,21 @@ public class Review {
     @JoinColumn(name = "updated_by", nullable = false)
     private User updatedBy;
 
+    @Builder
+    public Review(Integer rating, String content, Long postId, User createdBy, User updatedBy) {
+        this.rating = rating;
+        this.content = content;
+        this.postId = postId;
+        this.createdBy = createdBy;
+        this.updatedBy = updatedBy;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(Integer rating, String content, User updatedBy) {
+        this.rating = rating;
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+        this.updatedBy = updatedBy;
+    }
 } 
