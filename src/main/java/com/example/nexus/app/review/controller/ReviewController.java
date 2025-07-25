@@ -68,13 +68,7 @@ public class ReviewController {
         @RequestBody ReviewUpdateRequest request,
         @AuthenticationPrincipal User user
     ) {
-        Review review = reviewService.getReview(id)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
-        if (!review.getCreatedBy().getId().equals(user.getId())) {
-            throw new GeneralException(ErrorStatus.FORBIDDEN);
-        }
-        Review updated = reviewService.updateReview(id, request, user)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+        Review updated = reviewService.updateReview(id, request, user);
         return ResponseEntity.ok(ApiResponse.onSuccess(toResponse(updated)));
     }
 
@@ -84,11 +78,6 @@ public class ReviewController {
         @PathVariable Long id,
         @AuthenticationPrincipal User user
     ) {
-        Review review = reviewService.getReview(id)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
-        if (!review.getCreatedBy().getId().equals(user.getId())) {
-            throw new GeneralException(ErrorStatus.FORBIDDEN);
-        }
         reviewService.deleteReview(id);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }

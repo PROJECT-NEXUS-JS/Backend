@@ -47,23 +47,19 @@ public class ReviewService {
     }
 
     @Transactional
-    public Optional<Review> updateReview(Long reviewId, ReviewUpdateRequest request, User user) {
-        Optional<Review> optionalReview = reviewRepository.findById(reviewId);
-        if (optionalReview.isEmpty()) {
-            return Optional.empty();
-        }
-        Review review = optionalReview.get();
+    public Review updateReview(Long reviewId, ReviewUpdateRequest request, User user) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new RuntimeException("리뷰를 찾을 수 없습니다."));
         review.update(request.getRating(), request.getContent(), user);
-        return Optional.of(review);
+        return review;
     }
 
     @Transactional
-    public boolean deleteReview(Long reviewId) {
+    public void deleteReview(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
-            return false;
+            throw new RuntimeException("리뷰를 찾을 수 없습니다.");
         }
         reviewRepository.deleteById(reviewId);
-        return true;
     }
 
 }
