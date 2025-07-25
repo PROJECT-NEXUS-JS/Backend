@@ -9,7 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ReviewCreateRequest {
+
     private Long postId;
     private Integer rating;
     private String content;
+
 } 

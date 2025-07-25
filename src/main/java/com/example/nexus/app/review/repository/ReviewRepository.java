@@ -5,10 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 /**
- * - 리뷰 엔티티 DB 접근 JPA Repository 인터페이스
- * - 게시글 별 리뷰 목록 조회 등 커스텀 메서드 추가 가능
+ * ReviewRepository
+ * - 리뷰 엔티티에 대한 DB 접근을 담당하는 JPA Repository 인터페이스
  */
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    // postId의 리뷰 목록 조회
+
+    // 특정 게시글(postId)의 리뷰 목록 조회
     List<Review> findByPostId(Long postId);
+
 } 

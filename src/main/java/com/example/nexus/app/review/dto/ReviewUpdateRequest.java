@@ -9,6 +9,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ReviewUpdateRequest {
+
     private Integer rating;
     private String content;
+
 } 

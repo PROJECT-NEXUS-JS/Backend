@@ -10,21 +10,24 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ReviewResponse {
+
     private Long id;
     private Long postId;
     private Integer rating;
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     // 작성자 정보 (내부 클래스로 구성)
     private WriterInfo writer;
 
     @Getter
     @Builder
     public static class WriterInfo {
+
         private Long id;
         private String nickname;
         private String profileUrl;
+
     }
+
 } 
