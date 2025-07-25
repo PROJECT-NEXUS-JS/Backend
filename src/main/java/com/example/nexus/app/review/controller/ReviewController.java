@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
  * - 리뷰 CRUD API 엔드포인트
  */
 @RestController
-@RequestMapping("/reviews")
+@RequestMapping("/v1/users/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
 
