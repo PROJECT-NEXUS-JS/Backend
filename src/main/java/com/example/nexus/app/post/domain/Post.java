@@ -1,5 +1,8 @@
 package com.example.nexus.app.post.domain;
 
+import com.example.nexus.app.category.domain.GenreCategory;
+import com.example.nexus.app.category.domain.MainCategory;
+import com.example.nexus.app.category.domain.PlatformCategory;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,15 +74,17 @@ public class Post {
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 
-    @Column(name = "end_data", nullable = false)
+    @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    @Column(name = "main_category_id", nullable = false)
-    private Long mainCategoryId;
-
-    @Column(name = "sub_category_id", nullable = false)
-    private Long subCategoryId;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "main_category", nullable = false)
+    private MainCategory mainCategory;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "platform_category", nullable = false)
+    private PlatformCategory platformCategory;
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PostStatus status;
@@ -98,6 +103,9 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostGenreCategory> postGenreCategories = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at")
@@ -118,8 +126,10 @@ public class Post {
     @Builder
     public Post(String title, String serviceSummary, String creatorIntroduction, String description,
                 String thumbnailUrl, String feedbackMethod, String durationTime, String participationMethod,
-                String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, Integer ageMin, Integer ageMax,
-                LocalDateTime startDate, LocalDateTime endDate, Long mainCategoryId, Long subCategoryId, PostStatus status) {
+                String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
+                Integer ageMin, Integer ageMax,
+                LocalDateTime startDate, LocalDateTime endDate, 
+                MainCategory mainCategory, PlatformCategory platformCategory, List<GenreCategory> genreCategories) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
@@ -136,9 +146,16 @@ public class Post {
         this.ageMax = ageMax;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.mainCategoryId = mainCategoryId;
-        this.subCategoryId = subCategoryId;
-        this.status = status;
+        this.mainCategory = mainCategory;
+        this.platformCategory = platformCategory;
+        this.status = PostStatus.ACTIVE;
+        
+        // 장르 카테고리 설정
+        if (genreCategories != null) {
+            for (GenreCategory genreCategory : genreCategories) {
+                this.addGenreCategory(genreCategory);
+            }
+        }
     }
 
     public void incrementViewCount() {
@@ -165,10 +182,12 @@ public class Post {
         }
     }
 
-    public void updatePost(String title, String serviceSummary, String creatorIntroduction, String description, String thumbnailUrl,
-                String feedbackMethod, String durationTime, String participationMethod, String qna,
-                RewardType rewardType, Integer maxParticipants, String genderRequirement, Integer ageMin, Integer ageMax,
-                LocalDateTime startDate, LocalDateTime endDate) {
+    public void updatePost(String title, String serviceSummary, String creatorIntroduction, String description, 
+                String thumbnailUrl, String feedbackMethod, String durationTime, String participationMethod, 
+                String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
+                Integer ageMin, Integer ageMax,
+                LocalDateTime startDate, LocalDateTime endDate,
+                MainCategory mainCategory, PlatformCategory platformCategory, List<GenreCategory> genreCategories) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
@@ -185,9 +204,53 @@ public class Post {
         this.ageMax = ageMax;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.mainCategory = mainCategory;
+        this.platformCategory = platformCategory;
+        
+        updateGenreCategories(genreCategories);
     }
 
     public boolean isOwner(Long userId) {
         return this.createdBy.equals(userId);
+    }
+    
+    public boolean canParticipate() {
+        return maxParticipants == null || currentParticipants < maxParticipants;
+    }
+    
+    public boolean isActive() {
+        return this.status == PostStatus.ACTIVE;
+    }
+    
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.endDate);
+    }
+    
+    public List<GenreCategory> getGenreCategories() {
+        return postGenreCategories.stream()
+                .map(PostGenreCategory::getGenreCategory)
+                .toList();
+    }
+    
+    public void addGenreCategory(GenreCategory genreCategory) {
+        PostGenreCategory postGenreCategory = PostGenreCategory.builder()
+                .post(this)
+                .genreCategory(genreCategory)
+                .build();
+        this.postGenreCategories.add(postGenreCategory);
+    }
+    
+    public void removeGenreCategory(GenreCategory genreCategory) {
+        this.postGenreCategories.removeIf(pgc -> 
+            pgc.getGenreCategory().getId().equals(genreCategory.getId()));
+    }
+    
+    public void updateGenreCategories(List<GenreCategory> genreCategories) {
+        this.postGenreCategories.clear();
+        if (genreCategories != null) {
+            for (GenreCategory genreCategory : genreCategories) {
+                addGenreCategory(genreCategory);
+            }
+        }
     }
 }
