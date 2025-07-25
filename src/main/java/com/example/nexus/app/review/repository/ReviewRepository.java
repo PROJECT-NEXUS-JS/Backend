@@ -10,4 +10,4 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     // postId의 리뷰 목록 조회
     List<Review> findByPostId(Long postId);
-} 
+}
