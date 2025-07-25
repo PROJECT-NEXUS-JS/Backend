@@ -13,4 +13,4 @@ public class ReviewUpdateRequest {
     private Integer rating;
     private String content;
 
-} 
+}

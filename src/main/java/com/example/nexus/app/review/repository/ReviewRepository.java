@@ -13,4 +13,4 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 특정 게시글(postId)의 리뷰 목록 조회
     List<Review> findByPostId(Long postId);
 
-} 
+}
