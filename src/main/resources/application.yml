@@ -26,7 +26,7 @@ spring:
     show-sql: true
 
 jwt:
-  secretKey: ${JWT_SECRET_KEY:1234567abcdef}
+  secretKey: ${JWT_SECRET_KEY}
   access:
     expiration: ${JWT_ACCESS_EXPIRATION:3600000}
     header: ${JWT_ACCESS_HEADER:Authorization}
