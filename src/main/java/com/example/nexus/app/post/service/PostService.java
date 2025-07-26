@@ -6,6 +6,7 @@ import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.category.repository.GenreCategoryRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.post.controller.dto.PostSearchCondition;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
@@ -50,34 +51,20 @@ public class PostService {
                 .map(PostSummaryResponse::from);
     }
 
-    public Page<PostSummaryResponse> findPostsByMainCategory(String mainCategory, Pageable pageable) {
-        MainCategory category;
-        try {
-            category = MainCategory.valueOf(mainCategory);
-        } catch (IllegalArgumentException e) {
-            throw new GeneralException(ErrorStatus.INVALID_MAIN_CATEGORY);
-        }
+    public Page<PostSummaryResponse> findPosts(String mainCategory, String platformCategory,
+                                               String keyword, String sortBy, Pageable pageable) {
+        PostSearchCondition condition = PostSearchCondition.builder()
+                .mainCategory(parseMainCategory(mainCategory))
+                .platformCategory(parsePlatformCategory(platformCategory))
+                .keyword(keyword)
+                .sortBy(sortBy)
+                .status(PostStatus.ACTIVE)
+                .build();
 
-        return postRepository.findByMainCategoryAndStatusOrderByCreatedAtDesc(category, PostStatus.ACTIVE, pageable)
+        return postRepository.findPostWithCondition(condition, pageable)
                 .map(PostSummaryResponse::from);
     }
 
-    public Page<PostSummaryResponse> findPostsByPlatformCategory(String platformCategory, Pageable pageable) {
-        PlatformCategory category;
-        try {
-            category = PlatformCategory.valueOf(platformCategory);
-        } catch (IllegalArgumentException e) {
-            throw new GeneralException(ErrorStatus.INVALID_PLATFORM_CATEGORY);
-        }
-
-        return postRepository.findByPlatformCategoryAndStatusOrderByCreatedAtDesc(category, PostStatus.ACTIVE, pageable)
-                .map(PostSummaryResponse::from);
-    }
-
-    public Page<PostSummaryResponse> findPostsByKeyword(String keyword, Pageable pageable) {
-        return postRepository.findByKeywordAndStatus(keyword, PostStatus.ACTIVE, pageable)
-                .map(PostSummaryResponse::from);
-    }
 
     @Transactional
     public void updatePost(Long postId, PostUpdateRequest request, Long userId) {
@@ -95,12 +82,6 @@ public class PostService {
 
         postRepository.delete(post);
     }
-
-//    @Transactional
-//    public void incrementViewCount(Long postId) {
-//        Post post = getPost(postId);
-//        post.incrementViewCount();
-//    }
 
     private List<GenreCategory> getGenreCategories(List<Long> genreCategoryIds) {
         if (genreCategoryIds == null || genreCategoryIds.isEmpty()) {
@@ -126,5 +107,29 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
         return post;
+    }
+
+    private MainCategory parseMainCategory(String mainCategory) {
+        if (mainCategory == null || mainCategory.isBlank()) {
+            return null;
+        }
+
+        try {
+            return MainCategory.valueOf(mainCategory.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new GeneralException(ErrorStatus.INVALID_MAIN_CATEGORY);
+        }
+    }
+
+    private PlatformCategory parsePlatformCategory(String platformCategory) {
+        if (platformCategory == null || platformCategory.isBlank()) {
+            return null;
+        }
+
+        try {
+            return PlatformCategory.valueOf(platformCategory.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new GeneralException(ErrorStatus.INVALID_PLATFORM_CATEGORY);
+        }
     }
 }

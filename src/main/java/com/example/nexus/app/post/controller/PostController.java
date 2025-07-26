@@ -56,38 +56,21 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "메인 카테고리별 게시글 조회", description = "메인 카테고리로 게시글을 필터링하여 조회합니다.")
-    @GetMapping("/category/main/{mainCategory}")
-    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPostsByMainCategory(
-            @Parameter(description = "메인 카테고리 (WEB, APP, GAME, 기타)", required = true)
-            @PathVariable String mainCategory,
+    @Operation(summary = "게시글 목록 조회", description = "조건에 따라 게시글을 조회합니다.")
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
+            @Parameter(description = "메인 카테고리 (WEB, APP, GAME, ETC)")
+            @RequestParam(required = false) String mainCategory,
+            @Parameter(description = "플랫폼 카테고리 (ANDROID, IOS, PC 등)")
+            @RequestParam(required = false) String platformCategory,
+            @Parameter(description = "검색 키워드")
+            @RequestParam(required = false) String keyword,
+            @Parameter(description = "정렬 기준 (latest, popular, deadline, viewCount)")
+            @RequestParam(defaultValue = "latest") String sortBy,
             @PageableDefault(size = 20) Pageable pageable) {
+        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, keyword, sortBy, pageable);
 
-        Page<PostSummaryResponse> responses = postService.findPostsByMainCategory(mainCategory, pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(responses));
-    }
-
-    @Operation(summary = "플랫폼 카테고리별 게시글 조회", description = "플랫폼 카테고리로게시글을 필터링하여 조회합니다.")
-    @GetMapping("/category/platform/{platformCategory}")
-    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPostsByPlatformCategory(
-            @Parameter(description = "플랫폼 카테고리", required = true)
-            @PathVariable String platformCategory,
-            @PageableDefault(size = 20) Pageable pageable) {
-
-        Page<PostSummaryResponse> response =
-                postService.findPostsByPlatformCategory(platformCategory, pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    @Operation(summary = "키워드 검색", description = "제목이나 내용에서 키워드로 게시글을 검색합니다.")
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> searchPosts(
-            @Parameter(description = "검색 키워드", required = true)
-            @RequestParam String keyword,
-            @PageableDefault(size = 20) Pageable pageable) {
-
-        Page<PostSummaryResponse> responses = postService.findPostsByKeyword(keyword, pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(responses));
+        return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }
 
     @Operation(summary = "게시글 수정", description = "게시글 정보를 수정합니다. 작성자만 수정 가능합니다.")
@@ -116,25 +99,4 @@ public class PostController {
 
     // TODO AWS S3로 변경
 
-    private boolean shouldIncrementViewCount(Long postId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        String cookieName = "viewed_post_" + postId;
-
-        // 기존 쿠키 확인
-        if (httpServletRequest.getCookies() != null) {
-            for (Cookie cookie : httpServletRequest.getCookies()) {
-                if (cookieName.equals(cookie.getName())) {
-                    return false; // 이미 조회함
-                }
-            }
-        }
-
-        // 조회 기록 쿠키 설정
-        Cookie viewCookie = new Cookie(cookieName, "viewed");
-        viewCookie.setMaxAge(24 * 60 * 60); // 24시간
-        viewCookie.setPath("/");
-        viewCookie.setHttpOnly(true);
-        httpServletResponse.addCookie(viewCookie);
-
-        return true; // 조회수 증가 가능
-    }
 }
