@@ -4,6 +4,7 @@ import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
+import com.example.nexus.app.global.web.CookieService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
@@ -11,6 +12,9 @@ import com.example.nexus.app.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,15 +32,12 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
+    private final CookieService cookieService;
 
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createPost(@Valid @RequestBody PostCreateRequest request,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
-        }
-
         Long postId = postService.createPost(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(postId));
@@ -45,10 +46,13 @@ public class PostController {
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 상세 정보를 조회합니다.")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostSummaryResponse>> getPost(@Parameter(description = "게시글 ID", required = true)
-                                                                    @PathVariable Long postId) {
-        postService.incrementViewCount(postId);
+                                                                    @PathVariable Long postId,
+                                                                    HttpServletRequest httpServletRequest,
+                                                                    HttpServletResponse httpServletResponse,
+                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        boolean shouldIncrementView = cookieService.shouldIncrementViewAndSetCookie(postId, httpServletRequest, httpServletResponse);
 
-        PostSummaryResponse response = postService.findPost(postId);
+        PostSummaryResponse response = postService.findPost(postId, shouldIncrementView);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -111,4 +115,26 @@ public class PostController {
     }
 
     // TODO AWS S3로 변경
+
+    private boolean shouldIncrementViewCount(Long postId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        String cookieName = "viewed_post_" + postId;
+
+        // 기존 쿠키 확인
+        if (httpServletRequest.getCookies() != null) {
+            for (Cookie cookie : httpServletRequest.getCookies()) {
+                if (cookieName.equals(cookie.getName())) {
+                    return false; // 이미 조회함
+                }
+            }
+        }
+
+        // 조회 기록 쿠키 설정
+        Cookie viewCookie = new Cookie(cookieName, "viewed");
+        viewCookie.setMaxAge(24 * 60 * 60); // 24시간
+        viewCookie.setPath("/");
+        viewCookie.setHttpOnly(true);
+        httpServletResponse.addCookie(viewCookie);
+
+        return true; // 조회수 증가 가능
+    }
 }

@@ -36,8 +36,12 @@ public class PostService {
         return postRepository.save(post).getId();
     }
 
-    public PostSummaryResponse findPost(Long postId) {
+    @Transactional
+    public PostSummaryResponse findPost(Long postId, boolean incrementView) {
         Post post = getPost(postId);
+        if (incrementView) {
+            post.incrementViewCount();
+        }
         return PostSummaryResponse.from(post);
     }
 
@@ -92,11 +96,11 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    @Transactional
-    public void incrementViewCount(Long postId) {
-        Post post = getPost(postId);
-        post.incrementViewCount();
-    }
+//    @Transactional
+//    public void incrementViewCount(Long postId) {
+//        Post post = getPost(postId);
+//        post.incrementViewCount();
+//    }
 
     private List<GenreCategory> getGenreCategories(List<Long> genreCategoryIds) {
         if (genreCategoryIds == null || genreCategoryIds.isEmpty()) {
