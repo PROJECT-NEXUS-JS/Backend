@@ -11,7 +11,11 @@ public interface PostGenreCategoryRepository extends JpaRepository<PostGenreCate
     
     List<PostGenreCategory> findByPostIdOrderByCreatedAt(Long postId);
     
-    @Query("SELECT pgc FROM PostGenreCategory pgc JOIN FETCH pgc.genreCategory WHERE pgc.post.id = :postId ORDER BY pgc.createdAt")
+    @Query("SELECT pgc " +
+            "FROM PostGenreCategory pgc " +
+            "JOIN FETCH pgc.genreCategory " +
+            "WHERE pgc.post.id = :postId " +
+            "ORDER BY pgc.createdAt")
     List<PostGenreCategory> findByPostIdWithGenreCategory(@Param("postId") Long postId);
     
     void deleteByPostIdAndGenreCategoryId(Long postId, Long genreCategoryId);

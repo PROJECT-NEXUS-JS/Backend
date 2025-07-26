@@ -26,17 +26,26 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 
     // 키워드 검색 (단순 데이터 조회)
-    @Query("SELECT p FROM Post p WHERE (p.title LIKE %:keyword% OR p.description LIKE %:keyword%) AND p.status = :status ORDER BY p.createdAt DESC")
+    @Query("SELECT p " +
+            "FROM Post p " +
+            "WHERE (p.title LIKE %:keyword% OR p.description LIKE %:keyword%) AND p.status = :status " +
+            "ORDER BY p.createdAt DESC")
     Page<Post> findByKeywordAndStatus(@Param("keyword") String keyword, @Param("status") PostStatus status, Pageable pageable);
 
     // 상세 조회 (상태 확인 포함)
     Optional<Post> findByIdAndStatus(Long id, PostStatus status);
 
     // 인기 게시글 조회
-    @Query("SELECT p FROM Post p WHERE p.status = :status ORDER BY p.likeCount DESC, p.createdAt DESC")
+    @Query("SELECT p " +
+            "FROM Post p " +
+            "WHERE p.status = :status " +
+            "ORDER BY p.likeCount DESC, p.createdAt DESC")
     Page<Post> findPopularPosts(@Param("status") PostStatus status, Pageable pageable);
 
     // 마감임박 게시글 조회
-    @Query("SELECT p FROM Post p WHERE p.status = :status AND p.endDate > CURRENT_TIMESTAMP ORDER BY p.endDate ASC")
+    @Query("SELECT p " +
+            "FROM Post p " +
+            "WHERE p.status = :status AND p.endDate > CURRENT_TIMESTAMP " +
+            "ORDER BY p.endDate ASC")
     Page<Post> findUpcomingDeadlinePosts(@Param("status") PostStatus status, Pageable pageable);
 }
