@@ -253,4 +253,8 @@ public class Post {
             }
         }
     }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }

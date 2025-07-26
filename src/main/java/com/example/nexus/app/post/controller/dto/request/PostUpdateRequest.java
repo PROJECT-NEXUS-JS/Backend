@@ -29,9 +29,6 @@ public record PostUpdateRequest(
         @NotBlank(message = "상세 설명은 필수입니다")
         String description,
 
-        @Schema(description = "썸네일 URL")
-        String thumbnailUrl,
-
         @Schema(description = "피드백 방법", example = "수정된 설문조사")
         @NotBlank(message = "피드백 방법은 필수입니다")
         String feedbackMethod,
@@ -82,25 +79,25 @@ public record PostUpdateRequest(
         List<Long> genreCategoryIds
 ) {
 
-    public static PostUpdateRequest of(String title, String serviceSummary, String creatorIntroduction, String description, String thumbnailUrl,
+    public static PostUpdateRequest of(String title, String serviceSummary, String creatorIntroduction, String description,
                                        String feedbackMethod, String durationTime, String participationMethod, String qna,
                                        RewardType rewardType, Integer maxParticipants, String genderRequirement,
                                        Integer ageMin, Integer ageMax, LocalDateTime startDate, LocalDateTime endDate,
                                        MainCategory mainCategory, PlatformCategory platformCategory, List<Long> genreCategoryIds) {
         return new PostUpdateRequest(title, serviceSummary,
                 creatorIntroduction, description,
-                thumbnailUrl, feedbackMethod, durationTime,
+                feedbackMethod, durationTime,
                 participationMethod, qna, rewardType, maxParticipants, genderRequirement, ageMin, ageMax, 
                 startDate, endDate, mainCategory, platformCategory, genreCategoryIds);
     }
 
-    public void updateEntity(Post post, List<GenreCategory> genreCategories) {
+    public void updateEntity(Post post, List<GenreCategory> genreCategories, String thumbnailUrl) {
             post.updatePost(
                     this.title,
                     this.serviceSummary,
                     this.creatorIntroduction,
                     this.description,
-                    this.thumbnailUrl,
+                    thumbnailUrl,
                     this.feedbackMethod,
                     this.durationTime,
                     this.participationMethod,
