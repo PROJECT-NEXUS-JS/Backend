@@ -7,11 +7,11 @@ public record PostSearchRequest(
         @Schema(description = "검색 키워드")
         String keyword,
 
-        @Schema(description = "메인 카테고리 ID")
-        Long mainCategoryId,
+        @Schema(description = "메인 카테고리")
+        String mainCategory,
 
-        @Schema(description = "서브 카테고리 ID")
-        Long subCategoryId,
+        @Schema(description = "플랫폼 카테고리")
+        String platformCategory,
 
         @Schema(description = "리워드 타입")
         RewardType rewardType,
@@ -20,8 +20,8 @@ public record PostSearchRequest(
         String sortBy
 ) {
 
-    public static PostSearchRequest of(String keyword, Long mainCategoryId, Long subCategoryId,
+    public static PostSearchRequest of(String keyword, String mainCategory, String platformCategory,
                                        RewardType rewardType, String sortBy) {
-        return new PostSearchRequest(keyword, mainCategoryId, subCategoryId, rewardType, sortBy);
+        return new PostSearchRequest(keyword, mainCategory, platformCategory, rewardType, sortBy);
     }
 }
