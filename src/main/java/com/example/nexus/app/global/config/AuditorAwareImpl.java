@@ -23,7 +23,7 @@ public class AuditorAwareImpl implements AuditorAware<Long> {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             log.warn("인증되지 않은 사용자 - Optional.empty() 반환");
-            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+//            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
         }
 
         // CustomUserDetails에서 직접 userId 가져오기
