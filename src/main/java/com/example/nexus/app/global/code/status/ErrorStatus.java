@@ -18,6 +18,7 @@ public enum ErrorStatus implements BaseErrorCode {
     UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "COMMON422", "처리할 수 없는 엔티티입니다."),
     INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4004", "유효하지 않은 메인 카테고리입니다."),
     INVALID_PLATFORM_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4005", "유효하지 않은 플랫폼 카테고리입니다."),
+    FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "FILE4001", "업로드할 파일이 없습니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
@@ -55,6 +56,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러, 관리자에게 문의 바랍니다."),
+    S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35001", "파일 업로드 중 오류가 발생했습니다."),
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "DB5001", "데이터베이스 처리 중 오류가 발생했습니다."),
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON502", "불완전한 게이트웨이 응답을 받았습니다."),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON503", "서비스를 일시적으로 사용할 수 없습니다."),

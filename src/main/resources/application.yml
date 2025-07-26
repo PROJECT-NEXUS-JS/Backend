@@ -1,7 +1,16 @@
 server:
   port: 8080
 
+cloud:
+  aws:
+    region:
+      static: ${S3_REGION:region}
+    s3:
+      bucket: ${S3_BUCKETNAME:bucket-name-undefined-202507}
+
 spring:
+  profiles:
+    active: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:mydatabase}

@@ -40,6 +40,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     // Jwt handling
     implementation 'com.auth0:java-jwt:4.5.0'
+    // AWS S3 SDK
+    implementation 'software.amazon.awssdk:s3'
+    implementation platform('software.amazon.awssdk:bom:2.20.27')
 }
 
 tasks.named('test') {
