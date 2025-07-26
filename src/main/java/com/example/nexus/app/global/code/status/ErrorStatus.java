@@ -16,6 +16,8 @@ public enum ErrorStatus implements BaseErrorCode {
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "VALID4003", "파라미터 타입이 올바르지 않습니다."),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
     UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "COMMON422", "처리할 수 없는 엔티티입니다."),
+    INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4004", "유효하지 않은 메인 카테고리입니다."),
+    INVALID_PLATFORM_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4005", "유효하지 않은 플랫폼 카테고리입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
@@ -27,6 +29,7 @@ public enum ErrorStatus implements BaseErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "접근 권한이 없습니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH4031", "권한이 없는 리소스입니다."),
     ACCOUNT_BANNED(HttpStatus.FORBIDDEN, "AUTH4032", "사용이 제한된 계정입니다."),
+    POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "POST4033", "게시글 수정/삭제 권한이 없습니다."),
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "요청한 리소스를 찾을 수 없습니다."),
@@ -34,6 +37,8 @@ public enum ErrorStatus implements BaseErrorCode {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "GEN4042", "리소스를 찾을 수 없습니다."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "GEN4043", "존재하지 않는 엔드포인트입니다."),
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4044", "해당 알림을 찾을 수 없습니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4045", "게시글을 찾을 수 없습니다."),
+    GENRE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY4046", "존재하지 않는 장르 카테고리가 포함되어 있습니다."),
 
 
     // 405 Method Not Allowed
