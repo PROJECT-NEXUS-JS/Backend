@@ -94,4 +94,6 @@ jobs:
               -e JWT_ACCESS_HEADER=${{ env.JWT_ACCESS_HEADER }} \
               -e JWT_REFRESH_EXPIRATION=${{ env.JWT_REFRESH_EXPIRATION }} \
               -e JWT_REFRESH_HEADER=${{ env.JWT_REFRESH_HEADER }} \
+              -e S3_REGION=${{ secrets.S3_REGION }} \
+              -e S3_BUCKETNAME=${{ secrets.S3_BUCKETNAME }} \
               ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
