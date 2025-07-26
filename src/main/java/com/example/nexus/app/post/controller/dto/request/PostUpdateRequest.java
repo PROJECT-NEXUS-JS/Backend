@@ -1,7 +1,9 @@
 package com.example.nexus.app.post.controller.dto.request;
 
+import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -90,5 +92,29 @@ public record PostUpdateRequest(
                 thumbnailUrl, feedbackMethod, durationTime,
                 participationMethod, qna, rewardType, maxParticipants, genderRequirement, ageMin, ageMax, 
                 startDate, endDate, mainCategory, platformCategory, genreCategoryIds);
+    }
+
+    public void updateEntity(Post post, List<GenreCategory> genreCategories) {
+            post.updatePost(
+                    this.title,
+                    this.serviceSummary,
+                    this.creatorIntroduction,
+                    this.description,
+                    this.thumbnailUrl,
+                    this.feedbackMethod,
+                    this.durationTime,
+                    this.participationMethod,
+                    this.qna,
+                    this.rewardType,
+                    this.maxParticipants,
+                    this.genderRequirement,
+                    this.ageMin,
+                    this.ageMax,
+                    this.startDate,
+                    this.endDate,
+                    this.mainCategory,
+                    this.platformCategory,
+                    genreCategories
+            );
     }
 }

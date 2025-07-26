@@ -32,34 +32,12 @@ public class PostService {
     public Long createPost(PostCreateRequest request) {
         List<GenreCategory> genreCategories = getGenreCategories(request.genreCategoryIds());
 
-        Post post = Post.builder()
-                .title(request.title())
-                .serviceSummary(request.serviceSummary())
-                .creatorIntroduction(request.creatorIntroduction())
-                .description(request.description())
-                .thumbnailUrl(request.thumbnailUrl())
-                .feedbackMethod(request.feedbackMethod())
-                .durationTime(request.durationTime())
-                .participationMethod(request.participationMethod())
-                .qna(request.qna())
-                .rewardType(request.rewardType())
-                .maxParticipants(request.maxParticipants())
-                .genderRequirement(request.genderRequirement())
-                .ageMin(request.ageMin())
-                .ageMax(request.ageMax())
-                .startDate(request.startDate())
-                .endDate(request.endDate())
-                .mainCategory(request.mainCategory())
-                .platformCategory(request.platformCategory())
-                .genreCategories(genreCategories)
-                .build();
-
+        Post post = request.toEntity();
         return postRepository.save(post).getId();
     }
 
     public PostSummaryResponse findPost(Long postId) {
         Post post = getPost(postId);
-
         return PostSummaryResponse.from(post);
     }
 
@@ -103,28 +81,7 @@ public class PostService {
         validateOwnership(post, userId);
 
         List<GenreCategory> genreCategories = getGenreCategories(request.genreCategoryIds());
-
-        post.updatePost(
-                request.title(),
-                request.serviceSummary(),
-                request.creatorIntroduction(),
-                request.description(),
-                request.thumbnailUrl(),
-                request.feedbackMethod(),
-                request.durationTime(),
-                request.participationMethod(),
-                request.qna(),
-                request.rewardType(),
-                request.maxParticipants(),
-                request.genderRequirement(),
-                request.ageMin(),
-                request.ageMax(),
-                request.startDate(),
-                request.endDate(),
-                request.mainCategory(),
-                request.platformCategory(),
-                genreCategories
-        );
+        request.updateEntity(post, genreCategories);
     }
 
     @Transactional

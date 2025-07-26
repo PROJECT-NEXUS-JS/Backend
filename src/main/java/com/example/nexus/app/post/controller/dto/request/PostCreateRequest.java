@@ -2,6 +2,7 @@ package com.example.nexus.app.post.controller.dto.request;
 
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -93,5 +94,28 @@ public record PostCreateRequest(
                 participationMethod, qna, rewardType,
                 maxParticipants, genderRequirement, ageMin, ageMax,
                 startDate, endDate, mainCategory, platformCategory, genreCategoryIds);
+    }
+
+    public Post toEntity() {
+        return Post.builder()
+                .title(this.title)
+                .serviceSummary(this.serviceSummary)
+                .creatorIntroduction(this.creatorIntroduction)
+                .description(this.description)
+                .thumbnailUrl(this.thumbnailUrl)
+                .feedbackMethod(this.feedbackMethod)
+                .durationTime(this.durationTime)
+                .participationMethod(this.participationMethod)
+                .qna(this.qna)
+                .rewardType(this.rewardType)
+                .maxParticipants(this.maxParticipants)
+                .genderRequirement(this.genderRequirement)
+                .ageMin(this.ageMin)
+                .ageMax(this.ageMax)
+                .startDate(this.startDate)
+                .endDate(this.endDate)
+                .mainCategory(this.mainCategory)
+                .platformCategory(this.platformCategory)
+                .build();
     }
 }
