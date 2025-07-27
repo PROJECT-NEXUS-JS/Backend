@@ -100,7 +100,4 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.onSuccess(null));
     }
-
-    // TODO AWS S3로 변경
-
 }
