@@ -15,7 +15,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Table(name = "posts")
 @Entity
@@ -84,6 +86,12 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @Column(name = "platform_category", nullable = false)
     private PlatformCategory platformCategory;
+
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "post_genres", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "genre")
+    private Set<GenreCategory> genreCategories = new HashSet<>();
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -103,9 +111,6 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostGenreCategory> postGenreCategories = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at")
@@ -129,7 +134,7 @@ public class Post {
                 String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
                 Integer ageMin, Integer ageMax,
                 LocalDateTime startDate, LocalDateTime endDate, 
-                MainCategory mainCategory, PlatformCategory platformCategory, List<GenreCategory> genreCategories) {
+                MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> genreCategories) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
@@ -152,9 +157,9 @@ public class Post {
         
         // 장르 카테고리 설정
         if (genreCategories != null) {
-            for (GenreCategory genreCategory : genreCategories) {
-                this.addGenreCategory(genreCategory);
-            }
+            this.genreCategories = new HashSet<>(genreCategories);
+        } else {
+            this.genreCategories = new HashSet<>();
         }
     }
 
@@ -187,7 +192,7 @@ public class Post {
                 String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
                 Integer ageMin, Integer ageMax,
                 LocalDateTime startDate, LocalDateTime endDate,
-                MainCategory mainCategory, PlatformCategory platformCategory, List<GenreCategory> genreCategories) {
+                MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> genreCategories) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
@@ -225,32 +230,23 @@ public class Post {
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.endDate);
     }
-    
+
     public List<GenreCategory> getGenreCategories() {
-        return postGenreCategories.stream()
-                .map(PostGenreCategory::getGenreCategory)
-                .toList();
+        return new ArrayList<>(genreCategories);
     }
-    
+
     public void addGenreCategory(GenreCategory genreCategory) {
-        PostGenreCategory postGenreCategory = PostGenreCategory.builder()
-                .post(this)
-                .genreCategory(genreCategory)
-                .build();
-        this.postGenreCategories.add(postGenreCategory);
+        this.genreCategories.add(genreCategory);
     }
-    
+
     public void removeGenreCategory(GenreCategory genreCategory) {
-        this.postGenreCategories.removeIf(pgc -> 
-            pgc.getGenreCategory().getId().equals(genreCategory.getId()));
+        this.genreCategories.remove(genreCategory);
     }
-    
-    public void updateGenreCategories(List<GenreCategory> genreCategories) {
-        this.postGenreCategories.clear();
+
+    public void updateGenreCategories(Set<GenreCategory> genreCategories) {
+        this.genreCategories.clear();
         if (genreCategories != null) {
-            for (GenreCategory genreCategory : genreCategories) {
-                addGenreCategory(genreCategory);
-            }
+            this.genreCategories.addAll(genreCategories);
         }
     }
 

@@ -3,7 +3,6 @@ package com.example.nexus.app.post.service;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
-import com.example.nexus.app.category.repository.GenreCategoryRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
@@ -30,13 +29,10 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final GenreCategoryRepository genreCategoryRepository;
     private final S3UploadService s3UploadService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
-        List<GenreCategory> genreCategories = getGenreCategories(request.genreCategoryIds());
-
         String thumbnailUrl = null;
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             thumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
@@ -48,7 +44,6 @@ public class PostService {
             post.updateThumbnailUrl(thumbnailUrl);
         }
 
-        genreCategories.forEach(post::addGenreCategory);
         return postRepository.save(post).getId();
     }
 
@@ -86,8 +81,6 @@ public class PostService {
         Post post = getPost(postId);
         validateOwnership(post, userDetails.getUserId());
 
-        List<GenreCategory> genreCategories = getGenreCategories(request.genreCategoryIds());
-
         String newThumbnailUrl = post.getThumbnailUrl();
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             // 기존 이미지 삭제 (선택사항)
@@ -98,7 +91,7 @@ public class PostService {
         }
 
 
-        request.updateEntity(post, genreCategories, newThumbnailUrl);
+        request.updateEntity(post, newThumbnailUrl);
     }
 
     @Transactional
@@ -107,20 +100,6 @@ public class PostService {
         validateOwnership(post, userId);
 
         postRepository.delete(post);
-    }
-
-    private List<GenreCategory> getGenreCategories(List<Long> genreCategoryIds) {
-        if (genreCategoryIds == null || genreCategoryIds.isEmpty()) {
-            return List.of();
-        }
-
-        List<GenreCategory> genreCategories = genreCategoryRepository.findByIdIn(genreCategoryIds);
-
-        if (genreCategories.size() != genreCategoryIds.size()) {
-            throw new GeneralException(ErrorStatus.GENRE_CATEGORY_NOT_FOUND);
-        }
-
-        return genreCategories;
     }
 
     private void validateOwnership(Post post, Long userId) {

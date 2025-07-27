@@ -1,5 +1,6 @@
 package com.example.nexus.app.post.controller.dto.request;
 
+import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.post.domain.Post;
@@ -9,7 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public record PostCreateRequest(
         @Schema(description = "게시글 제목", example = "새로운 앱 테스트 모집")
@@ -43,7 +45,7 @@ public record PostCreateRequest(
         @Schema(description = "QNA", example = "자주 묻는 질문들...")
         String qna,
 
-        @Schema(description = "리워드 타입", example = "기프티콘")
+        @Schema(description = "리워드 타입", example = "GIFT_CARD")
         RewardType rewardType,
 
         @Schema(description = "최대 참여자 수", example = "50")
@@ -74,8 +76,8 @@ public record PostCreateRequest(
         @NotNull(message = "플랫폼 카테고리는 필수입니다")
         PlatformCategory platformCategory,
 
-        @Schema(description = "장르 카테고리 ID 목록 (다중선택)")
-        List<Long> genreCategoryIds
+        @Schema(description = "장르 카테고리 목록 (다중선택)")
+        Set<GenreCategory> genreCategories
 ) {
 
     public static PostCreateRequest of(String title, String serviceSummary, String creatorIntroduction,
@@ -84,13 +86,13 @@ public record PostCreateRequest(
                                        RewardType rewardType, Integer maxParticipants, String genderRequirement,
                                        Integer ageMin, Integer ageMax,
                                        LocalDateTime startDate, LocalDateTime endDate,
-                                       MainCategory mainCategory, PlatformCategory platformCategory, List<Long> genreCategoryIds) {
+                                       MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> categories) {
         return new PostCreateRequest(title, serviceSummary,
                 creatorIntroduction, description,
                 feedbackMethod, durationTime,
                 participationMethod, qna, rewardType,
                 maxParticipants, genderRequirement, ageMin, ageMax,
-                startDate, endDate, mainCategory, platformCategory, genreCategoryIds);
+                startDate, endDate, mainCategory, platformCategory, categories);
     }
 
     public Post toEntity() {
@@ -112,6 +114,7 @@ public record PostCreateRequest(
                 .endDate(this.endDate)
                 .mainCategory(this.mainCategory)
                 .platformCategory(this.platformCategory)
+                .genreCategories(genreCategories != null ? new HashSet<>(genreCategories) : new HashSet<>())
                 .build();
     }
 }

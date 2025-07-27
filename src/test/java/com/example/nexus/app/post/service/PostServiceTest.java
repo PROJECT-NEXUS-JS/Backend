@@ -1,8 +1,8 @@
 package com.example.nexus.app.post.service;
 
+import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
-import com.example.nexus.app.category.repository.GenreCategoryRepository;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.s3.S3UploadService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,9 +34,6 @@ class PostServiceTest {
 
     @Mock
     private PostRepository postRepository;
-
-    @Mock
-    private GenreCategoryRepository genreCategoryRepository;
 
     @Mock
     private S3UploadService s3UploadService;
@@ -69,8 +67,6 @@ class PostServiceTest {
         assertThat(postId).isEqualTo(1L);
         verify(s3UploadService).uploadFile(mockFile);
         verify(postRepository).save(any(Post.class));
-        // genreCategoryRepository는 호출되지 않음
-        verify(genreCategoryRepository, never()).findByIdIn(any());
     }
 
     @Test
@@ -95,9 +91,9 @@ class PostServiceTest {
         assertThat(postId).isEqualTo(1L);
         verify(s3UploadService, never()).uploadFile(any());
         verify(postRepository).save(any(Post.class));
-        verify(genreCategoryRepository, never()).findByIdIn(any());
     }
 
+    // createPostRequest() 메서드 수정
     private PostCreateRequest createPostRequest() {
         return new PostCreateRequest(
                 "테스트 제목",
@@ -117,7 +113,7 @@ class PostServiceTest {
                 LocalDateTime.now().plusDays(30),
                 MainCategory.APP,
                 PlatformCategory.ANDROID,
-                List.of()  // 빈 리스트로 유지
+                Set.of(GenreCategory.LIFESTYLE, GenreCategory.SOCIAL)
         );
     }
 
