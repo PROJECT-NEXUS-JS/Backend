@@ -6,8 +6,8 @@ import com.example.nexus.app.category.domain.GenreCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CategoryResponse(
-    @Schema(description = "카테고리 ID")
-    String id,
+    @Schema(description = "카테고리 코드")
+    String code,
     
     @Schema(description = "카테고리 이름")
     String name
@@ -15,8 +15,8 @@ public record CategoryResponse(
     
     public static CategoryResponse from(MainCategory category) {
         return new CategoryResponse(
-                category.name(),
-                category.getDisplayName()
+                category.name(), // Enum name : "WEB", "APP" 등
+                category.getDisplayName() // Display name: "웹", "앱" 등
         );
     }
     
@@ -29,8 +29,8 @@ public record CategoryResponse(
     
     public static CategoryResponse from(GenreCategory category) {
         return new CategoryResponse(
-                category.getId().toString(),
-                category.getName()
+                category.getCode(),
+                category.getDisplayName()
         );
     }
 }

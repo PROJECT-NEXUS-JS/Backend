@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -45,6 +46,21 @@ public class S3UploadService {
         }
     }
 
+    public void deleteFile(String fileUrl) {
+        try {
+            String key = extractKeyFromUrl(fileUrl);
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            throw new GeneralException(ErrorStatus.S3_DELETE_FAILED);
+        }
+    }
+
     private String createUniqueFilename(String originalFilename) {
         String extension = "";
         int dotIndex = originalFilename.lastIndexOf('.');
@@ -52,5 +68,10 @@ public class S3UploadService {
             extension = originalFilename.substring(dotIndex);
         }
         return UUID.randomUUID() + extension;
+    }
+
+    private String extractKeyFromUrl(String fileUrl) {
+        // filname.jpg 추출
+        return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
 }

@@ -21,9 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "게시글", description = "게시글 관련 API")
 @RestController
@@ -35,10 +37,11 @@ public class PostController {
     private final CookieService cookieService;
 
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성합니다.")
-    @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPost(@Valid @RequestBody PostCreateRequest request,
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Long>> createPost(@Valid @RequestPart("data") PostCreateRequest request,
+                                                        @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long postId = postService.createPost(request);
+        Long postId = postService.createPost(request, thumbnailFile, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(postId));
     }
@@ -74,14 +77,15 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 수정", description = "게시글 정보를 수정합니다. 작성자만 수정 가능합니다.")
-    @PatchMapping("/{postId}")
+    @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @Parameter(description = "게시글 ID", required = true)
             @PathVariable Long postId,
-            @Valid @RequestBody PostUpdateRequest request,
+            @Valid @RequestPart("data") PostUpdateRequest request,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        postService.updatePost(postId, request, userDetails.getUserId());
+        postService.updatePost(postId, request, thumbnailFile, userDetails);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
@@ -96,7 +100,4 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.onSuccess(null));
     }
-
-    // TODO AWS S3로 변경
-
 }
