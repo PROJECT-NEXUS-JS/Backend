@@ -1,6 +1,8 @@
 package com.example.nexus.app.post.repository;
 
 import com.example.nexus.app.post.domain.PostLike;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +26,15 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
             "ORDER BY pl.createdAt DESC")
     List<PostLike> findByUserIdWithPost(@Param("userId") Long userId);
 
+    @Query("SELECT pl " +
+            "FROM PostLike pl " +
+            "JOIN FETCH pl.post " +
+            "WHERE pl.user.id = :userId " +
+            "ORDER BY pl.createdAt DESC")
+    Page<PostLike> findByUserIdWithPostPaged(@Param("userId") Long userId, Pageable pageable);
+
     // 통계 조회용
     long countByPostId(Long postId);
+
     long countByUserId(Long userId);
 }
