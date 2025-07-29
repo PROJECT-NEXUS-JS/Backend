@@ -19,6 +19,10 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4004", "유효하지 않은 메인 카테고리입니다."),
     INVALID_PLATFORM_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4005", "유효하지 않은 플랫폼 카테고리입니다."),
     FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "FILE4001", "업로드할 파일이 없습니다."),
+    POST_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "POST4006", "활성화되지 않은 게시글입니다."),
+    POST_EXPIRED(HttpStatus.BAD_REQUEST, "POST4007", "마감된 게시글입니다."),
+    PARTICIPATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PARTICIPANT4008", "참가 인원이 마감되었습니다."),
+    CANNOT_CANCEL_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4009", "취소할 수 없는 신청입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
@@ -31,6 +35,7 @@ public enum ErrorStatus implements BaseErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH4031", "권한이 없는 리소스입니다."),
     ACCOUNT_BANNED(HttpStatus.FORBIDDEN, "AUTH4032", "사용이 제한된 계정입니다."),
     POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "POST4033", "게시글 수정/삭제 권한이 없습니다."),
+    APPLICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "APPLICATION4034", "신청서에 대한 접근 권한이 없습니다."),
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "요청한 리소스를 찾을 수 없습니다."),
@@ -40,6 +45,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4044", "해당 알림을 찾을 수 없습니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4045", "게시글을 찾을 수 없습니다."),
     GENRE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY4046", "존재하지 않는 장르 카테고리가 포함되어 있습니다."),
+    PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPATION4047", "참가 신청 여부를 찾을 수 없습니다."),
 
 
     // 405 Method Not Allowed
@@ -49,7 +55,8 @@ public enum ErrorStatus implements BaseErrorCode {
     CONFLICT(HttpStatus.CONFLICT, "COMMON409", "요청이 현재 리소스 상태와 충돌합니다."),
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "GEN4091", "이미 존재하는 리소스입니다."),
     VERSION_CONFLICT(HttpStatus.CONFLICT, "GEN4092", "리소스 버전 충돌이 발생했습니다."),
-
+    ALREADY_APPLIED(HttpStatus.CONFLICT, "PARTICIPANT4093", "이미 신청한 게시글입니다."),
+    ALREADY_PROCESSED_APPLICATION(HttpStatus.CONFLICT, "APPLICATION4094", "이미 처리된 신청입니다."),
     // 429 Too Many Requests
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "COMMON429", "요청이 너무 많습니다. 잠시 후 다시 시도하세요."),
     RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "GEN4291", "요청 한도를 초과했습니다."),

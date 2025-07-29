@@ -19,6 +19,15 @@ public record ParticipationResponse(
         @Schema(description = "참여 상태")
         ParticipationStatus status,
 
+        @Schema(description = "신청자 이름")
+        String applicantName,
+
+        @Schema(description = "연락처")
+        String contactNumber,
+
+        @Schema(description = "신청 사유")
+        String applicationReason,
+
         @Schema(description = "게시글 정보")
         PostSummaryResponse post,
 
@@ -32,19 +41,11 @@ public record ParticipationResponse(
                 participation.getAppliedAt(),
                 participation.getApprovedAt(),
                 participation.getStatus(),
+                participation.getApplicantName(),
+                participation.getContactNumber(),
+                participation.getApplicationReason(),
                 PostSummaryResponse.from(participation.getPost()),
                 UserSummaryResponse.from(participation.getUser())
-        );
-    }
-
-    public static ParticipationResponse fromWithoutUser(Participation participation) {
-        return new ParticipationResponse(
-                participation.getId(),
-                participation.getAppliedAt(),
-                participation.getApprovedAt(),
-                participation.getStatus(),
-                PostSummaryResponse.from(participation.getPost()),
-                null
         );
     }
 }
