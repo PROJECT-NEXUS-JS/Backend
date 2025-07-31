@@ -1,8 +1,6 @@
 package com.example.nexus.app.post.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
-import com.example.nexus.app.global.code.status.ErrorStatus;
-import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.web.CookieService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
@@ -12,7 +10,6 @@ import com.example.nexus.app.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -55,7 +52,7 @@ public class PostController {
                                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
         boolean shouldIncrementView = cookieService.shouldIncrementViewAndSetCookie(postId, httpServletRequest, httpServletResponse);
 
-        PostSummaryResponse response = postService.findPost(postId, shouldIncrementView);
+        PostSummaryResponse response = postService.findPost(postId, userDetails.getUserId(), shouldIncrementView);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -70,8 +67,9 @@ public class PostController {
             @RequestParam(required = false) String keyword,
             @Parameter(description = "정렬 기준 (latest, popular, deadline, viewCount)")
             @RequestParam(defaultValue = "latest") String sortBy,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, keyword, sortBy, pageable);
+        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, keyword, sortBy, userDetails.getUserId(), pageable);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }

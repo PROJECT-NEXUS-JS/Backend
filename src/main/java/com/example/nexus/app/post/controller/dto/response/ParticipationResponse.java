@@ -35,7 +35,7 @@ public record ParticipationResponse(
         UserSummaryResponse user
 ) {
 
-    public static ParticipationResponse from(Participation participation) {
+    public static ParticipationResponse from(Participation participation, Boolean isLiked, Boolean isParticipated) {
         return new ParticipationResponse(
                 participation.getId(),
                 participation.getAppliedAt(),
@@ -44,7 +44,7 @@ public record ParticipationResponse(
                 participation.getApplicantName(),
                 participation.getContactNumber(),
                 participation.getApplicationReason(),
-                PostSummaryResponse.from(participation.getPost()),
+                PostSummaryResponse.from(participation.getPost(), isLiked, isParticipated),
                 UserSummaryResponse.from(participation.getUser())
         );
     }
