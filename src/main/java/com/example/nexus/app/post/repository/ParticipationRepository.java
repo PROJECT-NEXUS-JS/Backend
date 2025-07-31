@@ -8,9 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Set;
+
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
 
     boolean existsByUserIdAndPostId(Long userId, Long postId);
+
+    boolean existsByUserIdAndPostIdAndStatus(Long userId, Long postId, ParticipationStatus status);
 
     // 사용자의 모든 참가 신청 내역
     @Query("SELECT p FROM Participation p " +
@@ -41,4 +46,11 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "ORDER BY p.appliedAt ASC")
     Page<Participation> findByPostIdAndStatusWithUser(@Param("postId") Long postId, @Param("status") ParticipationStatus status,
                                                       Pageable pageable);
+
+    @Query("SELECT p.post.id " +
+            "FROM Participation p " +
+            "WHERE p.user.id = :userId AND p.post.id IN :postIds " +
+            "AND p.status = 'APPROVED'")
+    Set<Long> findApprovedPostIdsByUserIdAndPostIds(@Param("userId") Long userId,
+                                                    @Param("postIds") List<Long> postIds);
 }

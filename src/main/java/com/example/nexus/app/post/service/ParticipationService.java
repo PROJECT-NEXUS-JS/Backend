@@ -18,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,6 +29,7 @@ public class ParticipationService {
     private final ParticipationRepository participationRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostUserStatusService postUserStatusService;
 
     // 참가 신청
     @Transactional
@@ -42,7 +46,9 @@ public class ParticipationService {
         Participation participation = Participation.createApplication(post, user, applicationDto);
         Participation savedParticipation = participationRepository.save(participation);
 
-        return ParticipationResponse.from(savedParticipation);
+        PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
+
+        return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated());
     }
 
     // 참여 신청한 게시글 조회
@@ -50,7 +56,8 @@ public class ParticipationService {
         getUser(userId);
 
         Page<Participation> participations = participationRepository.findByUserIdWithPost(userId, pageable);
-        return participations.map(ParticipationResponse::from);
+
+        return mapParticipationsWithUserStatus(participations, userId);
     }
 
     // 참여 신청한 게시글 상태별 조회
@@ -58,7 +65,8 @@ public class ParticipationService {
         getUser(userId);
 
         Page<Participation> participations = participationRepository.findByUserIdAndStatusWithPost(userId, status, pageable);
-        return participations.map(ParticipationResponse::from);
+
+        return mapParticipationsWithUserStatus(participations, userId);
     }
 
     // 게시글에 대한 참가 신청자 조회
@@ -67,7 +75,8 @@ public class ParticipationService {
         validatePostOwnership(post, userId);
 
         Page<Participation> applications = participationRepository.findByPostIdWithUser(postId, pageable);
-        return applications.map(ParticipationResponse::from);
+
+        return mapParticipationsWithUserStatus(applications, userId);
     }
 
     // 게시글에 대한 참가 신청자 상태별 조회
@@ -77,7 +86,8 @@ public class ParticipationService {
         validatePostOwnership(post, userId);
 
         Page<Participation> applications = participationRepository.findByPostIdAndStatusWithUser(postId, status, pageable);
-        return applications.map(ParticipationResponse::from);
+
+        return mapParticipationsWithUserStatus(applications, userId);
     }
 
     @Transactional
@@ -170,5 +180,20 @@ public class ParticipationService {
         if (!participation.isPending()) {
             throw new GeneralException(ErrorStatus.ALREADY_PROCESSED_APPLICATION);
         }
+    }
+
+    private Page<ParticipationResponse> mapParticipationsWithUserStatus(Page<Participation> participations, Long userId) {
+        List<Long> postIds = participations.getContent().stream()
+                .map(participation -> participation.getPost().getId())
+                .toList();
+        Map<Long, PostUserStatusService.PostUserStatus> statusMap =
+                postUserStatusService.getPostUserStatuses(postIds, userId);
+
+        return participations.map(participation -> {
+            PostUserStatusService.PostUserStatus status =
+                    statusMap.get(participation.getPost().getId());
+            return ParticipationResponse.from(participation, status.isLiked(),
+                    status.isParticipated());
+        });
     }
 }
