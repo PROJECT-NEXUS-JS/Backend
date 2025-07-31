@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final S3UploadService s3UploadService;
+    private final PostUserStatusService postUserStatusService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -48,21 +50,24 @@ public class PostService {
     }
 
     @Transactional
-    public PostSummaryResponse findPost(Long postId, boolean incrementView) {
+    public PostSummaryResponse findPost(Long postId, Long userId, boolean incrementView) {
         Post post = getPost(postId);
         if (incrementView) {
             post.incrementViewCount();
         }
-        return PostSummaryResponse.from(post);
+
+        PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
+        return PostSummaryResponse.from(post, status.isLiked(), status.isParticipated());
     }
 
-    public Page<PostSummaryResponse> findAllPosts(Pageable pageable) {
-        return postRepository.findByStatusOrderByCreatedAtDesc(PostStatus.ACTIVE, pageable)
-                .map(PostSummaryResponse::from);
+    public Page<PostSummaryResponse> findAllPosts(Long userId, Pageable pageable) {
+        Page<Post> posts = postRepository.findByStatusOrderByCreatedAtDesc(PostStatus.ACTIVE, pageable);
+
+        return mapPostsWithUserStatus(posts, userId);
     }
 
     public Page<PostSummaryResponse> findPosts(String mainCategory, String platformCategory,
-                                               String keyword, String sortBy, Pageable pageable) {
+                                               String keyword, String sortBy, Long userId, Pageable pageable) {
         PostSearchCondition condition = PostSearchCondition.builder()
                 .mainCategory(parseMainCategory(mainCategory))
                 .platformCategory(parsePlatformCategory(platformCategory))
@@ -71,10 +76,10 @@ public class PostService {
                 .status(PostStatus.ACTIVE)
                 .build();
 
-        return postRepository.findPostWithCondition(condition, pageable)
-                .map(PostSummaryResponse::from);
-    }
+        Page<Post> posts = postRepository.findPostWithCondition(condition, pageable);
 
+        return mapPostsWithUserStatus(posts, userId);
+    }
 
     @Transactional
     public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -89,7 +94,6 @@ public class PostService {
 //            }
             newThumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
         }
-
 
         request.updateEntity(post, newThumbnailUrl);
     }
@@ -144,5 +148,19 @@ public class PostService {
         } catch (Exception e) {
             throw new GeneralException(ErrorStatus.S3_DELETE_FAILED);
         }
+    }
+
+    private Page<PostSummaryResponse> mapPostsWithUserStatus(Page<Post> posts, Long userId) {
+        List<Long> postIds = posts.getContent().stream()
+                .map(Post::getId)
+                .toList();
+
+        Map<Long, PostUserStatusService.PostUserStatus> statusMap =
+                postUserStatusService.getPostUserStatuses(postIds, userId);
+
+        return posts.map(post -> {
+            PostUserStatusService.PostUserStatus status = statusMap.get(post.getId());
+            return PostSummaryResponse.from(post, status.isLiked(), status.isParticipated());
+        });
     }
 }

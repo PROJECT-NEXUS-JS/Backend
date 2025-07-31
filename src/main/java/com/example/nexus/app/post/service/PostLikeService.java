@@ -16,6 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -24,6 +27,7 @@ public class PostLikeService {
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostUserStatusService postUserStatusService;
 
     @Transactional
     public PostLikeToggleResponse toggleLike(Long postId, Long userId) {
@@ -48,7 +52,8 @@ public class PostLikeService {
     public Page<PostSummaryResponse> findUserLike(Long userId, Pageable pageable) {
         getUser(userId);
         Page<PostLike> likes = postLikeRepository.findByUserIdWithPostPaged(userId, pageable);
-        return likes.map(like -> PostSummaryResponse.from(like.getPost()));
+
+        return mapPostLikeWithUserStatus(likes, userId);
     }
 
     public boolean isLiked(Long postId, Long userId) {
@@ -67,5 +72,21 @@ public class PostLikeService {
     private Post getPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+    }
+
+    private Page<PostSummaryResponse> mapPostLikeWithUserStatus(Page<PostLike> likes, Long userId) {
+        List<Long> postIds = likes.getContent().stream()
+                .map(like -> like.getPost().getId())
+                .toList();
+
+        Map<Long, PostUserStatusService.PostUserStatus> statusMap =
+                postUserStatusService.getPostUserStatuses(postIds, userId);
+
+        return likes.map(like -> {
+            PostUserStatusService.PostUserStatus status =
+                    statusMap.get(like.getPost().getId());
+            return PostSummaryResponse.from(like.getPost(), status.isLiked(),
+                    status.isParticipated());
+        });
     }
 }

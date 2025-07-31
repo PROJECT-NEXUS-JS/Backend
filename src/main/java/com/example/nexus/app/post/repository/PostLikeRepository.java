@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
@@ -37,4 +38,10 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     long countByPostId(Long postId);
 
     long countByUserId(Long userId);
+
+    @Query("SELECT pl.post.id " +
+    "FROM PostLike pl " +
+    "WHERE pl.user.id = :userId AND pl.post.id IN :postIds")
+    Set<Long> findLikedPostIdsByUserIdAndPostIds(@Param("userId") Long userId,
+                                                 @Param("postIds") List<Long> postIds);
 }

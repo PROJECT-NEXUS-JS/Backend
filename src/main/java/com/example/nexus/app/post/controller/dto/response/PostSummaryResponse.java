@@ -95,77 +95,7 @@ public record PostSummaryResponse(
         Boolean isParticipated
 ) {
 
-    public static PostSummaryResponse from(Post post) {
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getServiceSummary(),
-                post.getCreatorIntroduction(),
-                post.getDescription(),
-                post.getThumbnailUrl(),
-                post.getFeedbackMethod(),
-                post.getDurationTime(),
-                post.getParticipationMethod(),
-                post.getQna(),
-                post.getRewardType(),
-                post.getMaxParticipants(),
-                post.getGenderRequirement(),
-                post.getAgeMin(),
-                post.getAgeMax(),
-                post.getStartDate(),
-                post.getEndDate(),
-                post.getCreatedAt(),
-                post.getCreatedBy(),
-                CategoryResponse.from(post.getMainCategory()),
-                CategoryResponse.from(post.getPlatformCategory()),
-                post.getGenreCategories().stream()
-                        .map(CategoryResponse::from)
-                        .toList(),
-                post.getStatus(),
-                post.getLikeCount(),
-                post.getViewCount(),
-                post.getCurrentParticipants(),
-                false,
-                false
-        );
-    }
-
-    public static PostSummaryResponse fromWithLikeStatus(Post post, Boolean isLiked) {
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getServiceSummary(),
-                post.getCreatorIntroduction(),
-                post.getDescription(),
-                post.getThumbnailUrl(),
-                post.getFeedbackMethod(),
-                post.getDurationTime(),
-                post.getParticipationMethod(),
-                post.getQna(),
-                post.getRewardType(),
-                post.getMaxParticipants(),
-                post.getGenderRequirement(),
-                post.getAgeMin(),
-                post.getAgeMax(),
-                post.getStartDate(),
-                post.getEndDate(),
-                post.getCreatedAt(),
-                post.getCreatedBy(),
-                CategoryResponse.from(post.getMainCategory()),
-                CategoryResponse.from(post.getPlatformCategory()),
-                post.getGenreCategories().stream()
-                        .map(CategoryResponse::from)
-                        .toList(),
-                post.getStatus(),
-                post.getLikeCount(),
-                post.getViewCount(),
-                post.getCurrentParticipants(),
-                isLiked,
-                false
-        );
-    }
-
-    public static PostSummaryResponse fromWithStatus(Post post, Boolean isLiked, Boolean isParticipated) {
+    public static PostSummaryResponse from(Post post, Boolean isLiked, Boolean isParticipated) {
         return new PostSummaryResponse(
                 post.getId(),
                 post.getTitle(),

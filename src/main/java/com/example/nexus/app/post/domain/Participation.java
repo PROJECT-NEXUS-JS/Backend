@@ -1,5 +1,6 @@
 package com.example.nexus.app.post.domain;
 
+import com.example.nexus.app.post.domain.dto.ParticipationApplicationDto;
 import com.example.nexus.app.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -40,12 +41,49 @@ public class Participation {
     @Column(nullable = false)
     private ParticipationStatus status;
 
+    @Column(name = "applicant_name", nullable = false, length = 10)
+    private String applicantName;
+
+    @Column(name = "contact_number", nullable = false)
+    private String contactNumber;
+
+    @Column(name = "application_reason", nullable = false, columnDefinition = "TEXT")
+    private String applicationReason;
+
+    @Column(name = "privacy_agreement", nullable = false)
+    private Boolean privacyAgreement;
+
+    @Column(name = "terms_agreement", nullable = false)
+    private Boolean termsAgreement;
+
     @Builder
-    public Participation(Post post, User user, ParticipationStatus status) {
+    public Participation(Post post, User user, ParticipationStatus status, String applicantName,
+                         String contactNumber, String applicationReason, Boolean privacyAgreement,
+                         Boolean termsAgreement) {
         this.post = post;
         this.user = user;
         this.status = status;
+        this.applicantName = applicantName;
+        this.contactNumber = contactNumber;
+        this.applicationReason = applicationReason;
+        this.privacyAgreement = privacyAgreement;
+        this.termsAgreement = termsAgreement;
     }
+
+    public static Participation createApplication(Post post, User user, ParticipationApplicationDto applicationDto) {
+
+        return Participation.builder()
+                .post(post)
+                .user(user)
+                .status(ParticipationStatus.PENDING)
+                .applicantName(applicationDto.applicantName())
+                .contactNumber(applicationDto.contactNumber())
+                .applicationReason(applicationDto.applicationReason())
+                .privacyAgreement(applicationDto.privacyAgreement())
+                .termsAgreement(applicationDto.termsAgreement())
+                .build();
+    }
+
 
     public void approve() {
         this.status = ParticipationStatus.APPROVED;
@@ -55,10 +93,6 @@ public class Participation {
     public void reject() {
         this.status = ParticipationStatus.REJECTED;
         this.approvedAt = LocalDateTime.now();
-    }
-
-    public void complete() {
-        this.status = ParticipationStatus.COMPLETED;
     }
 
     public boolean isPending() {
@@ -71,9 +105,5 @@ public class Participation {
 
     public boolean isRejected() {
         return this.status == ParticipationStatus.REJECTED;
-    }
-
-    public boolean isCompleted() {
-        return this.status == ParticipationStatus.COMPLETED;
     }
 }
