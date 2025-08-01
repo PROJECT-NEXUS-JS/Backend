@@ -30,12 +30,17 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
         // 메인 카테고리 조건
         if (condition.getMainCategory() != null) {
-            builder.and(post.mainCategory.eq(condition.getMainCategory()));
+            builder.and(post.mainCategory.contains(condition.getMainCategory()));
         }
 
         // 플랫폼 카테고리 조건
         if (condition.getPlatformCategory() != null) {
-            builder.and(post.platformCategory.eq(condition.getPlatformCategory()));
+            builder.and(post.platformCategory.contains(condition.getPlatformCategory()));
+        }
+
+        // 장르 카테고리 조건
+        if (condition.getGenreCategory() != null) {
+            builder.and(post.genreCategories.contains(condition.getGenreCategory()));
         }
 
         // 키워드 검색 조건
@@ -53,6 +58,11 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         // 데이터 조회
         List<Post> content = queryFactory
                 .selectFrom(post)
+                .leftJoin(post.schedule).fetchJoin()
+                .leftJoin(post.requirement).fetchJoin()
+                .leftJoin(post.reward).fetchJoin()
+                .leftJoin(post.feedback).fetchJoin()
+                .leftJoin(post.postContent).fetchJoin()
                 .where(builder)
                 .orderBy(orderSpecifiers)
                 .offset(pageable.getOffset())
@@ -77,7 +87,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                     post.createdAt.desc()
             };
             case DEADLINE -> new OrderSpecifier[]{
-                    post.endDate.asc(),
+                    post.schedule.endDate.asc(),
                     post.createdAt.desc()
             };
             case VIEW_COUNT -> new OrderSpecifier[]{

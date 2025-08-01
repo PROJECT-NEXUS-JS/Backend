@@ -29,7 +29,7 @@ public record ParticipationResponse(
         String applicationReason,
 
         @Schema(description = "게시글 정보")
-        PostSummaryResponse post,
+        PostDetailResponse post,
 
         @Schema(description = "참여자 정보")
         UserSummaryResponse user
@@ -44,7 +44,7 @@ public record ParticipationResponse(
                 participation.getApplicantName(),
                 participation.getContactNumber(),
                 participation.getApplicationReason(),
-                PostSummaryResponse.from(participation.getPost(), isLiked, isParticipated),
+                PostDetailResponse.from(participation.getPost(), isLiked, isParticipated),
                 UserSummaryResponse.from(participation.getUser())
         );
     }

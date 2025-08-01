@@ -19,17 +19,13 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
     void deleteByUserIdAndPostId(Long userId, Long postId);
 
-    // 사용자가 찜한 게시글 목록
-    @Query("SELECT pl " +
-            "from PostLike pl " +
-            "JOIN FETCH pl.post " +
-            "WHERE pl.user.id = :userId " +
-            "ORDER BY pl.createdAt DESC")
-    List<PostLike> findByUserIdWithPost(@Param("userId") Long userId);
-
-    @Query("SELECT pl " +
-            "FROM PostLike pl " +
-            "JOIN FETCH pl.post " +
+    @Query("SELECT pl FROM PostLike pl " +
+            "JOIN FETCH pl.post p " +
+            "LEFT JOIN FETCH p.schedule " +
+            "LEFT JOIN FETCH p.requirement " +
+            "LEFT JOIN FETCH p.reward " +
+            "LEFT JOIN FETCH p.feedback " +
+            "LEFT JOIN FETCH p.postContent " +
             "WHERE pl.user.id = :userId " +
             "ORDER BY pl.createdAt DESC")
     Page<PostLike> findByUserIdWithPostPaged(@Param("userId") Long userId, Pageable pageable);
@@ -42,6 +38,5 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     @Query("SELECT pl.post.id " +
     "FROM PostLike pl " +
     "WHERE pl.user.id = :userId AND pl.post.id IN :postIds")
-    Set<Long> findLikedPostIdsByUserIdAndPostIds(@Param("userId") Long userId,
-                                                 @Param("postIds") List<Long> postIds);
+    Set<Long> findLikedPostIdsByUserIdAndPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 }
