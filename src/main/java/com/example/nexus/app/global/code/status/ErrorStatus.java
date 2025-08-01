@@ -14,28 +14,27 @@ public enum ErrorStatus implements BaseErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "VALID4001", "입력값 유효성 검증에 실패했습니다."),
     MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "VALID4002", "필수 파라미터가 누락되었습니다."),
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "VALID4003", "파라미터 타입이 올바르지 않습니다."),
-    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
-    UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "COMMON422", "처리할 수 없는 엔티티입니다."),
     INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4004", "유효하지 않은 메인 카테고리입니다."),
     INVALID_PLATFORM_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY4005", "유효하지 않은 플랫폼 카테고리입니다."),
-    FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "FILE4001", "업로드할 파일이 없습니다."),
-    POST_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "POST4006", "활성화되지 않은 게시글입니다."),
-    POST_EXPIRED(HttpStatus.BAD_REQUEST, "POST4007", "마감된 게시글입니다."),
-    PARTICIPATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PARTICIPANT4008", "참가 인원이 마감되었습니다."),
-    CANNOT_CANCEL_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4009", "취소할 수 없는 신청입니다."),
-    INTEREST_LENGTH_EXCEEDED(HttpStatus.BAD_REQUEST, "PROFILE400", "각 관심사는 15자 이내로 입력해주세요."),
-    POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40010", "게시글 발행을 위해 일정 정보가 필요합니다."),
-    POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400011", "게시글 발행을 위해 참여 조건이 필요합니다."),
-    POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 피드백 설정이 필요합니다."),
-    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400013", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
-    INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40014", "유효하지 않은 장르 카테고리입니다."),
-    POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40015", "임시저장 상태가 아닌 게시글입니다."),
+    FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "FILE4006", "업로드할 파일이 없습니다."),
+    POST_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "POST4007", "활성화되지 않은 게시글입니다."),
+    POST_EXPIRED(HttpStatus.BAD_REQUEST, "POST4008", "마감된 게시글입니다."),
+    PARTICIPATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PARTICIPANT4009", "참가 인원이 마감되었습니다."),
+    CANNOT_CANCEL_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION40010", "취소할 수 없는 신청입니다."),
+    INTEREST_LENGTH_EXCEEDED(HttpStatus.BAD_REQUEST, "PROFILE40011", "각 관심사는 15자 이내로 입력해주세요."),
+
+    POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 일정 정보가 필요합니다."),
+    POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400013", "게시글 발행을 위해 참여 조건이 필요합니다."),
+    POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40014", "게시글 발행을 위해 피드백 설정이 필요합니다."),
+    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
+    INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40016", "유효하지 않은 장르 카테고리입니다."),
+    POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40017", "임시저장 상태가 아닌 게시글입니다."),
 
     // 401 Unauthorized
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
-    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4012", "인증 정보가 올바르지 않습니다."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "토큰이 유효하지 않습니다."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4014", "토큰이 만료되었습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증 정보가 올바르지 않습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4012", "토큰이 유효하지 않습니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4013", "토큰이 만료되었습니다."),
 
     // 403 Forbidden
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "접근 권한이 없습니다."),
@@ -55,13 +54,12 @@ public enum ErrorStatus implements BaseErrorCode {
     PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPATION4047", "참가 신청 여부를 찾을 수 없습니다."),
     POST_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_SCHEDULE4048", "게시글 일정 정보를 찾을 수 없습니다."),
     POST_REQUIREMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REQUIREMENT4049", "게시글 참여 조건을 찾을 수 없습니다."),
-
+    POST_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REWARD40410", "게시글 리워드 정보를 찾을 수 없습니다."),
+    POST_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_FEEDBACK40411", "게시글 피드백 설정을 찾을 수 없습니다."),
+    POST_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_CONTENT40412", "게시글 콘텐츠 정보를 찾을 수 없습니다."),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "허용되지 않는 HTTP 메서드입니다."),
-    POST_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REWARD4051", "게시글 리워드 정보를 찾을 수 없습니다."),
-    POST_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_FEEDBACK4052", "게시글 피드백 설정을 찾을 수 없습니다."),
-    POST_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_CONTENT4053", "게시글 콘텐츠 정보를 찾을 수 없습니다."),
 
     // 409 Conflict
     CONFLICT(HttpStatus.CONFLICT, "COMMON409", "요청이 현재 리소스 상태와 충돌합니다."),
@@ -69,18 +67,25 @@ public enum ErrorStatus implements BaseErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT, "GEN4092", "리소스 버전 충돌이 발생했습니다."),
     ALREADY_APPLIED(HttpStatus.CONFLICT, "PARTICIPANT4093", "이미 신청한 게시글입니다."),
     ALREADY_PROCESSED_APPLICATION(HttpStatus.CONFLICT, "APPLICATION4094", "이미 처리된 신청입니다."),
+
+    // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
+    UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "COMMON422", "처리할 수 없는 엔티티입니다."),
+
     // 429 Too Many Requests
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "COMMON429", "요청이 너무 많습니다. 잠시 후 다시 시도하세요."),
-    RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "GEN4291", "요청 한도를 초과했습니다."),
+    RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "LIMIT4291", "요청 한도를 초과했습니다."),
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러, 관리자에게 문의 바랍니다."),
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35001", "파일 업로드 중 오류가 발생했습니다."),
-    DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "DB5001", "데이터베이스 처리 중 오류가 발생했습니다."),
+    S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35002", "파일 삭제 중 오류가 발생했습니다."),
+    DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "DB5003", "데이터베이스 처리 중 오류가 발생했습니다."),
+
+    // 502, 502, 504
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON502", "불완전한 게이트웨이 응답을 받았습니다."),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON503", "서비스를 일시적으로 사용할 수 없습니다."),
-    GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "COMMON504", "게이트웨이 연결이 시간 초과되었습니다."),
-    S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35005", "파일 삭제 중 오류가 발생했습니다.");
+    GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "COMMON504", "게이트웨이 연결이 시간 초과되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
