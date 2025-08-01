@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserProfileService {
@@ -31,6 +33,8 @@ public class UserProfileService {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
 
+        validateInterests(requestDto.getInterests());
+
         UserProfile userProfile = UserProfile.builder()
                 .user(user)
                 .job(requestDto.getJob())
@@ -45,5 +49,17 @@ public class UserProfileService {
         user.updateRefreshToken(newRefreshToken);
 
         return new LoginResponseDto(newAccessToken, newRefreshToken);
+    }
+
+    /**
+     * 관심사 리스트의 각 항목 길이를 검증하는 private 메소드
+     * @param interests 검증할 관심사 리스트
+     */
+    private void validateInterests(List<String> interests) {
+        for (String interest : interests) {
+            if (interest.length() > 15) {
+                throw new GeneralException(ErrorStatus.INTEREST_LENGTH_EXCEEDED);
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_EXPIRED(HttpStatus.BAD_REQUEST, "POST4007", "마감된 게시글입니다."),
     PARTICIPATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PARTICIPANT4008", "참가 인원이 마감되었습니다."),
     CANNOT_CANCEL_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4009", "취소할 수 없는 신청입니다."),
+    INTEREST_LENGTH_EXCEEDED(HttpStatus.BAD_REQUEST, "PROFILE400", "각 관심사는 15자 이내로 입력해주세요."),
     POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40010", "게시글 발행을 위해 일정 정보가 필요합니다."),
     POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400011", "게시글 발행을 위해 참여 조건이 필요합니다."),
     POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 피드백 설정이 필요합니다."),
