@@ -39,7 +39,7 @@ public class AuthService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         String lastLoginAtStr = (user.getLastLoginAt() != null) ? user.getLastLoginAt().toString() : null;
-        return new UserInfoResponseDto(user.getEmail(), user.getNickname(), user.getProfileUrl(), lastLoginAtStr);
+        return new UserInfoResponseDto(user.getEmail(), user.getNickname(), user.getProfileUrl(), lastLoginAtStr, user.getRoleType());
     }
 
     public String reissueAccessToken(String refreshToken) {

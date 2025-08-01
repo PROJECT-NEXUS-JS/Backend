@@ -1,5 +1,6 @@
 package com.example.nexus.app.global.code.dto;
 
+import com.example.nexus.app.user.domain.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import java.time.LocalDateTime;
@@ -11,4 +12,5 @@ public class UserInfoResponseDto {
     private String nickname;
     private String profileUrl;
     private String lastLoginAt;
+    private RoleType RoleType;
 }
