@@ -97,4 +97,4 @@ public class FullRankingResponse {
             return "마감 D-" + daysUntilDeadline + "일전";
         }
     }
-} 
+}

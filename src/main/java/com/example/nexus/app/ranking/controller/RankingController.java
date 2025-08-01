@@ -44,4 +44,4 @@ public class RankingController {
         FullRankingResponse response = rankingService.getFullRanking(rankingType, mainCategory, platformCategory, pageable);
         return ApiResponse.onSuccess(response);
     }
-} 
+}
