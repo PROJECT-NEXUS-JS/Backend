@@ -2,7 +2,6 @@ package com.example.nexus.app.global.oauth.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.dto.LoginResponseDto;
-import com.example.nexus.app.global.code.dto.TokenReissueResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoResponseDto;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.oauth.service.AuthService;
@@ -10,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,12 +38,15 @@ public class AuthController {
         return ApiResponse.onSuccess(userInfo);
     }
 
-    @Operation(summary = "Access Token 재발급", description = "Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.")
+    @Operation(summary = "Access/Refresh 토큰 재발급", description = "Refresh Token을 사용하여 새로운 Access/Refresh 토큰 쌍을 발급받고, 기존 토큰들은 무효화됩니다.")
     @PostMapping("/reissue")
-    public ApiResponse<TokenReissueResponseDto> reissueToken(
+    public ApiResponse<LoginResponseDto> reissueTokens(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @Parameter(description = "Refresh Token (Bearer 스키마 제외)", required = true)
             @RequestHeader("RefreshToken") String refreshToken) {
-        String newAccessToken = authService.reissueAccessToken(refreshToken);
-        return ApiResponse.onSuccess(new TokenReissueResponseDto(newAccessToken));
+
+        String accessToken = authorizationHeader.substring(7);
+        LoginResponseDto newTokens = authService.reissueTokens(accessToken, refreshToken);
+        return ApiResponse.onSuccess(newTokens);
     }
 }

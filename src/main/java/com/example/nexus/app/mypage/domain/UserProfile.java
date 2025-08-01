@@ -38,4 +38,14 @@ public class UserProfile {
         this.job = job;
         this.interests = interests;
     }
+
+    /**
+     * 프로필 정보를 수정하는 메소드
+     * @param job 수정할 직업
+     * @param interests 수정할 관심사 목록
+     */
+    public void update(String job, List<String> interests) {
+        this.job = job;
+        this.interests = interests;
+    }
 }

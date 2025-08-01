@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,58 +24,45 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         if (request.getRequestURI().equals("/auth/login")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String refreshToken = jwtService.extractRefreshToken(request)
-                .filter(jwtService::isTokenValid)
-                .orElse(null);
-
-        if (refreshToken != null) {
-            checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
+        if (jwtService.extractRefreshToken(request).isPresent()) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        if (refreshToken == null) {
-            checkAccessTokenAndAuthentication(request, response, filterChain);
-        }
-    }
-
-    public void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
-
-        userRepository.findByRefreshToken(refreshToken)
-                .ifPresent(user -> {
-                    String reIssuedRefreshToken = reIssueRefreshToken(user);
-                    jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(user.getEmail(), user.getId()),
-                            reIssuedRefreshToken);
-                });
-    }
-
-    private String reIssueRefreshToken(User user) {
-
-        String reIssuedRefreshToken = jwtService.createRefreshToken();
-        user.updateRefreshToken(reIssuedRefreshToken);
-        userRepository.saveAndFlush(user);
-        return reIssuedRefreshToken;
+        checkAccessTokenAndAuthentication(request, response, filterChain);
     }
 
     public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
                                                   FilterChain filterChain) throws ServletException, IOException {
-        jwtService.extractAccessToken(request)
-                .filter(jwtService::isTokenValid).flatMap(accessToken -> jwtService.extractEmail(accessToken).flatMap(userRepository::findByEmail)).ifPresent(this::saveAuthentication);
+
+        Optional<String> accessTokenOpt = jwtService.extractAccessToken(request);
+        if (accessTokenOpt.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String accessToken = accessTokenOpt.get();
+        if (jwtService.isTokenValid(accessToken) && !tokenBlacklistService.isTokenBlacklisted(accessToken)) {
+            jwtService.extractEmail(accessToken)
+                    .flatMap(userRepository::findByEmail)
+                    .ifPresent(this::saveAuthentication);
+        }
 
         filterChain.doFilter(request, response);
     }
 
     public void saveAuthentication(User myUser) {
-
         CustomUserDetails userDetailsUser = new CustomUserDetails(
                 Collections.singleton(new SimpleGrantedAuthority(myUser.getRoleType().toString())),
                 myUser.getEmail(),

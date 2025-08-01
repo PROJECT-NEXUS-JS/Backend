@@ -25,6 +25,7 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -40,8 +41,9 @@ public class SecurityConfig {
                                 "/swagger-resources/**", "/webjars/**",
                                 "/auth/login", "/auth/reissue"
                         ).permitAll()
+                        .requestMatchers("/api/v1/users/profile").hasAnyRole("GUEST", "USER")
                         .requestMatchers("/auth/me", "/v1/users/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated() // 이제부터, 운영환경과 동일한 시큐리티 필터체인 사용.
                 )
                 .addFilterBefore(jwtAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -64,7 +66,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationProcessingFilter jwtAuthenticationProcessingFilter() {
-        return new JwtAuthenticationProcessingFilter(jwtService, userRepository);
+        return new JwtAuthenticationProcessingFilter(jwtService, userRepository, tokenBlacklistService);
     }
 
     @Bean

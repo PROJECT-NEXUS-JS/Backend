@@ -27,17 +27,17 @@ public class ReviewService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Review createReview(ReviewCreateRequest request, User authUser) {
-        User currentUser = userRepository.findById(authUser.getId())
-            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+    public Review createReview(ReviewCreateRequest request, Long authUserId) {
+        User currentUser = userRepository.findById(authUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         Review review = Review.builder()
-            .postId(request.getPostId())
-            .rating(request.getRating())
-            .content(request.getContent())
-            .createdBy(currentUser)
-            .updatedBy(currentUser)
-            .build();
+                .postId(request.getPostId())
+                .rating(request.getRating())
+                .content(request.getContent())
+                .createdBy(currentUser)
+                .updatedBy(currentUser)
+                .build();
         return reviewRepository.save(review);
     }
 
@@ -49,31 +49,34 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<Review> getReviewsByPostId(Long postId) {
         return reviewRepository
-            .findByPostId(postId);
+                .findByPostId(postId);
     }
 
     @Transactional
-    public Review updateReview(Long reviewId, ReviewUpdateRequest request, User authUser) {
+    public Review updateReview(Long reviewId, ReviewUpdateRequest request, Long authUserId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
-        if (!review.getCreatedBy().getId().equals(authUser.getId())) {
+        if (!review.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
 
-        User currentUser = userRepository.findById(authUser.getId())
-            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        User currentUser = userRepository.findById(authUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         review.update(request.getRating(), request.getContent(), currentUser);
         return review;
     }
 
     @Transactional
-    public void deleteReview(Long reviewId) {
-        if (!reviewRepository.existsById(reviewId)) {
-            throw new RuntimeException("리뷰를 찾을 수 없습니다.");
+    public void deleteReview(Long reviewId, Long authUserId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+
+        if (!review.getCreatedBy().getId().equals(authUserId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
+
         reviewRepository.deleteById(reviewId);
     }
-
 }
