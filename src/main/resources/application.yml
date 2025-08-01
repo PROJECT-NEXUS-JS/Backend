@@ -24,6 +24,7 @@ spring:
       hibernate:
         format_sql: true
     show-sql: true
+    open-in-view: false
 
 jwt:
   secretKey: ${JWT_SECRET_KEY}
