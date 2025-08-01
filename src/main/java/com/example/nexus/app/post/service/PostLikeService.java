@@ -2,8 +2,8 @@ package com.example.nexus.app.post.service;
 
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostLikeToggleResponse;
-import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostLike;
 import com.example.nexus.app.post.repository.PostLikeRepository;
@@ -45,11 +45,10 @@ public class PostLikeService {
             post.incrementLikeCount();
         }
 
-        Long likeCount = postLikeRepository.countByPostId(postId);
-        return PostLikeToggleResponse.of(!isLiked, likeCount);
+        return PostLikeToggleResponse.of(!isLiked, post.getLikeCount().longValue());
     }
 
-    public Page<PostSummaryResponse> findUserLike(Long userId, Pageable pageable) {
+    public Page<PostDetailResponse> findUserLike(Long userId, Pageable pageable) {
         getUser(userId);
         Page<PostLike> likes = postLikeRepository.findByUserIdWithPostPaged(userId, pageable);
 
@@ -70,22 +69,21 @@ public class PostLikeService {
     }
 
     private Post getPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
     }
 
-    private Page<PostSummaryResponse> mapPostLikeWithUserStatus(Page<PostLike> likes, Long userId) {
+    private Page<PostDetailResponse> mapPostLikeWithUserStatus(Page<PostLike> likes, Long userId) {
         List<Long> postIds = likes.getContent().stream()
                 .map(like -> like.getPost().getId())
                 .toList();
 
-        Map<Long, PostUserStatusService.PostUserStatus> statusMap =
-                postUserStatusService.getPostUserStatuses(postIds, userId);
+        Map<Long, PostUserStatusService.PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
 
         return likes.map(like -> {
             PostUserStatusService.PostUserStatus status =
                     statusMap.get(like.getPost().getId());
-            return PostSummaryResponse.from(like.getPost(), status.isLiked(),
+            return PostDetailResponse.from(like.getPost(), status.isLiked(),
                     status.isParticipated());
         });
     }
