@@ -23,6 +23,12 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_EXPIRED(HttpStatus.BAD_REQUEST, "POST4007", "마감된 게시글입니다."),
     PARTICIPATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PARTICIPANT4008", "참가 인원이 마감되었습니다."),
     CANNOT_CANCEL_APPLICATION(HttpStatus.BAD_REQUEST, "APPLICATION4009", "취소할 수 없는 신청입니다."),
+    POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40010", "게시글 발행을 위해 일정 정보가 필요합니다."),
+    POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400011", "게시글 발행을 위해 참여 조건이 필요합니다."),
+    POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 피드백 설정이 필요합니다."),
+    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400013", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
+    INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40014", "유효하지 않은 장르 카테고리입니다."),
+    POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40015", "임시저장 상태가 아닌 게시글입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH4011", "인증이 필요합니다."),
@@ -46,10 +52,15 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4045", "게시글을 찾을 수 없습니다."),
     GENRE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY4046", "존재하지 않는 장르 카테고리가 포함되어 있습니다."),
     PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPATION4047", "참가 신청 여부를 찾을 수 없습니다."),
+    POST_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_SCHEDULE4048", "게시글 일정 정보를 찾을 수 없습니다."),
+    POST_REQUIREMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REQUIREMENT4049", "게시글 참여 조건을 찾을 수 없습니다."),
 
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "허용되지 않는 HTTP 메서드입니다."),
+    POST_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REWARD4051", "게시글 리워드 정보를 찾을 수 없습니다."),
+    POST_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_FEEDBACK4052", "게시글 피드백 설정을 찾을 수 없습니다."),
+    POST_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_CONTENT4053", "게시글 콘텐츠 정보를 찾을 수 없습니다."),
 
     // 409 Conflict
     CONFLICT(HttpStatus.CONFLICT, "COMMON409", "요청이 현재 리소스 상태와 충돌합니다."),
