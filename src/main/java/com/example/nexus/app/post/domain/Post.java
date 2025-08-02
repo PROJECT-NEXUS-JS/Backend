@@ -67,6 +67,9 @@ public class Post {
     @Column(nullable = false)
     private PostStatus status;
 
+    @Column(name = "qna_Method")
+    private String qnaMethod;
+
     @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
 
@@ -109,13 +112,14 @@ public class Post {
 
     public Post(String title, String serviceSummary, String creatorIntroduction, String description,
                 String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
-                Set<GenreCategory> genreCategories, PostStatus status) {
+                Set<GenreCategory> genreCategories, PostStatus status, String qnaMethod) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.status = status;
+        this.qnaMethod = qnaMethod;
 
         if (mainCategory != null) {
             this.mainCategory = new HashSet<>(mainCategory);
@@ -130,9 +134,13 @@ public class Post {
 
     public Post(String title, String serviceSummary, String creatorIntroduction, String description,
                 String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
-                Set<GenreCategory> genreCategories) {
+                Set<GenreCategory> genreCategories, String qnaMethod) {
         this(title, serviceSummary, creatorIntroduction, description, thumbnailUrl, 
-             mainCategory, platformCategory, genreCategories, PostStatus.DRAFT);
+             mainCategory, platformCategory, genreCategories, PostStatus.DRAFT, qnaMethod);
+    }
+
+    public void updateQnaMethod(String qnaMethod) {
+        this.qnaMethod = qnaMethod;
     }
 
     public void incrementViewCount() {
@@ -219,11 +227,12 @@ public class Post {
 
     public void updateBasicInfo(String title, String serviceSummary,
                                 String creatorIntroduction, String description,
-                                String thumbnailUrl) {
+                                String thumbnailUrl, String qnaMethod) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
+        this.qnaMethod = qnaMethod;
     }
 }
