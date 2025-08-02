@@ -34,7 +34,7 @@ public class ParticipationService {
     // 참가 신청
     @Transactional
     public ParticipationResponse applyForParticipation(Long postId, Long userId, ParticipationApplicationRequest request) {
-        Post post = getPost(postId);
+        Post post = getPostWithDetail(postId);
         User user = getUser(userId);
         validatePostForApplication(post);
         validateDuplicateApplication(postId, userId);
@@ -94,8 +94,10 @@ public class ParticipationService {
     public void approveApplication(Long participationId, Long userId) {
         Participation participation = getParticipation(participationId);
         validateParticipationOwnershipAndStatus(participation, userId);
+
+        Post post = participation.getPost();
         participation.approve();
-        participation.getPost().incrementParticipants();
+        post.incrementParticipants();
     }
 
     @Transactional
@@ -135,6 +137,11 @@ public class ParticipationService {
 
     private Post getPost(Long postId) {
         return postRepository.findById(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+    }
+
+    private Post getPostWithDetail(Long postId) {
+        return postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
     }
 

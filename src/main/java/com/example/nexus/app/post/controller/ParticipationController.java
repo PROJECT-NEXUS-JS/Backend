@@ -99,8 +99,7 @@ public class ParticipationController {
 
     @Operation(summary = "게시글 신청자 목록 조회 (상태별)", description = "게시글의 특정 상태 신청자 목록을 조회합니다. (작성자만 가능)")
     @GetMapping("/{postId}/applications/{status}")
-    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>>
-    getPostApplicationsByStatus(
+    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
             @Parameter(description = "게시글 ID", required = true)
             @PathVariable Long postId,
             @Parameter(description = "참가 상태 (PENDING, APPROVED, REJECTED)", required = true)

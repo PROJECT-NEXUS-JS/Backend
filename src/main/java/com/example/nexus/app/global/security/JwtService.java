@@ -2,6 +2,8 @@ package com.example.nexus.app.global.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.user.domain.User;
@@ -122,6 +124,22 @@ public class JwtService {
         } catch (Exception e) {
             log.warn("유효하지 않은 토큰입니다. 원인: {}", e.getMessage());
             return false;
+        }
+    }
+
+    public String verifyTokenAndGetEmail(String token) {
+        try {
+            return JWT.require(Algorithm.HMAC512(secretKey))
+                    .build()
+                    .verify(token)
+                    .getClaim(EMAIL_CLAIM)
+                    .asString();
+        } catch (TokenExpiredException e) {
+            log.warn("만료된 토큰입니다. {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.EXPIRED_TOKEN);
+        } catch (JWTVerificationException e) {
+            log.warn("유효하지 않은 토큰입니다. {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
         }
     }
 }

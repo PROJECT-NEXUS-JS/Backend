@@ -2,8 +2,8 @@ package com.example.nexus.app.post.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
+import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostLikeToggleResponse;
-import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.service.PostLikeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,11 +37,11 @@ public class PostLikeController {
 
     @Operation(summary = "내 찜 목록 조회", description = "사용자가 찜한 게시글 목록을 조회합니다.")
     @GetMapping("/likes")
-    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getUserLikes(
+    public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getUserLikes(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<PostSummaryResponse> likes = postLikeService.findUserLike(userDetails.getUserId(), pageable);
+        Page<PostDetailResponse> likes = postLikeService.findUserLike(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(likes));
     }
 

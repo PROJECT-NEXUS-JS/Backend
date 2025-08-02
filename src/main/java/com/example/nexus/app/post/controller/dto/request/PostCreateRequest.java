@@ -3,118 +3,125 @@ package com.example.nexus.app.post.controller.dto.request;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
-import com.example.nexus.app.post.domain.Post;
-import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.post.domain.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 public record PostCreateRequest(
-        @Schema(description = "게시글 제목", example = "새로운 앱 테스트 모집")
-        @NotBlank(message = "제목은 필수입니다")
+        @Schema(description = "제목")
+        @NotBlank
         String title,
 
-        @Schema(description = "서비스 요약", example = "음식 배달 앱 베타 테스트")
-        @NotBlank(message = "서비스 요약은 필수입니다")
+        @Schema(description = "서비스 요약")
+        @NotBlank
         String serviceSummary,
 
-        @Schema(description = "제작자 소개", example = "스타트업 개발팀입니다")
-        @NotBlank(message = "제작자 소개는 필수입니다")
+        @Schema(description = "제작자 소개")
+        @NotBlank
         String creatorIntroduction,
 
-        @Schema(description = "상세 설명", example = "앱의 기능을 테스트해주세요")
-        @NotBlank(message = "상세 설명은 필수입니다")
+        @Schema(description = "상세 설명")
+        @NotBlank
         String description,
 
-        @Schema(description = "피드백 방법", example = "설문조사")
-        @NotBlank(message = "피드백 방법은 필수입니다")
-        String feedbackMethod,
+        @Schema(description = "메인 카테고리")
+        @NotNull
+        Set<MainCategory> mainCategory,
 
-        @Schema(description = "소요시간", example = "30분")
-        @NotBlank(message = "소요시간은 필수입니다")
-        String durationTime,
+        @Schema(description = "플랫폼 카테고리")
+        @NotNull
+        Set<PlatformCategory> platformCategory,
 
-        @Schema(description = "참여방식", example = "온라인")
-        @NotBlank(message = "참여방식은 필수입니다")
-        String participationMethod,
-
-        @Schema(description = "QNA", example = "자주 묻는 질문들...")
-        String qna,
-
-        @Schema(description = "리워드 타입", example = "GIFT_CARD")
-        RewardType rewardType,
-
-        @Schema(description = "최대 참여자 수", example = "50")
-        Integer maxParticipants,
-
-        @Schema(description = "성별 요구사항", example = "ALL")
-        String genderRequirement,
-
-        @Schema(description = "최소 나이", example = "18")
-        Integer ageMin,
-
-        @Schema(description = "최대 나이", example = "65")
-        Integer ageMax,
+        @Schema(description = "장르 카테고리 목록")
+        Set<GenreCategory> genreCategories,
 
         @Schema(description = "시작 날짜")
-        @NotNull(message = "시작 날짜는 필수입니다")
+        @NotNull
         LocalDateTime startDate,
 
         @Schema(description = "종료 날짜")
-        @NotNull(message = "종료 날짜는 필수입니다")
+        @NotNull
         LocalDateTime endDate,
 
-        @Schema(description = "메인 카테고리")
-        @NotNull(message = "메인 카테고리는 필수입니다")
-        MainCategory mainCategory,
+        @Schema(description = "모집 마감일")
+        LocalDateTime recruitmentDeadline,
 
-        @Schema(description = "플랫폼 카테고리")
-        @NotNull(message = "플랫폼 카테고리는 필수입니다")
-        PlatformCategory platformCategory,
+        @Schema(description = "소요 시간")
+        @NotBlank
+        String durationTime,
 
-        @Schema(description = "장르 카테고리 목록 (다중선택)")
-        Set<GenreCategory> genreCategories
+        @Schema(description = "최대 참여자 수")
+        Integer maxParticipants,
+
+        @Schema(description = "성별 요구사항")
+        String genderRequirement,
+
+        @Schema(description = "최소 나이")
+        Integer ageMin,
+
+        @Schema(description = "최대 나이")
+        Integer ageMax,
+
+        @Schema(description = "추가 요구사항")
+        String additionalRequirements,
+
+        @Schema(description = "리워드 타입")
+        RewardType rewardType,
+
+        @Schema(description = "리워드 상세 설명")
+        String rewardDescription,
+
+        @Schema(description = "피드백 방법")
+        @NotBlank
+        String feedbackMethod,
+
+        @Schema(description = "피드백 항목")
+        String feedbackItems,
+
+        @Schema(description = "개인정보 수집 항목")
+        String privacyCollectionItems,
+
+        @Schema(description = "참여 방법")
+        @NotBlank
+        String participationMethod,
+
+        @Schema(description = "스토리 가이드")
+        String storyGuide,
+
+        @Schema(description = "미디어 URL")
+        String mediaUrl
 ) {
-
-    public static PostCreateRequest of(String title, String serviceSummary, String creatorIntroduction,
-                                       String description, String feedbackMethod,
-                                       String durationTime, String participationMethod, String qna,
-                                       RewardType rewardType, Integer maxParticipants, String genderRequirement,
-                                       Integer ageMin, Integer ageMax,
-                                       LocalDateTime startDate, LocalDateTime endDate,
-                                       MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> categories) {
-        return new PostCreateRequest(title, serviceSummary,
-                creatorIntroduction, description,
-                feedbackMethod, durationTime,
-                participationMethod, qna, rewardType,
-                maxParticipants, genderRequirement, ageMin, ageMax,
-                startDate, endDate, mainCategory, platformCategory, categories);
+    public Post toPostEntity() {
+        return toPostEntity(PostStatus.ACTIVE);
     }
 
-    public Post toEntity() {
-        return Post.builder()
-                .title(this.title)
-                .serviceSummary(this.serviceSummary)
-                .creatorIntroduction(this.creatorIntroduction)
-                .description(this.description)
-                .feedbackMethod(this.feedbackMethod)
-                .durationTime(this.durationTime)
-                .participationMethod(this.participationMethod)
-                .qna(this.qna)
-                .rewardType(this.rewardType)
-                .maxParticipants(this.maxParticipants)
-                .genderRequirement(this.genderRequirement)
-                .ageMin(this.ageMin)
-                .ageMax(this.ageMax)
-                .startDate(this.startDate)
-                .endDate(this.endDate)
-                .mainCategory(this.mainCategory)
-                .platformCategory(this.platformCategory)
-                .genreCategories(genreCategories != null ? new HashSet<>(genreCategories) : new HashSet<>())
-                .build();
+    public Post toPostEntity(PostStatus status) {
+        return new Post(title, serviceSummary, creatorIntroduction, description,
+                null, mainCategory, platformCategory, genreCategories, status);
+    }
+
+    public PostSchedule toPostScheduleEntity(Post post) {
+        return PostSchedule.create(post, startDate, endDate, recruitmentDeadline, durationTime);
+    }
+
+    public PostRequirement toPostRequirementEntity(Post post) {
+        return PostRequirement.create(post, maxParticipants, genderRequirement,
+                ageMin, ageMax, additionalRequirements);
+    }
+
+    public PostReward toPostRewardEntity(Post post) {
+        return PostReward.create(post, rewardType, rewardDescription);
+    }
+
+    public PostFeedback toPostFeedbackEntity(Post post) {
+        return PostFeedback.create(post, feedbackMethod, feedbackItems, privacyCollectionItems);
+    }
+
+    public PostContent toPostContentEntity(Post post) {
+        return PostContent.create(post, participationMethod, storyGuide, mediaUrl);
     }
 }

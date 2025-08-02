@@ -45,47 +45,17 @@ public class Post {
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    @Column(name = "feedback_method", nullable = false)
-    private String feedbackMethod;
-
-    @Column(name = "duration_time", nullable = false)
-    private String durationTime;
-
-    @Column(name = "participation_method", nullable = false)
-    private String participationMethod;
-
-    @Column(name = "qna", columnDefinition = "TEXT")
-    private String qna;
-
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    @Column(name = "reward_type")
-    private RewardType rewardType;
-
-    @Column(name = "max_participants")
-    private Integer maxParticipants;
-
-    @Column(name = "gender_requirement")
-    private String genderRequirement;
-
-    @Column(name = "age_min")
-    private Integer ageMin;
-
-    @Column(name = "age_max")
-    private Integer ageMax;
-
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
-
-    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "post_main_category", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "main_category", nullable = false)
-    private MainCategory mainCategory;
-    
+    private Set<MainCategory> mainCategory;
+
+    @ElementCollection
     @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "post_platform_category", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "platform_category", nullable = false)
-    private PlatformCategory platformCategory;
+    private Set<PlatformCategory> platformCategory;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
@@ -106,11 +76,20 @@ public class Post {
     @Column(name = "current_participants", nullable = false)
     private Integer currentParticipants = 0;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostLike> postLikes = new ArrayList<>();
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PostSchedule schedule;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participation> participations = new ArrayList<>();
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PostRequirement requirement;
+
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PostReward reward;
+
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PostFeedback feedback;
+
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PostContent postContent;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -128,39 +107,32 @@ public class Post {
     @Column(name = "updated_by", nullable = false)
     private Long updatedBy;
 
-    @Builder
     public Post(String title, String serviceSummary, String creatorIntroduction, String description,
-                String thumbnailUrl, String feedbackMethod, String durationTime, String participationMethod,
-                String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
-                Integer ageMin, Integer ageMax,
-                LocalDateTime startDate, LocalDateTime endDate, 
-                MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> genreCategories) {
+                String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
+                Set<GenreCategory> genreCategories, PostStatus status) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
-        this.feedbackMethod = feedbackMethod;
-        this.durationTime = durationTime;
-        this.participationMethod = participationMethod;
-        this.qna = qna;
-        this.rewardType = rewardType;
-        this.maxParticipants = maxParticipants;
-        this.genderRequirement = genderRequirement;
-        this.ageMin = ageMin;
-        this.ageMax = ageMax;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.mainCategory = mainCategory;
-        this.platformCategory = platformCategory;
-        this.status = PostStatus.ACTIVE;
-        
-        // 장르 카테고리 설정
+        this.status = status;
+
+        if (mainCategory != null) {
+            this.mainCategory = new HashSet<>(mainCategory);
+        }
+        if (platformCategory != null) {
+            this.platformCategory = new HashSet<>(platformCategory);
+        }
         if (genreCategories != null) {
             this.genreCategories = new HashSet<>(genreCategories);
-        } else {
-            this.genreCategories = new HashSet<>();
         }
+    }
+
+    public Post(String title, String serviceSummary, String creatorIntroduction, String description,
+                String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
+                Set<GenreCategory> genreCategories) {
+        this(title, serviceSummary, creatorIntroduction, description, thumbnailUrl, 
+             mainCategory, platformCategory, genreCategories, PostStatus.DRAFT);
     }
 
     public void incrementViewCount() {
@@ -187,60 +159,55 @@ public class Post {
         }
     }
 
-    public void updatePost(String title, String serviceSummary, String creatorIntroduction, String description, 
-                String thumbnailUrl, String feedbackMethod, String durationTime, String participationMethod, 
-                String qna, RewardType rewardType, Integer maxParticipants, String genderRequirement, 
-                Integer ageMin, Integer ageMax,
-                LocalDateTime startDate, LocalDateTime endDate,
-                MainCategory mainCategory, PlatformCategory platformCategory, Set<GenreCategory> genreCategories) {
-        this.title = title;
-        this.serviceSummary = serviceSummary;
-        this.creatorIntroduction = creatorIntroduction;
-        this.description = description;
-        this.thumbnailUrl = thumbnailUrl;
-        this.feedbackMethod = feedbackMethod;
-        this.durationTime = durationTime;
-        this.participationMethod = participationMethod;
-        this.qna = qna;
-        this.rewardType = rewardType;
-        this.maxParticipants = maxParticipants;
-        this.genderRequirement = genderRequirement;
-        this.ageMin = ageMin;
-        this.ageMax = ageMax;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.mainCategory = mainCategory;
-        this.platformCategory = platformCategory;
-        
-        updateGenreCategories(genreCategories);
+    public void active() {
+        this.status = PostStatus.ACTIVE;
+    }
+
+    public void draft() {
+        this.status = PostStatus.DRAFT;
     }
 
     public boolean isOwner(Long userId) {
         return this.createdBy.equals(userId);
     }
-    
+
     public boolean canParticipate() {
+        if (requirement == null) {
+            return true;
+        }
+        Integer maxParticipants = requirement.getMaxParticipants();
         return maxParticipants == null || currentParticipants < maxParticipants;
     }
-    
+
     public boolean isActive() {
         return this.status == PostStatus.ACTIVE;
     }
-    
+
+    public boolean isDraft() {
+        return this.status == PostStatus.DRAFT;
+    }
+
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.endDate);
+        return schedule != null &&
+                LocalDateTime.now().isAfter(schedule.getEndDate());
     }
 
     public List<GenreCategory> getGenreCategories() {
         return new ArrayList<>(genreCategories);
     }
 
-    public void addGenreCategory(GenreCategory genreCategory) {
-        this.genreCategories.add(genreCategory);
+    public void updateMainCategories(Set<MainCategory> mainCategory) {
+        this.mainCategory.clear();
+        if (mainCategory != null) {
+            this.mainCategory.addAll(mainCategory);
+        }
     }
 
-    public void removeGenreCategory(GenreCategory genreCategory) {
-        this.genreCategories.remove(genreCategory);
+    public void updatePlatformCategories(Set<PlatformCategory> platformCategory) {
+        this.platformCategory.clear();
+        if (platformCategory != null) {
+            this.platformCategory.addAll(platformCategory);
+        }
     }
 
     public void updateGenreCategories(Set<GenreCategory> genreCategories) {
@@ -250,7 +217,13 @@ public class Post {
         }
     }
 
-    public void updateThumbnailUrl(String thumbnailUrl) {
+    public void updateBasicInfo(String title, String serviceSummary,
+                                String creatorIntroduction, String description,
+                                String thumbnailUrl) {
+        this.title = title;
+        this.serviceSummary = serviceSummary;
+        this.creatorIntroduction = creatorIntroduction;
+        this.description = description;
         this.thumbnailUrl = thumbnailUrl;
     }
 }
