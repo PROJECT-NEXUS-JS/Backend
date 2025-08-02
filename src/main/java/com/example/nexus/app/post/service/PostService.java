@@ -39,17 +39,7 @@ public class PostService {
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
-        String thumbnailUrl = null;
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            thumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
-        }
-
-        Post post = request.toPostEntity();
-
-        if (thumbnailUrl != null) {
-            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(), post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl);
-        }
-
+        Post post = createPostWithThumbnail(request, thumbnailFile, PostStatus.ACTIVE);
         Post savedPost = postRepository.save(post);
         createAndSaveRelatedEntities(request, savedPost);
 
@@ -58,17 +48,7 @@ public class PostService {
 
     @Transactional
     public Long saveDraft(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
-        String thumbnailUrl = null;
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            thumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
-        }
-
-        Post post = request.toPostEntity(PostStatus.DRAFT);
-
-        if (thumbnailUrl != null) {
-            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(), post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl);
-        }
-
+        Post post = createPostWithThumbnail(request, thumbnailFile, PostStatus.DRAFT);
         Post savedPost = postRepository.save(post);
         createAndSaveRelatedEntities(request, savedPost);
 
@@ -84,11 +64,7 @@ public class PostService {
             throw new GeneralException(ErrorStatus.POST_NOT_DRAFT);
         }
 
-        String newThumbnailUrl = post.getThumbnailUrl();
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            newThumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
-        }
-
+        String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
         post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl);
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
@@ -102,11 +78,9 @@ public class PostService {
 
     @Transactional
     public void publishPost(Long postId, Long userId) {
-        System.out.println("=== Starting publishPost - Post ID: " + postId + ", User ID: " + userId);
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userId);
         
-        // 디버깅: 실제 상태 확인
         if (!post.isDraft()) {
             throw new GeneralException(ErrorStatus.POST_NOT_DRAFT);
         }
@@ -163,15 +137,7 @@ public class PostService {
         Post post = getPost(postId);
         validateOwnership(post, userDetails.getUserId());
 
-        String newThumbnailUrl = post.getThumbnailUrl();
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            // 기존 이미지 삭제 (선택사항)
-//            if (post.getThumbnailUrl() != null) {
-//                deleteS3Image(post.getThumbnailUrl());
-//            }
-            newThumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
-        }
-
+        String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
         post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl);
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
@@ -206,17 +172,15 @@ public class PostService {
     }
 
     private void updateRelatedEntities(PostUpdateRequest request, Post post) {
-        PostSchedule schedule = postScheduleRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_SCHEDULE_NOT_FOUND));
+        PostSchedule schedule = post.getSchedule();
         schedule.update(request.startDate(), request.endDate(), 
                        request.recruitmentDeadline(), request.durationTime());
 
-        PostRequirement requirement = postRequirementRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_REQUIREMENT_NOT_FOUND));
+        PostRequirement requirement = post.getRequirement();
         requirement.update(request.maxParticipants(), request.genderRequirement(),
                           request.ageMin(), request.ageMax(), request.additionalRequirements());
 
-        PostReward reward = postRewardRepository.findByPostId(post.getId()).orElse(null);
+        PostReward reward = post.getReward();
         if (request.rewardType() != null) {
             if (reward == null) {
                 reward = request.toPostRewardEntity(post);
@@ -228,13 +192,11 @@ public class PostService {
             postRewardRepository.delete(reward);
         }
 
-        PostFeedback feedback = postFeedbackRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_FEEDBACK_NOT_FOUND));
+        PostFeedback feedback = post.getFeedback();
         feedback.update(request.feedbackMethod(), request.feedbackItems(), 
                        request.privacyCollectionItems());
 
-        PostContent content = postContentRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_CONTENT_NOT_FOUND));
+        PostContent content = post.getPostContent();
         content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());
     }
 
@@ -320,5 +282,27 @@ public class PostService {
             PostUserStatusService.PostUserStatus status = statusMap.get(post.getId());
             return PostDetailResponse.from(post, status.isLiked(), status.isParticipated());
         });
+    }
+
+    private Post createPostWithThumbnail(PostCreateRequest request, MultipartFile thumbnailFile, PostStatus status) {
+        String thumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, null);
+        Post post = (status == PostStatus.DRAFT) ? request.toPostEntity(PostStatus.DRAFT) : request.toPostEntity();
+
+        if (thumbnailUrl != null) {
+            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
+                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl);
+        }
+        return post;
+    }
+
+    private String uploadThumbnailIfPresent(MultipartFile thumbnailFile, String currentThumbnailUrl) {
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+//            기존 이미지 삭제 (선택사항)
+//            if (post.getThumbnailUrl() != null) {
+//                deleteS3Image(post.getThumbnailUrl());
+//            }
+            return s3UploadService.uploadFile(thumbnailFile);
+        }
+        return currentThumbnailUrl;
     }
 }

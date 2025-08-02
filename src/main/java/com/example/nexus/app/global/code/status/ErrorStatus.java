@@ -24,9 +24,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INTEREST_LENGTH_EXCEEDED(HttpStatus.BAD_REQUEST, "PROFILE40011", "각 관심사는 15자 이내로 입력해주세요."),
 
     POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 일정 정보가 필요합니다."),
-    POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400013", "게시글 발행을 위해 참여 조건이 필요합니다."),
+    POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST40013", "게시글 발행을 위해 참여 조건이 필요합니다."),
     POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40014", "게시글 발행을 위해 피드백 설정이 필요합니다."),
-    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
+    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST40015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
     INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40016", "유효하지 않은 장르 카테고리입니다."),
     POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40017", "임시저장 상태가 아닌 게시글입니다."),
 
