@@ -75,4 +75,4 @@ public class HomeRankingResponse {
             return "마감 D-" + daysUntilDeadline + "일전";
         }
     }
-}
+} 

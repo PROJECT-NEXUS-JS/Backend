@@ -20,7 +20,7 @@ public class RankingController {
 
     private final RankingService rankingService;
 
-    @Operation(summary = "홈 화면 랭킹 조회", description = "오늘의 추천, 마감 임박, 인기있는 테스트 섹션을 조회합니다.")
+    @Operation(summary = "홈 화면 랭킹 조회", description = "오늘의 추천, 마감 임박, 인기있는 테스트 섹션을 조회합니다. (각 섹션당 4개씩)")
     @GetMapping("/home-ranking")
     public ApiResponse<HomeRankingResponse> getHomeRanking() {
         HomeRankingResponse response = rankingService.getHomeRanking();
