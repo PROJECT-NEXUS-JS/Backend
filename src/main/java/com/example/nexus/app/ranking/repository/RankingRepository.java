@@ -88,4 +88,4 @@ public interface RankingRepository extends JpaRepository<Post, Long> {
                                                      @Param("mainCategory") MainCategory mainCategory,
                                                      @Param("platformCategory") PlatformCategory platformCategory,
                                                      Pageable pageable);
-} 
+}
