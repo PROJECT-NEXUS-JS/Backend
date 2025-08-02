@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public record PostUpdateRequest(
@@ -80,7 +81,7 @@ public record PostUpdateRequest(
         String feedbackMethod,
 
         @Schema(description = "피드백 항목")
-        String feedbackItems,
+        List<String> feedbackItems,
 
         @Schema(description = "개인정보 수집 항목")
         String privacyCollectionItems,
@@ -93,7 +94,10 @@ public record PostUpdateRequest(
         String storyGuide,
 
         @Schema(description = "미디어 URL")
-        String mediaUrl
+        String mediaUrl,
+
+        @Schema(description = "Q&A 방법")
+        String qnaMethod
 ) {
     public PostSchedule toPostScheduleEntity(Post post) {
         return PostSchedule.create(post, startDate, endDate, recruitmentDeadline, durationTime);
