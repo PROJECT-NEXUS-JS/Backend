@@ -15,4 +15,4 @@ public class UserInterestDto {
             Set<String> platformCategories,
             Set<String> genreCategories
     ) {}
-} 
+}

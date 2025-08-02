@@ -113,4 +113,4 @@ public class UserInterestService {
         }
         throw new IllegalArgumentException("유효하지 않은 장르 카테고리 코드: " + code);
     }
-} 
+}

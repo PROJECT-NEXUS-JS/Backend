@@ -11,4 +11,4 @@ public interface UserInterestRepository extends JpaRepository<UserInterest, Long
 
     @Query("SELECT ui FROM UserInterest ui WHERE ui.user.id = :userId")
     Optional<UserInterest> findByUserId(@Param("userId") Long userId);
-} 
+}
