@@ -206,17 +206,15 @@ public class PostService {
     }
 
     private void updateRelatedEntities(PostUpdateRequest request, Post post) {
-        PostSchedule schedule = postScheduleRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_SCHEDULE_NOT_FOUND));
+        PostSchedule schedule = post.getSchedule();
         schedule.update(request.startDate(), request.endDate(), 
                        request.recruitmentDeadline(), request.durationTime());
 
-        PostRequirement requirement = postRequirementRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_REQUIREMENT_NOT_FOUND));
+        PostRequirement requirement = post.getRequirement();
         requirement.update(request.maxParticipants(), request.genderRequirement(),
                           request.ageMin(), request.ageMax(), request.additionalRequirements());
 
-        PostReward reward = postRewardRepository.findByPostId(post.getId()).orElse(null);
+        PostReward reward = post.getReward();
         if (request.rewardType() != null) {
             if (reward == null) {
                 reward = request.toPostRewardEntity(post);
@@ -228,13 +226,11 @@ public class PostService {
             postRewardRepository.delete(reward);
         }
 
-        PostFeedback feedback = postFeedbackRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_FEEDBACK_NOT_FOUND));
+        PostFeedback feedback = post.getFeedback();
         feedback.update(request.feedbackMethod(), request.feedbackItems(), 
                        request.privacyCollectionItems());
 
-        PostContent content = postContentRepository.findByPostId(post.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_CONTENT_NOT_FOUND));
+        PostContent content = post.getPostContent();
         content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());
     }
 
