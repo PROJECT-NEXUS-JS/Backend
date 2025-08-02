@@ -23,6 +23,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
     @Override
@@ -42,13 +43,10 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (refreshToken == null) {
-            checkAccessTokenAndAuthentication(request, response, filterChain);
-        }
+        checkAccessTokenAndAuthentication(request, response, filterChain);
     }
 
     public void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
-
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(user -> {
                     String reIssuedRefreshToken = reIssueRefreshToken(user);
@@ -58,7 +56,6 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     }
 
     private String reIssueRefreshToken(User user) {
-
         String reIssuedRefreshToken = jwtService.createRefreshToken();
         user.updateRefreshToken(reIssuedRefreshToken);
         userRepository.saveAndFlush(user);
@@ -67,14 +64,19 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
                                                   FilterChain filterChain) throws ServletException, IOException {
+
         jwtService.extractAccessToken(request)
-                .filter(jwtService::isTokenValid).flatMap(accessToken -> jwtService.extractEmail(accessToken).flatMap(userRepository::findByEmail)).ifPresent(this::saveAuthentication);
+                .filter(accessToken -> !tokenBlacklistService.isTokenBlacklisted(accessToken))
+                .ifPresent(accessToken -> {
+                    String email = jwtService.verifyTokenAndGetEmail(accessToken);
+                    userRepository.findByEmail(email)
+                            .ifPresent(this::saveAuthentication);
+                });
 
         filterChain.doFilter(request, response);
     }
 
     public void saveAuthentication(User myUser) {
-
         CustomUserDetails userDetailsUser = new CustomUserDetails(
                 Collections.singleton(new SimpleGrantedAuthority(myUser.getRoleType().toString())),
                 myUser.getEmail(),

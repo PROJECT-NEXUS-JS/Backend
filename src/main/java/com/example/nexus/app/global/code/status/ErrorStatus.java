@@ -26,7 +26,7 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "POST40012", "게시글 발행을 위해 일정 정보가 필요합니다."),
     POST_REQUIREMENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST40013", "게시글 발행을 위해 참여 조건이 필요합니다."),
     POST_FEEDBACK_REQUIRED(HttpStatus.BAD_REQUEST, "POST40014", "게시글 발행을 위해 피드백 설정이 필요합니다."),
-    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST400015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
+    POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST40015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
     INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40016", "유효하지 않은 장르 카테고리입니다."),
     POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40017", "임시저장 상태가 아닌 게시글입니다."),
 
@@ -86,7 +86,7 @@ public enum ErrorStatus implements BaseErrorCode {
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON502", "불완전한 게이트웨이 응답을 받았습니다."),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON503", "서비스를 일시적으로 사용할 수 없습니다."),
     GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "COMMON504", "게이트웨이 연결이 시간 초과되었습니다.");
-    
+
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
