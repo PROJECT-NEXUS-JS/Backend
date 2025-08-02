@@ -1,6 +1,7 @@
 package com.example.nexus.app.ranking.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
+import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.ranking.dto.FullRankingResponse;
 import com.example.nexus.app.ranking.dto.HomeRankingResponse;
 import com.example.nexus.app.ranking.service.RankingService;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "랭킹", description = "랭킹 API")
@@ -20,10 +22,13 @@ public class RankingController {
 
     private final RankingService rankingService;
 
-    @Operation(summary = "홈 화면 랭킹 조회", description = "오늘의 추천, 마감 임박, 인기있는 테스트 섹션을 조회합니다. (각 섹션당 4개씩)")
+    @Operation(summary = "홈 화면 랭킹 조회", description = "오늘의 추천(개인화), 마감 임박, 인기있는 테스트, 방금 등록한 테스트 섹션을 조회합니다. (각 섹션당 4개씩)")
     @GetMapping("/home-ranking")
-    public ApiResponse<HomeRankingResponse> getHomeRanking() {
-        HomeRankingResponse response = rankingService.getHomeRanking();
+    public ApiResponse<HomeRankingResponse> getHomeRanking(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        HomeRankingResponse response = rankingService.getHomeRanking(userId);
         return ApiResponse.onSuccess(response);
     }
 

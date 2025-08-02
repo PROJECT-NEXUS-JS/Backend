@@ -15,6 +15,7 @@ public class HomeRankingResponse {
     private List<RankingSection> todayRecommendations;
     private List<RankingSection> deadlineImminent;
     private List<RankingSection> popularTests;
+    private List<RankingSection> recentTests;
 
     @Getter
     @Builder

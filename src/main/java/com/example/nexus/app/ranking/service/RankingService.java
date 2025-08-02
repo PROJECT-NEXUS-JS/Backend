@@ -7,6 +7,8 @@ import com.example.nexus.app.post.domain.PostStatus;
 import com.example.nexus.app.ranking.repository.RankingRepository;
 import com.example.nexus.app.ranking.dto.FullRankingResponse;
 import com.example.nexus.app.ranking.dto.HomeRankingResponse;
+import com.example.nexus.app.user.domain.UserInterest;
+import com.example.nexus.app.user.repository.UserInterestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,19 +27,17 @@ import java.util.List;
 public class RankingService {
 
     private final RankingRepository rankingRepository;
+    private final UserInterestRepository userInterestRepository;
 
     /**
      * 홈 화면 랭킹 조회 (4개씩)
-     * 오늘의 추천, 마감 임박, 인기있는 테스트 조회
+     * 오늘의 추천, 마감 임박, 인기있는 테스트, 방금 등록한 테스트 조회
      */
-    public HomeRankingResponse getHomeRanking() {
-        // 오늘의 추천 (인기순 + 최신순)
-        List<Post> todayRecommendations = rankingRepository.findTodayRecommendations(
-                PostStatus.ACTIVE, 
-                PageRequest.of(0, 4)
-        );
+    public HomeRankingResponse getHomeRanking(Long userId) {
+        // 오늘의 추천 (개인화 추천 또는 기본 추천)
+        List<Post> todayRecommendations = getTodayRecommendations(userId);
         
-        // 마감 임박 (7일)
+        // 마감 임박 (7일) - 마감일 적게 남은 순 + 가나다순
         LocalDateTime sevenDaysFromNow = LocalDateTime.now().plusDays(7);
         List<Post> deadlineImminent = rankingRepository.findDeadlineImminentForHome(
                 PostStatus.ACTIVE, 
@@ -45,8 +45,14 @@ public class RankingService {
                 PageRequest.of(0, 4)
         );
         
-        // 인기있는 테스트 - 4개
+        // 인기있는 테스트 - 인기순 + 가나다순
         List<Post> popularTests = rankingRepository.findPopularForHome(
+                PostStatus.ACTIVE, 
+                PageRequest.of(0, 4)
+        );
+
+        // 방금 등록한 테스트 - 최신순 + 가나다순
+        List<Post> recentTests = rankingRepository.findRecentTestsForHome(
                 PostStatus.ACTIVE, 
                 PageRequest.of(0, 4)
         );
@@ -61,7 +67,54 @@ public class RankingService {
                 .popularTests(popularTests.stream()
                         .map(HomeRankingResponse::from)
                         .toList())
+                .recentTests(recentTests.stream()
+                        .map(HomeRankingResponse::from)
+                        .toList())
                 .build();
+    }
+
+    /**
+     * 오늘의 추천 로직 (개인화 또는 기본)
+     */
+    private List<Post> getTodayRecommendations(Long userId) {
+        if (userId == null) {
+            // 비로그인 사용자: 기본 추천 (인기순 + 최신순)
+            log.info("비로그인 사용자에게 기본 추천 제공");
+            return rankingRepository.findTodayRecommendations(
+                    PostStatus.ACTIVE, 
+                    PageRequest.of(0, 4)
+            );
+        }
+
+        // 로그인 사용자: 개인화 추천 시도
+        try {
+            UserInterest userInterest = userInterestRepository.findByUserId(userId).orElse(null);
+            
+            if (userInterest != null && 
+                (!userInterest.getMainCategories().isEmpty() || 
+                 !userInterest.getPlatformCategories().isEmpty() || 
+                 !userInterest.getGenreCategories().isEmpty())) {
+                
+                // 개인화 추천 (사용자 관심사 기반 + 마감일 적게 남은 순)
+                log.info("사용자 {}에게 개인화 추천 제공", userId);
+                return rankingRepository.findPersonalizedRecommendations(
+                        PostStatus.ACTIVE,
+                        userInterest.getMainCategories(),
+                        userInterest.getPlatformCategories(),
+                        userInterest.getGenreCategories(),
+                        PageRequest.of(0, 4)
+                );
+            }
+        } catch (Exception e) {
+            log.warn("개인화 추천 중 오류 발생, 기본 추천으로 대체: {}", e.getMessage());
+        }
+
+        // 관심사 정보가 없거나 오류 발생 시: 기본 추천
+        log.info("사용자 {}에게 기본 추천 제공 (관심사 정보 없음)", userId);
+        return rankingRepository.findTodayRecommendations(
+                PostStatus.ACTIVE, 
+                PageRequest.of(0, 4)
+        );
     }
 
     /**
