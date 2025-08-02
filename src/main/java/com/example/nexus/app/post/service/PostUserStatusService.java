@@ -23,7 +23,7 @@ public class PostUserStatusService {
 
     public PostUserStatus getPostUserStatus(Long postId, Long userId) {
         if (userId == null){
-            return new PostUserStatus(null, null);
+            return new PostUserStatus(false, false);
         }
 
         boolean isLiked = postLikeRepository.existsByUserIdAndPostId(userId, postId);
@@ -38,7 +38,7 @@ public class PostUserStatusService {
             return postIds.stream()
                     .collect(Collectors.toMap(
                             postId -> postId,
-                            postId -> new PostUserStatus(null, null)
+                            postId -> new PostUserStatus(false, false)
                     ));
         }
 

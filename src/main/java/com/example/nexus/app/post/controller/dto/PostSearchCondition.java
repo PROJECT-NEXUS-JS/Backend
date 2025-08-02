@@ -1,5 +1,6 @@
 package com.example.nexus.app.post.controller.dto;
 
+import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.post.domain.PostStatus;
@@ -11,6 +12,7 @@ import lombok.Getter;
 public class PostSearchCondition {
     private MainCategory mainCategory;
     private PlatformCategory platformCategory;
+    private GenreCategory genreCategory;
     private String keyword;
     private String sortBy;
     private PostStatus status;
