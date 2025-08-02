@@ -28,8 +28,8 @@ public class FullRankingResponse {
         private String title;
         private String serviceSummary;
         private String thumbnailUrl;
-        private String mainCategory;
-        private String platformCategory;
+        private List<String> mainCategories;
+        private List<String> platformCategories;
         private List<String> genreCategories;
         private Integer likeCount;
         private Integer viewCount;
@@ -44,26 +44,36 @@ public class FullRankingResponse {
     }
 
     public static RankingItem from(Post post) {
-        String deadlineInfo = calculateDeadlineInfo(post.getEndDate());
+        String deadlineInfo = calculateDeadlineInfo(
+            post.getSchedule() != null ? post.getSchedule().getEndDate() : null
+        );
         
         return RankingItem.builder()
                 .postId(post.getId())
                 .title(post.getTitle())
                 .serviceSummary(post.getServiceSummary())
                 .thumbnailUrl(post.getThumbnailUrl())
-                .mainCategory(post.getMainCategory().getDisplayName())
-                .platformCategory(post.getPlatformCategory().getDisplayName())
+                .mainCategories(post.getMainCategory().stream()
+                        .map(category -> category.getDisplayName())
+                        .toList())
+                .platformCategories(post.getPlatformCategory().stream()
+                        .map(category -> category.getDisplayName())
+                        .toList())
                 .genreCategories(post.getGenreCategories().stream()
                         .map(genre -> "#" + genre.getDisplayName())
                         .toList())
                 .likeCount(post.getLikeCount())
                 .viewCount(post.getViewCount())
                 .currentParticipants(post.getCurrentParticipants())
-                .maxParticipants(post.getMaxParticipants())
-                .rewardType(post.getRewardType() != null ? post.getRewardType().name() : null)
+                .maxParticipants(post.getRequirement() != null ? 
+                    post.getRequirement().getMaxParticipants() : null)
+                .rewardType(post.getReward() != null && post.getReward().getRewardType() != null ? 
+                    post.getReward().getRewardType().name() : null)
                 .deadlineInfo(deadlineInfo)
-                .startDate(post.getStartDate())
-                .endDate(post.getEndDate())
+                .startDate(post.getSchedule() != null ? 
+                    post.getSchedule().getStartDate() : null)
+                .endDate(post.getSchedule() != null ? 
+                    post.getSchedule().getEndDate() : null)
                 .createdAt(post.getCreatedAt())
                 .build();
     }
@@ -85,6 +95,10 @@ public class FullRankingResponse {
     }
 
     private static String calculateDeadlineInfo(LocalDateTime endDate) {
+        if (endDate == null) {
+            return "마감일 미정";
+        }
+        
         long daysUntilDeadline = ChronoUnit.DAYS.between(LocalDateTime.now(), endDate);
         
         if (daysUntilDeadline < 0) {
