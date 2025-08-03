@@ -1,9 +1,9 @@
 package com.example.nexus.app.global.code.status;
 
 import com.example.nexus.app.global.code.BaseErrorCode;
-import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
@@ -57,6 +57,7 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_REWARD40410", "게시글 리워드 정보를 찾을 수 없습니다."),
     POST_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_FEEDBACK40411", "게시글 피드백 설정을 찾을 수 없습니다."),
     POST_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_CONTENT40412", "게시글 콘텐츠 정보를 찾을 수 없습니다."),
+    MESSAGE_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "MESSAGE40413", "채팅방을 찾을 수 없습니다."),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "허용되지 않는 HTTP 메서드입니다."),
@@ -67,6 +68,7 @@ public enum ErrorStatus implements BaseErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT, "GEN4092", "리소스 버전 충돌이 발생했습니다."),
     ALREADY_APPLIED(HttpStatus.CONFLICT, "PARTICIPANT4093", "이미 신청한 게시글입니다."),
     ALREADY_PROCESSED_APPLICATION(HttpStatus.CONFLICT, "APPLICATION4094", "이미 처리된 신청입니다."),
+    MESSAGE_ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "MESSAGE4095", "이미 존재하는 채팅방입니다."),
 
     // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
