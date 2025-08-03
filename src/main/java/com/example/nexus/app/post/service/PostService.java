@@ -65,7 +65,7 @@ public class PostService {
         }
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl);
+        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl, request.qnaMethod());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -138,7 +138,7 @@ public class PostService {
         validateOwnership(post, userDetails.getUserId());
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl);
+        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl, request.qnaMethod());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -193,8 +193,7 @@ public class PostService {
         }
 
         PostFeedback feedback = post.getFeedback();
-        feedback.update(request.feedbackMethod(), request.feedbackItems(), 
-                       request.privacyCollectionItems());
+        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyCollectionItems());
 
         PostContent content = post.getPostContent();
         content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());
@@ -290,7 +289,7 @@ public class PostService {
 
         if (thumbnailUrl != null) {
             post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
-                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl);
+                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod());
         }
         return post;
     }

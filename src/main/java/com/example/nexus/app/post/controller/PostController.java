@@ -85,7 +85,7 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "게시글 목록 조회", description = "조건에 따라 게시글을 조회합니다.")
+    @Operation(summary = "게시글 목록 조회 (필터 검색 가능)", description = "조건에 따라 게시글을 조회합니다.")
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getPosts(
             @Parameter(description = "메인 카테고리 (WEB, APP, GAME, ETC)")

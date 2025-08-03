@@ -39,6 +39,9 @@ public record PostDetailResponse(
         @Schema(description = "상태")
         PostStatus status,
 
+        @Schema(description = "Q&A 방법")
+        String qnaMethod,
+
         @Schema(description = "좋아요 수")
         Integer likeCount,
 
@@ -93,6 +96,7 @@ public record PostDetailResponse(
                         .map(CategoryResponse::from)
                         .toList(),
                 post.getStatus(),
+                post.getQnaMethod(),
                 post.getLikeCount(),
                 post.getViewCount(),
                 post.getCurrentParticipants(),
