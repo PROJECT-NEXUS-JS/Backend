@@ -11,6 +11,7 @@ import com.example.nexus.app.post.controller.dto.PostSearchCondition;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.post.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class PostService {
     public void updateAndPublishDraft(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
-        
+
         if (!post.isDraft()) {
             throw new GeneralException(ErrorStatus.POST_NOT_DRAFT);
         }
@@ -71,7 +72,7 @@ public class PostService {
         post.updateGenreCategories(request.genreCategories());
 
         updateRelatedEntities(request, post);
-        
+
         validatePostForPublishing(post);
         post.active();
     }
@@ -80,11 +81,11 @@ public class PostService {
     public void publishPost(Long postId, Long userId) {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userId);
-        
+
         if (!post.isDraft()) {
             throw new GeneralException(ErrorStatus.POST_NOT_DRAFT);
         }
-        
+
         validatePostForPublishing(post);
         post.active();
     }
@@ -107,17 +108,17 @@ public class PostService {
     }
 
 
-    public Page<PostDetailResponse> findMyDrafts(Long userId, Pageable pageable) {
+    public Page<PostSummaryResponse> findMyDrafts(Long userId, Pageable pageable) {
         Page<Post> posts = postRepository.findByStatusAndCreatedBy(PostStatus.DRAFT, userId, pageable);
-        return mapPostsWithUserStatus(posts, userId);
+        return posts.map(PostSummaryResponse::from);
     }
 
-    public Page<PostDetailResponse> findMyPosts(Long userId, Pageable pageable) {
+    public Page<PostSummaryResponse> findMyPosts(Long userId, Pageable pageable) {
         Page<Post> posts = postRepository.findByStatusAndCreatedBy(PostStatus.ACTIVE, userId, pageable);
-        return mapPostsWithUserStatus(posts, userId);
+        return posts.map(PostSummaryResponse::from);
     }
 
-    public Page<PostDetailResponse> findPosts(String mainCategory, String platformCategory,
+    public Page<PostSummaryResponse> findPosts(String mainCategory, String platformCategory,
                                               String genreCategory, String keyword, String sortBy, Long userId, Pageable pageable) {
         PostSearchCondition condition = PostSearchCondition.builder()
                 .mainCategory(parseMainCategory(mainCategory))
@@ -129,7 +130,7 @@ public class PostService {
                 .build();
 
         Page<Post> posts = postRepository.findPostWithCondition(condition, pageable);
-        return mapPostsWithUserStatus(posts, userId);
+        return posts.map(PostSummaryResponse::from);
     }
 
     @Transactional
@@ -173,7 +174,7 @@ public class PostService {
 
     private void updateRelatedEntities(PostUpdateRequest request, Post post) {
         PostSchedule schedule = post.getSchedule();
-        schedule.update(request.startDate(), request.endDate(), 
+        schedule.update(request.startDate(), request.endDate(),
                        request.recruitmentDeadline(), request.durationTime());
 
         PostRequirement requirement = post.getRequirement();
@@ -258,7 +259,7 @@ public class PostService {
             return null;
         }
         try {
-            return GenreCategory.valueOf(genreCategory.toUpperCase());  
+            return GenreCategory.valueOf(genreCategory.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new GeneralException(ErrorStatus.INVALID_GENRE_CATEGORY);
         }

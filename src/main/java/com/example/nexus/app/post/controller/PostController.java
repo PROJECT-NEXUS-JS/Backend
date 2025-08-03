@@ -6,6 +6,7 @@ import com.example.nexus.app.global.web.CookieService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -87,7 +88,7 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회 (필터 검색 가능)", description = "조건에 따라 게시글을 조회합니다.")
     @GetMapping("/list")
-    public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getPosts(
+    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
             @Parameter(description = "메인 카테고리 (WEB, APP, GAME, ETC)")
             @RequestParam(required = false) String mainCategory,
             @Parameter(description = "플랫폼 카테고리 (ANDROID, IOS, PC 등)")
@@ -100,28 +101,28 @@ public class PostController {
             @RequestParam(defaultValue = "latest") String sortBy,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<PostDetailResponse> posts = postService.findPosts(mainCategory, platformCategory, genreCategory, keyword, sortBy, userDetails.getUserId(), pageable);
+        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, genreCategory, keyword, sortBy, userDetails.getUserId(), pageable);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }
 
     @Operation(summary = "내 임시 저장 게시글 조회", description = "사용자의 임시 저장된 게시글을 조회합니다.")
     @GetMapping("/my/drafts")
-    public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getMyDrafts(
+    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getMyDrafts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<PostDetailResponse> posts = postService.findMyDrafts(userDetails.getUserId(), pageable);
+        Page<PostSummaryResponse> posts = postService.findMyDrafts(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }
 
     @Operation(summary = "내 게시글 조회", description = "사용자가 작성한 활성 게시글을 조회합니다.")
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getMyPosts(
+    public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getMyPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<PostDetailResponse> posts = postService.findMyPosts(userDetails.getUserId(), pageable);
+        Page<PostSummaryResponse> posts = postService.findMyPosts(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }
 
