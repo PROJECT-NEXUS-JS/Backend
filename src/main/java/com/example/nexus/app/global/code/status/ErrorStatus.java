@@ -29,6 +29,8 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "POST40015", "게시글 발행을 위해 콘텐츠 정보가 필요합니다."),
     INVALID_GENRE_CATEGORY(HttpStatus.BAD_REQUEST, "CATEGORY40016", "유효하지 않은 장르 카테고리입니다."),
     POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40017", "임시저장 상태가 아닌 게시글입니다."),
+    INVALID_IMAGE_FORMAT(HttpStatus.BAD_REQUEST, "FILE40018", "지원하지 않는 이미지 형식입니다. (jpg, png만 지원)"),
+    IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "FILE40019", "이미지 크기가 너무 큽니다. (최대 5MB)"),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),
