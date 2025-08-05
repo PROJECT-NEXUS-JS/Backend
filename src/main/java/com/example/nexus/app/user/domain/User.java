@@ -114,4 +114,12 @@ public class User {
     public void removeNotification(Notification notification) {
         this.notifications.remove(notification);
     }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileImage(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
 }
