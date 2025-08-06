@@ -11,6 +11,7 @@ import com.example.nexus.app.post.controller.dto.PostSearchCondition;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.post.repository.*;
@@ -304,5 +305,17 @@ public class PostService {
             return s3UploadService.uploadFile(thumbnailFile);
         }
         return currentThumbnailUrl;
+    }
+
+    public PostMainViewDetailResponse findPostMainViewDetails(Long postId) {
+        Post post = postRepository.findByIdWithAllDetails(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+
+        // ACTIVE 상태가 아닌 게시글은 조회 불가
+        if (!post.isActive()) {
+            throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
+        }
+
+        return PostMainViewDetailResponse.from(post);
     }
 }

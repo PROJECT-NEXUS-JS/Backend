@@ -6,6 +6,7 @@ import com.example.nexus.app.global.web.CookieService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -149,5 +150,16 @@ public class PostController {
         postService.deletePost(postId, userDetails.getUserId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.onSuccess(null));
+    }
+
+    @Operation(summary = "게시글 상세 조회 (메인 뷰)", description = "게시글의 좌측 메인 뷰에 필요한 상세 정보를 조회합니다.")
+    @GetMapping("/{postId}/main-view")
+    public ResponseEntity<ApiResponse<PostMainViewDetailResponse>> getPostMainView(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId) {
+
+        PostMainViewDetailResponse response = postService.findPostMainViewDetails(postId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
