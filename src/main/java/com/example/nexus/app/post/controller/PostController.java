@@ -7,6 +7,7 @@ import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostRightSidebarResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.service.PostService;
@@ -175,5 +176,16 @@ public class PostController {
 
         List<SimilarPostResponse> similarPosts = postService.findSimilarPosts(postId, limit);
         return ResponseEntity.ok(ApiResponse.onSuccess(similarPosts));
+    }
+
+    @Operation(summary = "게시글 상세 조회 (우측 사이드바)", description = "게시글의 우측 사이드바에 필요한 상세 정보를 조회합니다.")
+    @GetMapping("/{postId}/sidebar")
+    public ResponseEntity<ApiResponse<PostRightSidebarResponse>> getPostRightSidebar(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId) {
+
+        PostRightSidebarResponse response = postService.findPostRightSidebarDetails(postId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
