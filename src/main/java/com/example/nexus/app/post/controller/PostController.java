@@ -6,7 +6,10 @@ import com.example.nexus.app.global.web.CookieService;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.PostRightSidebarResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
+import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -149,5 +153,39 @@ public class PostController {
         postService.deletePost(postId, userDetails.getUserId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.onSuccess(null));
+    }
+
+    @Operation(summary = "게시글 상세 조회 (메인 뷰)", description = "게시글의 좌측 메인 뷰에 필요한 상세 정보를 조회합니다.")
+    @GetMapping("/{postId}/main-view")
+    public ResponseEntity<ApiResponse<PostMainViewDetailResponse>> getPostMainView(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId) {
+
+        PostMainViewDetailResponse response = postService.findPostMainViewDetails(postId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "유사 게시글 목록 조회", description = "특정 게시글과 유사한 게시글 목록을 조회합니다.")
+    @GetMapping("/{postId}/similar")
+    public ResponseEntity<ApiResponse<List<SimilarPostResponse>>> getSimilarPosts(
+            @Parameter(description = "기준 게시글 ID", required = true)
+            @PathVariable Long postId,
+            @Parameter(description = "가져올 유사 게시글 최대 개수", example = "3")
+            @RequestParam(defaultValue = "3") int limit) {
+
+        List<SimilarPostResponse> similarPosts = postService.findSimilarPosts(postId, limit);
+        return ResponseEntity.ok(ApiResponse.onSuccess(similarPosts));
+    }
+
+    @Operation(summary = "게시글 상세 조회 (우측 사이드바)", description = "게시글의 우측 사이드바에 필요한 상세 정보를 조회합니다.")
+    @GetMapping("/{postId}/sidebar")
+    public ResponseEntity<ApiResponse<PostRightSidebarResponse>> getPostRightSidebar(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId) {
+
+        PostRightSidebarResponse response = postService.findPostRightSidebarDetails(postId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
