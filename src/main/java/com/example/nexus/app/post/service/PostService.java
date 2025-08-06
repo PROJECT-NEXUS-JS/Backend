@@ -13,8 +13,12 @@ import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
+import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.post.repository.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -317,5 +321,37 @@ public class PostService {
         }
 
         return PostMainViewDetailResponse.from(post);
+    }
+    public List<SimilarPostResponse> findSimilarPosts(Long postId, int limit) {
+        Post basePost = postRepository.findByIdWithAllDetails(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+
+        // ACTIVE 상태가 아닌 게시글은 유사 게시글 검색 기준에서 제외
+        if (!basePost.isActive()) {
+            throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
+        }
+
+        Set<MainCategory> baseMainCategories = basePost.getMainCategory();
+        Set<GenreCategory> baseGenreCategories = new HashSet<>(basePost.getGenreCategories());
+        boolean baseRewardProvided = basePost.getReward() != null && basePost.getReward().getRewardType() != RewardType.NONE;
+
+        List<Post> similarPosts = postRepository.findAll().stream()
+                .filter(post -> !post.getId().equals(postId))
+                .filter(Post::isActive)
+                .filter(post -> {
+                    boolean categoryMatch = !post.getMainCategory().stream().filter(baseMainCategories::contains).collect(Collectors.toSet()).isEmpty() ||
+                            !post.getGenreCategories().stream().filter(baseGenreCategories::contains).collect(
+                                    Collectors.toSet()).isEmpty();
+
+                    boolean rewardMatch = (post.getReward() != null && post.getReward().getRewardType() != RewardType.NONE) == baseRewardProvided;
+
+                    return categoryMatch && rewardMatch;
+                })
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        return similarPosts.stream()
+                .map(SimilarPostResponse::from)
+                .collect(Collectors.toList());
     }
 }
