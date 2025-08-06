@@ -1,5 +1,7 @@
 package com.example.nexus.app.post.repository;
 
+import com.example.nexus.app.category.domain.MainCategory;
+import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostStatus;
 import org.springframework.data.domain.Page;
@@ -8,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +28,9 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     Page<Post> findByStatusOrderByCreatedAtDesc(@Param("status") PostStatus status, Pageable pageable);
 
     List<Post> findByCreatedByAndStatus(Long createdBy, PostStatus status);
+
+    // 사용자가 작성한 게시글
+    List<Post> findByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 
     @Query("SELECT p " +
             "FROM Post p " +
