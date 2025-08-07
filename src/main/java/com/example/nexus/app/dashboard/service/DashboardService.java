@@ -1,0 +1,362 @@
+package com.example.nexus.app.dashboard.service;
+
+import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
+import com.example.nexus.app.dashboard.controller.dto.response.*;
+import com.example.nexus.app.dashboard.domain.PostViewLog;
+import com.example.nexus.app.dashboard.repository.PostViewLogRepository;
+import com.example.nexus.app.global.code.status.ErrorStatus;
+import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.message.domain.Message;
+import com.example.nexus.app.message.repository.MessageRepository;
+import com.example.nexus.app.post.domain.*;
+import com.example.nexus.app.post.repository.ParticipantRewardRepository;
+import com.example.nexus.app.post.repository.ParticipationRepository;
+import com.example.nexus.app.post.repository.PostLikeRepository;
+import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.review.domain.Review;
+import com.example.nexus.app.review.repository.ReviewRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
+public class DashboardService {
+
+    private final PostRepository postRepository;
+    private final ParticipationRepository participationRepository;
+    private final ParticipantRewardRepository participantRewardRepository;
+    private final MessageRepository messageRepository;
+    private final ReviewRepository reviewRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostViewLogRepository postViewLogRepository;
+
+    // 통계 카드
+    public DashboardStatsResponse getDashboardStats(Long userId, Long postId) {
+        validatePostOwnership(userId, postId);
+
+        return DashboardStatsResponse.of(
+                getTotalLikes(postId), getYesterdayTotalLikes(postId),
+                getTotalPendingApplications(postId), getYesterdayTotalPendingApplications(postId),
+                getTotalApprovedParticipants(postId), getYesterdayTotalApprovedParticipants(postId),
+                getTotalReviews(postId), getYesterdayTotalReviews(postId),
+                getTotalViews(postId), getYesterdayTotalViews(postId),
+                getTotalUnreadMessages(postId, userId)
+        );
+    }
+
+    // 빠른 액션
+    public Page<WaitingParticipantResponse> getWaitingParticipants(Long userId, Long postId, Pageable pageable) {
+        validatePostOwnership(userId, postId);
+
+        Page<Participation> waitingParticipants = participationRepository.findByPostIdAndStatus(postId, ParticipationStatus.PENDING, pageable);
+
+        return waitingParticipants.map(participation -> WaitingParticipantResponse.of(
+                participation.getUser().getId(),
+                participation.getUser().getNickname(),
+                participation.getUser().getProfileUrl(),
+                participation.getAppliedAt()
+        ));
+    }
+
+    public Page<RecentMessageResponse> getRecentMessages(Long userId, Long postId, Pageable pageable) {
+        validatePostOwnership(userId, postId);
+
+        Page<Message> messages = messageRepository.findByRoomPostId(postId, pageable);
+
+        return messages.map(message -> RecentMessageResponse.of(
+                message.getRoom().getId(),
+                message.getSender().getNickname(),
+                message.getSender().getProfileUrl(),
+                message.getContent(),
+                message.getCreatedAt(),
+                message.getIsRead()
+        ));
+    }
+
+    public Page<RecentReviewResponse> getRecentReviews(Long userId, Long postId, Pageable pageable) {
+        validatePostOwnership(userId, postId);
+
+        Page<Review> reviews = reviewRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable);
+
+        return reviews.map(review -> RecentReviewResponse.of(
+                review.getId(),
+                review.getCreatedBy().getNickname(),
+                review.getCreatedBy().getProfileUrl(),
+                review.getRating(),
+                review.getContent(),
+                review.getCreatedAt()
+        ));
+    }
+
+    // 모집 상태 토글
+    @Transactional
+    public PostStatusResponse toggleRecruitmentStatus(Long postId, Long userId) {
+        validatePostOwnership(userId, postId);
+
+        Post post = getPost(postId);
+        PostStatus currentStatus = post.getStatus();
+        PostStatus newStatus = currentStatus == PostStatus.ACTIVE ? PostStatus.COMPLETED : PostStatus.ACTIVE;
+
+        if (newStatus == PostStatus.ACTIVE) {
+            post.active();
+        } else {
+            post.completed();
+        }
+
+        return PostStatusResponse.of(postId, newStatus);
+    }
+
+    // 분석 그래프
+    public BarChartResponse getBarChartData(Long userId, Long postId) {
+        validatePostOwnership(userId, postId);
+
+        return BarChartResponse.of(
+                getTotalViews(postId),
+                getTotalLikes(postId),
+                getTotalPendingApplications(postId),
+                getTotalApprovedParticipants(postId),
+                getTotalReviews(postId)
+        );
+    }
+
+    public PieChartResponse getPieChartData(Long userId, Long postId) {
+        validatePostOwnership(userId, postId);
+
+        // 참여 상태별 통계
+        Long pendingCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
+        Long approvedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
+        Long completedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.COMPLETED);
+
+        // 리워드 상태별 통계
+        Long pendingRewards = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PENDING);
+        Long paidRewards = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PAID);
+
+        // 상태별 차트 데이터
+        List<PieChartResponse.PieChartItem> statusItems = List.of(
+                new PieChartResponse.PieChartItem("대기", pendingCount),
+                new PieChartResponse.PieChartItem("승인", approvedCount),
+                new PieChartResponse.PieChartItem("완료", completedCount)
+        );
+
+        // 리워드별 차트 데이터
+        List<PieChartResponse.PieChartItem> rewardItems = List.of(
+                new PieChartResponse.PieChartItem("지급대기", pendingRewards != null ? pendingRewards : 0L),
+                new PieChartResponse.PieChartItem("지급완료", paidRewards != null ? paidRewards : 0L)
+        );
+
+        PieChartResponse.PieChartData statusChart = new PieChartResponse.PieChartData("참여 상태", statusItems);
+        PieChartResponse.PieChartData rewardChart = new PieChartResponse.PieChartData("리워드 상태", rewardItems);
+
+        return PieChartResponse.of(statusChart, rewardChart);
+    }
+
+    public LineChartResponse getLineChartData(Long userId, Long postId) {
+        validatePostOwnership(userId, postId);
+
+        Post post = getPost(postId);
+        LocalDate postCreatedDate = post.getCreatedAt().toLocalDate();
+        LocalDate today = LocalDate.now();
+
+        LocalDate maxStartDate = today.minusDays(6);
+        LocalDate startDate = postCreatedDate.isAfter(maxStartDate) ? postCreatedDate : maxStartDate;
+        LocalDate endDate = today.minusDays(1); // 어제까지만 (오늘은 별도 처리)
+
+        List<PostViewLog> viewLogs = postViewLogRepository.findByPostIdAndViewDateBetween(postId, startDate, endDate);
+        Map<LocalDate, Long> viewLogMap = viewLogs.stream()
+                .collect(Collectors.toMap(PostViewLog::getViewDate, PostViewLog::getViewCount));
+
+        List<LocalDate> labels = new ArrayList<>();
+        List<Long> viewsData = new ArrayList<>();
+        List<Long> likesData = new ArrayList<>();
+        List<Long> applicationsData = new ArrayList<>();
+
+        LocalDate current = startDate;
+        while (!current.isAfter(today)) {
+            labels.add(current);
+
+            if (current.equals(today)) {
+                viewsData.add(getTotalViews(postId)); // 오늘은 실시간 조회수
+            } else {
+                viewsData.add(viewLogMap.getOrDefault(current, 0L)); // 과거는 로그에서
+            }
+
+            LocalDateTime endOfDay = current.plusDays(1).atStartOfDay();
+            Long likesUntilDate = postLikeRepository.countByPostIdAndCreatedAtBefore(postId, endOfDay);
+            Long applicationsUntilDate = participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, endOfDay);
+
+            likesData.add(likesUntilDate != null ? likesUntilDate : 0L);
+            applicationsData.add(applicationsUntilDate != null ? applicationsUntilDate : 0L);
+
+            current = current.plusDays(1);
+        }
+
+        return LineChartResponse.of(labels, likesData, applicationsData, viewsData);
+    }
+
+    public Page<MyPostSummaryResponse> getMyPosts(Long userId, Pageable pageable) {
+        Page<Post> posts = postRepository.findByCreatedByAndStatus(userId, PostStatus.ACTIVE, pageable);
+
+        return posts.map(post -> MyPostSummaryResponse.of(
+                post.getId(),
+                post.getTitle(),
+                post.getStatus(),
+                post.getCreatedAt()
+        ));
+    }
+
+    // 참여자 관리
+    public Page<ParticipantListResponse> getParticipants(Long postId, ParticipantSearchRequest searchRequest,
+                                                         Pageable pageable, Long userId) {
+        validatePostOwnership(userId, postId);
+
+        Page<Participation> participations = participationRepository.findParticipantsWithFilters(
+                        postId, searchRequest.getStatus(), searchRequest.getRewardStatus(), searchRequest.getNickname(),
+                        searchRequest.getSortBy(), searchRequest.getSortDirection(), pageable);
+
+        return participations.map(participation -> {
+            ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participation.getId()).orElse(null);
+            return ParticipantListResponse.from(participation, participantReward);
+        });
+    }
+
+    public ParticipantDetailResponse getParticipantDetail(Long postId, Long participationId, Long userId) {
+        validatePostOwnership(userId, postId);
+
+        Participation participation = participationRepository.findById(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
+
+        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId).orElse(null);
+
+        return ParticipantDetailResponse.from(participation, participantReward);
+    }
+
+    @Transactional
+    public ParticipantDetailResponse completeParticipant(Long postId, Long participationId, Long userId) {
+        validatePostOwnership(userId, postId);
+
+        Participation participation = participationRepository.findById(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
+
+        PostReward postReward = participation.getPost().getReward();
+
+        if (postReward == null) {
+            throw new GeneralException(ErrorStatus.POST_REWARD_NOT_FOUND);
+        }
+
+        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId)
+                        .orElseGet(() -> {
+                            ParticipantReward newReward = ParticipantReward.create(participation, postReward);
+                            return participantRewardRepository.save(newReward);
+                        });
+
+        if (participantReward.isCompleted()) {
+            throw new GeneralException(ErrorStatus.ALREADY_COMPLETED);
+        }
+
+        participantReward.markAsCompleted();
+
+        return ParticipantDetailResponse.from(participation, participantReward);
+    }
+
+    @Transactional
+    public ParticipantDetailResponse payReward(Long postId, Long participationId, Long userId) {
+        validatePostOwnership(userId, postId);
+
+        ParticipantReward participantReward = participantRewardRepository
+                .findByParticipationId(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPANT_REWARD_NOT_FOUND));
+
+        if (!participantReward.isCompleted()) {
+            throw new GeneralException(ErrorStatus.NOT_COMPLETED_YET);
+        }
+
+        if (participantReward.isRewardPaid()) {
+            throw new GeneralException(ErrorStatus.ALREADY_PAID);
+        }
+
+        participantReward.markAsPaid();
+
+        Participation participation = participantReward.getParticipation();
+        return ParticipantDetailResponse.from(participation, participantReward);
+    }
+
+    private void validatePostOwnership(Long userId, Long postId) {
+        Post post = getPost(postId);
+        if (!post.isOwner(userId)) {
+            throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
+        }
+    }
+
+    private Post getPost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+    }
+
+    // 총계 메서드
+    private Long getTotalLikes(Long postId) {
+        return postLikeRepository.countByPostId(postId);
+    }
+
+    private Long getTotalPendingApplications(Long postId) {
+        return participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
+    }
+
+    private Long getTotalApprovedParticipants(Long postId) {
+        return participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
+    }
+
+    private Long getTotalReviews(Long postId) {
+        return reviewRepository.countByPostId(postId);
+    }
+
+    private Long getTotalViews(Long postId) {
+        Post post = getPost(postId);
+        Integer viewCount = post.getViewCount();
+        return (viewCount != null) ? viewCount.longValue() : 0L;
+    }
+
+    private Long getTotalUnreadMessages(Long postId, Long userId) {
+        Long count = messageRepository.countUnreadMessagesByPostId(postId, userId);
+        return count != null ? count : 0L;
+    }
+
+    private Long getYesterdayTotalLikes(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return postLikeRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
+    }
+
+    private Long getYesterdayTotalPendingApplications(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
+    }
+
+    private Long getYesterdayTotalApprovedParticipants(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return participationRepository.countByPostIdAndStatusAndApprovedAtBefore(postId, ParticipationStatus.APPROVED, yesterday.plusDays(1).atStartOfDay());
+    }
+
+    private Long getYesterdayTotalReviews(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return reviewRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
+    }
+
+    private Long getYesterdayTotalViews(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return postViewLogRepository.findByPostIdAndViewDate(postId, yesterday)
+                .map(PostViewLog::getViewCount)
+                .orElse(0L);
+    }
+}

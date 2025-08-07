@@ -4,7 +4,6 @@ import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
@@ -173,6 +172,10 @@ public class Post {
 
     public void draft() {
         this.status = PostStatus.DRAFT;
+    }
+
+    public void completed() {
+        this.status = PostStatus.COMPLETED;
     }
 
     public boolean isOwner(Long userId) {
