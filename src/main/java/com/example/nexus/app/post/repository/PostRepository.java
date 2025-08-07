@@ -8,9 +8,26 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom{
+
+    @Query("SELECT p " +
+            "FROM Post p " +
+            "LEFT JOIN FETCH p.schedule " +
+            "LEFT JOIN FETCH p.requirement " +
+            "LEFT JOIN FETCH p.reward " +
+            "LEFT JOIN FETCH p.feedback " +
+            "LEFT JOIN FETCH p.postContent " +
+            "WHERE p.status = :status " +
+            "ORDER BY p.createdAt DESC")
+    Page<Post> findByStatusOrderByCreatedAtDesc(@Param("status") PostStatus status, Pageable pageable);
+
+    List<Post> findByCreatedByAndStatus(Long createdBy, PostStatus status);
+
+    // 사용자가 작성한 게시글
+    List<Post> findByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 
     @Query("SELECT p " +
             "FROM Post p " +
