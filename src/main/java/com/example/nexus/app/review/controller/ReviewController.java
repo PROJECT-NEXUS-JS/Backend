@@ -10,17 +10,23 @@ import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 import java.util.stream.Collectors;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * ReviewController
  * - 리뷰 CRUD API 엔드포인트
  */
+@Tag(name = "리뷰", description = "리뷰 관련 API")
 @RestController
 @RequestMapping("/v1/users/reviews")
 @RequiredArgsConstructor
@@ -52,10 +58,23 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.onSuccess(toResponse(review)));
     }
 
-    @Operation(summary = "게시글 별 리뷰 목록 조회", description = "게시글 ID로 해당 게시글의 모든 리뷰를 조회합니다.")
+    @Operation(summary = "게시글 별 리뷰 목록 조회 (페이징)", description = "게시글 ID로 해당 게시글의 리뷰를 페이징하여 조회합니다.")
     @GetMapping("/post/{postId}")
-    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsByPostId(
-            @PathVariable Long postId
+    public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getReviewsByPostId(
+            @Parameter(description = "게시글 ID", required = true) @PathVariable Long postId,
+            @Parameter(description = "정렬 기준 (latest, rating_desc, rating_asc)") 
+            @RequestParam(defaultValue = "latest") String sortBy,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<Review> reviews = reviewService.getReviewsByPostIdWithPaging(postId, sortBy, pageable);
+        Page<ReviewResponse> responses = reviews.map(this::toResponse);
+        return ResponseEntity.ok(ApiResponse.onSuccess(responses));
+    }
+
+    @Operation(summary = "게시글 별 리뷰 목록 조회 (전체)", description = "게시글 ID로 해당 게시글의 모든 리뷰를 조회합니다.")
+    @GetMapping("/post/{postId}/all")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getAllReviewsByPostId(
+            @Parameter(description = "게시글 ID", required = true) @PathVariable Long postId
     ) {
         List<ReviewResponse> responses = reviewService.getReviewsByPostId(postId)
                 .stream()
@@ -106,5 +125,4 @@ public class ReviewController {
                         .build())
                 .build();
     }
-
 }

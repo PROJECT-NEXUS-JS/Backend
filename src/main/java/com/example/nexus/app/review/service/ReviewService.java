@@ -9,6 +9,8 @@ import com.example.nexus.app.user.repository.UserRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -50,6 +52,15 @@ public class ReviewService {
     public List<Review> getReviewsByPostId(Long postId) {
         return reviewRepository
                 .findByPostId(postId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Review> getReviewsByPostIdWithPaging(Long postId, String sortBy, Pageable pageable) {
+        return switch (sortBy) {
+            case "rating_desc" -> reviewRepository.findByPostIdOrderByRatingDescCreatedAtDesc(postId, pageable);
+            case "rating_asc" -> reviewRepository.findByPostIdOrderByRatingAscCreatedAtDesc(postId, pageable);
+            default -> reviewRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable); // latest
+        };
     }
 
     @Transactional
