@@ -8,10 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-public interface ParticipationRepository extends JpaRepository<Participation, Long> {
+public interface ParticipationRepository extends JpaRepository<Participation, Long>, ParticipationRepositoryCustom {
 
     boolean existsByUserIdAndPostId(Long userId, Long postId);
 
@@ -51,6 +52,16 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "FROM Participation p " +
             "WHERE p.user.id = :userId AND p.post.id IN :postIds " +
             "AND p.status = 'APPROVED'")
-    Set<Long> findApprovedPostIdsByUserIdAndPostIds(@Param("userId") Long userId,
-                                                    @Param("postIds") List<Long> postIds);
+    Set<Long> findApprovedPostIdsByUserIdAndPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
+
+    @Query("SELECT p " +
+            "FROM Participation p " +
+            "WHERE p.post.id = :postId AND p.status = :status " +
+            "ORDER BY p.appliedAt DESC")
+    Page<Participation> findByPostIdAndStatus(@Param("postId") Long postId, @Param("status") ParticipationStatus status, Pageable pageable);
+
+    Long countByPostIdAndStatus(Long postId, ParticipationStatus status);
+
+    Long countByPostIdAndStatusAndAppliedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
+    Long countByPostIdAndStatusAndApprovedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
 }
