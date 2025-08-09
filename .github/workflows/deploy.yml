@@ -1,6 +1,5 @@
 name: CI/CD with AWS ECR and EC2
 
-# 1. 워크플로우 실행 시점을 pull_request에도 추가합니다.
 on:
   push:
     branches: [ "main" ]
@@ -8,8 +7,7 @@ on:
     branches: [ "main" ]
     types: [ opened, synchronize, reopened ]
 
-jobs:
-  # 2. 빌드 및 테스트 잡: PR과 main push 모두에서 실행됩니다.
+jobs:  
   build:
     runs-on: ubuntu-latest
     steps:
@@ -26,18 +24,14 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        # 참고: PR 검증 시에는 테스트를 실행하는 것이 좋습니다. (-x test 제거 권장)
         run: ./gradlew build -x test
 
-  # 3. 배포 잡: main 브랜치에 push될 때만 실행됩니다.
   deploy:
-    # build 잡이 성공해야만 이 잡이 실행됩니다.
     needs: build
-    # main 브랜치에 push 이벤트가 발생했을 때만 실행되도록 조건을 추가합니다.
+    
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    
-    # 배포에 필요한 환경변수 바인딩
+   
     env:
       JWT_SECRET_KEY:         ${{ secrets.JWT_SECRET_KEY }}
       JWT_ACCESS_EXPIRATION:  ${{ secrets.JWT_ACCESS_EXPIRATION }}
