@@ -1,5 +1,10 @@
 server:
-  port: 8080
+  port: 8443
+  ssl:
+    enabled: true
+    key-store-type: PEM
+    key-store: file:/etc/certs/fullchain.pem
+    key-private: file:/etc/certs/privkey.pem
 
 cloud:
   aws:
