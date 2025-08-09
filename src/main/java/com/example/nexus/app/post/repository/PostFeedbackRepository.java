@@ -12,9 +12,4 @@ public interface PostFeedbackRepository extends JpaRepository<PostFeedback, Long
     Optional<PostFeedback> findByPostId(Long postId);
 
     List<PostFeedback> findByFeedbackMethod(String feedbackMethod);
-
-    @Query("SELECT pf " +
-            "FROM PostFeedback pf " +
-            "WHERE pf.privacyCollectionItems IS NOT NULL")
-    List<PostFeedback> findWithPrivacyCollectionItems();
 }

@@ -64,4 +64,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     Long countByPostIdAndStatusAndAppliedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
     Long countByPostIdAndStatusAndApprovedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
+
+    Page<Participation> findByPostId(Long postId, Pageable pageable);
 }

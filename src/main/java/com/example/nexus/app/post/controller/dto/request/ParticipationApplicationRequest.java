@@ -15,6 +15,10 @@ public record ParticipationApplicationRequest(
         @Size(min = 10, max = 11, message = "연락처는 10-11자리 숫자를 입력해주세요.")
         String contactNumber,
 
+        @Schema(description = "이메일", example = "hong@example.com")
+        @Email(message = "이메일 형식이 맞지 않습니다.")
+        String applicantEmail,
+
         @Schema(description = "신청 사유", example = "UI/UX 개선에 관심이 많아 참여하고 싶습니다.")
         @NotBlank(message = "신청 사유는 필수입니다.")
         @Size(max = 1000, message = "신청 사유는 최대 1000자까지 입력 가능합니다.")
