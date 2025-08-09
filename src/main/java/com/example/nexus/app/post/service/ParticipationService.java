@@ -3,10 +3,12 @@ package com.example.nexus.app.post.service;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.post.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.post.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.post.domain.Participation;
 import com.example.nexus.app.post.domain.ParticipationStatus;
 import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.post.domain.PrivacyItem;
 import com.example.nexus.app.post.domain.dto.ParticipationApplicationDto;
 import com.example.nexus.app.post.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostRepository;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +91,20 @@ public class ParticipationService {
         Page<Participation> applications = participationRepository.findByPostIdAndStatusWithUser(postId, status, pageable);
 
         return mapParticipationsWithUserStatus(applications, userId);
+    }
+
+    public Page<ParticipantPrivacyResponse> getParticipantsPrivacyInfo(Long postId, Pageable pageable, Long userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+
+        if (!post.isOwner(userId)) {
+            throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
+        }
+
+        Set<PrivacyItem> collectedItems = post.getFeedback() != null ? post.getFeedback().getPrivacyItems() : Set.of();
+
+        Page<Participation> participations = participationRepository.findByPostId(postId, pageable);
+
+        return participations.map(participation -> ParticipantPrivacyResponse.from(participation, collectedItems));
     }
 
     @Transactional

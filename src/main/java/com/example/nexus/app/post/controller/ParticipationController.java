@@ -3,16 +3,19 @@ package com.example.nexus.app.post.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.post.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.post.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.post.domain.ParticipationStatus;
 import com.example.nexus.app.post.service.ParticipationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -131,5 +134,17 @@ public class ParticipationController {
 
         participationService.rejectApplication(participationId, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
+
+    @Operation(summary = "게시글 신청자 개인정보 조회", description = "게시글 작성자가 신청자들의 개인정보를 조회합니다 (페이징)")
+    @GetMapping("/{postId}/participants/privacy")
+    public ResponseEntity<ApiResponse<Page<ParticipantPrivacyResponse>>>
+    getParticipantsPrivacyInfo(
+            @PathVariable @Schema(description = "게시글 ID") Long postId,
+            @PageableDefault(size = 20, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Page<ParticipantPrivacyResponse> response = participationService.getParticipantsPrivacyInfo(postId, pageable, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }

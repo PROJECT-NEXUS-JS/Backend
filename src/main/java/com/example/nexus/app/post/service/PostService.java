@@ -200,7 +200,7 @@ public class PostService {
         }
 
         PostFeedback feedback = post.getFeedback();
-        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyCollectionItems());
+        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
 
         PostContent content = post.getPostContent();
         content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());

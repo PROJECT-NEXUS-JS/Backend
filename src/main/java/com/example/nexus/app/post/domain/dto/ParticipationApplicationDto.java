@@ -5,6 +5,7 @@ import com.example.nexus.app.post.controller.dto.request.ParticipationApplicatio
 public record ParticipationApplicationDto(
         String applicantName,
         String contactNumber,
+        String applicantEmail,
         String applicationReason,
         Boolean privacyAgreement,
         Boolean termsAgreement
@@ -14,6 +15,7 @@ public record ParticipationApplicationDto(
         return new ParticipationApplicationDto(
                 request.applicantName(),
                 request.contactNumber(),
+                request.applicantEmail(),
                 request.applicationReason(),
                 request.privacyAgreement(),
                 request.termsAgreement()

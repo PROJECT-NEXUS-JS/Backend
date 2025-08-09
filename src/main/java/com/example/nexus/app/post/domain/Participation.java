@@ -47,6 +47,9 @@ public class Participation {
     @Column(name = "contact_number", nullable = false)
     private String contactNumber;
 
+    @Column(name = "applicant_email")
+    private String applicantEmail;
+
     @Column(name = "application_reason", nullable = false, columnDefinition = "TEXT")
     private String applicationReason;
 
@@ -58,12 +61,13 @@ public class Participation {
 
     @Builder
     public Participation(Post post, User user, ParticipationStatus status, String applicantName,
-                         String contactNumber, String applicationReason, Boolean privacyAgreement,
+                         String contactNumber, String applicantEmail, String applicationReason, Boolean privacyAgreement,
                          Boolean termsAgreement) {
         this.post = post;
         this.user = user;
         this.status = status;
         this.applicantName = applicantName;
+        this.applicantEmail = applicantEmail;
         this.contactNumber = contactNumber;
         this.applicationReason = applicationReason;
         this.privacyAgreement = privacyAgreement;
@@ -77,13 +81,13 @@ public class Participation {
                 .user(user)
                 .status(ParticipationStatus.PENDING)
                 .applicantName(applicationDto.applicantName())
+                .applicantEmail(applicationDto.applicantEmail())
                 .contactNumber(applicationDto.contactNumber())
                 .applicationReason(applicationDto.applicationReason())
                 .privacyAgreement(applicationDto.privacyAgreement())
                 .termsAgreement(applicationDto.termsAgreement())
                 .build();
     }
-
 
     public void approve() {
         this.status = ParticipationStatus.APPROVED;

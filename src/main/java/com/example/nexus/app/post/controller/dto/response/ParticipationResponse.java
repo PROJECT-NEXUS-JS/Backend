@@ -25,6 +25,9 @@ public record ParticipationResponse(
         @Schema(description = "연락처")
         String contactNumber,
 
+        @Schema(description = "이메일")
+        String applicantEmail,
+
         @Schema(description = "신청 사유")
         String applicationReason,
 
@@ -43,6 +46,7 @@ public record ParticipationResponse(
                 participation.getStatus(),
                 participation.getApplicantName(),
                 participation.getContactNumber(),
+                participation.getApplicantEmail(),
                 participation.getApplicationReason(),
                 PostDetailResponse.from(participation.getPost(), isLiked, isParticipated),
                 UserSummaryResponse.from(participation.getUser())
