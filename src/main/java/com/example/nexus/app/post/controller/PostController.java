@@ -103,9 +103,8 @@ public class PostController {
             @RequestParam(required = false) String keyword,
             @Parameter(description = "정렬 기준 (latest, popular, deadline, viewCount)")
             @RequestParam(defaultValue = "latest") String sortBy,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, genreCategory, keyword, sortBy, userDetails.getUserId(), pageable);
+        Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, genreCategory, keyword, sortBy, pageable);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }

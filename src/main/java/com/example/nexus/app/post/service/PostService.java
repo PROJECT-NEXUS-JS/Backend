@@ -125,7 +125,7 @@ public class PostService {
     }
 
     public Page<PostSummaryResponse> findPosts(String mainCategory, String platformCategory,
-                                               String genreCategory, String keyword, String sortBy, Long userId, Pageable pageable) {
+                                               String genreCategory, String keyword, String sortBy, Pageable pageable) {
         PostSearchCondition condition = PostSearchCondition.builder()
                 .mainCategory(parseMainCategory(mainCategory))
                 .platformCategory(parsePlatformCategory(platformCategory))
