@@ -4,6 +4,7 @@ import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -40,6 +41,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**", "/webjars/**",
                                 "/auth/login", "/auth/reissue"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/users/posts/list").permitAll()
                         .requestMatchers("/api/v1/users/profile").hasAnyRole("GUEST", "USER")
                         .requestMatchers("/auth/me", "/v1/users/**").authenticated()
                         .anyRequest().authenticated() // 이제부터, 운영환경과 동일한 시큐리티 필터체인 사용.
