@@ -5,12 +5,18 @@ import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.dto.ReviewCreateRequest;
 import com.example.nexus.app.review.dto.ReviewResponse;
 import com.example.nexus.app.review.dto.ReviewUpdateRequest;
+import com.example.nexus.app.review.dto.WritableReviewResponse;
+import com.example.nexus.app.review.dto.WrittenReviewResponse;
+import com.example.nexus.app.review.dto.ReviewStatusResponse;
 import com.example.nexus.app.review.service.ReviewService;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
  * ReviewController
  * - 리뷰 CRUD API 엔드포인트
  */
-@Tag(name = "랭킹", description = "랭킹 관련 api")
+@Tag(name = "리뷰", description = "리뷰 관련 api")
 @RestController
 @RequestMapping("/v1/users/reviews")
 @RequiredArgsConstructor
@@ -91,6 +97,45 @@ public class ReviewController {
         }
         reviewService.deleteReview(id, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
+
+    @Operation(summary = "작성 가능한 리뷰 목록 조회", description = "사용자가 참여했지만 아직 리뷰를 작성하지 않은 게시글 목록을 조회합니다.")
+    @GetMapping("/writable")
+    public ResponseEntity<ApiResponse<Page<WritableReviewResponse>>> getWritableReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
+        Page<WritableReviewResponse> response = reviewService.getWritableReviews(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "작성한 리뷰 목록 조회", description = "사용자가 이미 리뷰를 작성한 게시글 목록을 조회합니다.")
+    @GetMapping("/written")
+    public ResponseEntity<ApiResponse<Page<WrittenReviewResponse>>> getWrittenReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
+        Page<WrittenReviewResponse> response = reviewService.getWrittenReviews(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "리뷰 작성 상태 확인", description = "특정 게시글에 대한 리뷰 작성 가능 여부를 확인합니다.")
+    @GetMapping("/status/{postId}")
+    public ResponseEntity<ApiResponse<ReviewStatusResponse>> getReviewStatus(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
+        ReviewStatusResponse response = reviewService.getReviewStatus(userDetails.getUserId(), postId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
     private ReviewResponse toResponse(Review review) {
