@@ -9,6 +9,7 @@ import com.example.nexus.app.review.service.ReviewService;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
  * ReviewController
  * - 리뷰 CRUD API 엔드포인트
  */
+@Tag(name = "랭킹", description = "랭킹 관련 api")
 @RestController
 @RequestMapping("/v1/users/reviews")
 @RequiredArgsConstructor
