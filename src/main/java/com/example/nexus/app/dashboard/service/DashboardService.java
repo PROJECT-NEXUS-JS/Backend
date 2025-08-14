@@ -2,8 +2,6 @@ package com.example.nexus.app.dashboard.service;
 
 import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.dashboard.controller.dto.response.*;
-import com.example.nexus.app.dashboard.domain.PostViewLog;
-import com.example.nexus.app.dashboard.repository.PostViewLogRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.message.domain.Message;
@@ -13,6 +11,7 @@ import com.example.nexus.app.post.repository.ParticipantRewardRepository;
 import com.example.nexus.app.post.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.post.service.ViewCountService;
 import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +38,7 @@ public class DashboardService {
     private final MessageRepository messageRepository;
     private final ReviewRepository reviewRepository;
     private final PostLikeRepository postLikeRepository;
-    private final PostViewLogRepository postViewLogRepository;
+    private final ViewCountService viewCountService;
 
     // 통계 카드
     public DashboardStatsResponse getDashboardStats(Long userId, Long postId) {
@@ -165,42 +162,26 @@ public class DashboardService {
 
     public LineChartResponse getLineChartData(Long userId, Long postId) {
         validatePostOwnership(userId, postId);
-
         Post post = getPost(postId);
-        LocalDate postCreatedDate = post.getCreatedAt().toLocalDate();
-        LocalDate today = LocalDate.now();
 
-        LocalDate maxStartDate = today.minusDays(6);
-        LocalDate startDate = postCreatedDate.isAfter(maxStartDate) ? postCreatedDate : maxStartDate;
-        LocalDate endDate = today.minusDays(1); // 어제까지만 (오늘은 별도 처리)
-
-        List<PostViewLog> viewLogs = postViewLogRepository.findByPostIdAndViewDateBetween(postId, startDate, endDate);
-        Map<LocalDate, Long> viewLogMap = viewLogs.stream()
-                .collect(Collectors.toMap(PostViewLog::getViewDate, PostViewLog::getViewCount));
+        List<Long> viewsData = viewCountService.getWeeklyViewCounts(postId);
 
         List<LocalDate> labels = new ArrayList<>();
-        List<Long> viewsData = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        for (int i = 6; i >= 0 ; i--) {
+            labels.add(today.minusDays(i));
+        }
+
         List<Long> likesData = new ArrayList<>();
         List<Long> applicationsData = new ArrayList<>();
 
-        LocalDate current = startDate;
-        while (!current.isAfter(today)) {
-            labels.add(current);
-
-            if (current.equals(today)) {
-                viewsData.add(getTotalViews(postId)); // 오늘은 실시간 조회수
-            } else {
-                viewsData.add(viewLogMap.getOrDefault(current, 0L)); // 과거는 로그에서
-            }
-
-            LocalDateTime endOfDay = current.plusDays(1).atStartOfDay();
+        for (LocalDate date : labels) {
+            LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
             Long likesUntilDate = postLikeRepository.countByPostIdAndCreatedAtBefore(postId, endOfDay);
-            Long applicationsUntilDate = participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, endOfDay);
+            Long applicationUntilDate = participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, endOfDay);
 
             likesData.add(likesUntilDate != null ? likesUntilDate : 0L);
-            applicationsData.add(applicationsUntilDate != null ? applicationsUntilDate : 0L);
-
-            current = current.plusDays(1);
+            applicationsData.add(applicationUntilDate != null ? applicationUntilDate : 0L);
         }
 
         return LineChartResponse.of(labels, likesData, applicationsData, viewsData);
@@ -324,8 +305,7 @@ public class DashboardService {
 
     private Long getTotalViews(Long postId) {
         Post post = getPost(postId);
-        Integer viewCount = post.getViewCount();
-        return (viewCount != null) ? viewCount.longValue() : 0L;
+        return viewCountService.getTotalViewCount(postId);
     }
 
     private Long getTotalUnreadMessages(Long postId, Long userId) {
@@ -354,9 +334,6 @@ public class DashboardService {
     }
 
     private Long getYesterdayTotalViews(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        return postViewLogRepository.findByPostIdAndViewDate(postId, yesterday)
-                .map(PostViewLog::getViewCount)
-                .orElse(0L);
+        return viewCountService.getYesterdayViewCount(postId);
     }
 }

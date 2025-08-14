@@ -89,6 +89,7 @@ public enum ErrorStatus implements BaseErrorCode {
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35001", "파일 업로드 중 오류가 발생했습니다."),
     S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S35002", "파일 삭제 중 오류가 발생했습니다."),
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "DB5003", "데이터베이스 처리 중 오류가 발생했습니다."),
+    REDIS_CONNECTION_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "REDIS5004", "Redis 서비스에 일시적인 문제가 발생했습니다."),
 
     // 502, 502, 504
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON502", "불완전한 게이트웨이 응답을 받았습니다."),
