@@ -52,6 +52,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     // Memory Cache
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {

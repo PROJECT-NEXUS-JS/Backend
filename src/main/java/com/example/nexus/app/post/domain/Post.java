@@ -142,10 +142,6 @@ public class Post {
         this.qnaMethod = qnaMethod;
     }
 
-    public void incrementViewCount() {
-        this.viewCount++;
-    }
-
     public void incrementLikeCount() {
         this.likeCount++;
     }
@@ -237,5 +233,9 @@ public class Post {
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.qnaMethod = qnaMethod;
+    }
+
+    public void updateViewCount(int newDbCount) {
+        this.viewCount = newDbCount;
     }
 }

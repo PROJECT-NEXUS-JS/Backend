@@ -28,6 +28,7 @@ public class PostLikeService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostUserStatusService postUserStatusService;
+    private final ViewCountService viewCountService;
 
     @Transactional
     public PostLikeToggleResponse toggleLike(Long postId, Long userId) {
@@ -81,10 +82,9 @@ public class PostLikeService {
         Map<Long, PostUserStatusService.PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
 
         return likes.map(like -> {
-            PostUserStatusService.PostUserStatus status =
-                    statusMap.get(like.getPost().getId());
-            return PostDetailResponse.from(like.getPost(), status.isLiked(),
-                    status.isParticipated());
+            PostUserStatusService.PostUserStatus status = statusMap.get(like.getPost().getId());
+            Long currentViewCount = viewCountService.getTotalViewCount(like.getPost().getId());
+            return PostDetailResponse.from(like.getPost(), status.isLiked(), status.isParticipated(), currentViewCount);
         });
     }
 }

@@ -78,7 +78,7 @@ public record PostDetailResponse(
         @Schema(description = "사용자 참여 여부")
         Boolean isParticipated
 ) {
-    public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated) {
+    public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -98,7 +98,7 @@ public record PostDetailResponse(
                 post.getStatus(),
                 post.getQnaMethod(),
                 post.getLikeCount(),
-                post.getViewCount(),
+                currentViewCount.intValue(),
                 post.getCurrentParticipants(),
                 post.getSchedule() != null ? PostScheduleResponse.from(post.getSchedule()) : null,
                 post.getRequirement() != null ? PostRequirementResponse.from(post.getRequirement()) : null,
