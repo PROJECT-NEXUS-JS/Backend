@@ -21,6 +21,9 @@ public record PostDetailResponse(
         @Schema(description = "제작자 소개")
         String creatorIntroduction,
 
+        @Schema(description = "모집자 프로필 이미지 URL")
+        String creatorProfileUrl,
+
         @Schema(description = "상세 설명")
         String description,
 
@@ -79,11 +82,16 @@ public record PostDetailResponse(
         Boolean isParticipated
 ) {
     public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount) {
+        return from(post, isLiked, isParticipated, currentViewCount, null);
+    }
+
+    public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount, String creatorProfileUrl) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getServiceSummary(),
                 post.getCreatorIntroduction(),
+                creatorProfileUrl,
                 post.getDescription(),
                 post.getThumbnailUrl(),
                 post.getMainCategory().stream()
