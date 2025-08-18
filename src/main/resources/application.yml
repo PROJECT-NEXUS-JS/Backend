@@ -41,6 +41,11 @@ jwt:
     expiration: ${JWT_REFRESH_EXPIRATION:3600000}
     header: ${JWT_REFRESH_HEADER:RefreshToken}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 # Springdoc (Swagger UI)
 springdoc:
   api-docs:

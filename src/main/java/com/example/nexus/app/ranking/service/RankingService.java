@@ -34,10 +34,17 @@ public class RankingService {
      * 오늘의 추천, 마감 임박, 인기있는 테스트, 방금 등록한 테스트 조회
      */
     public HomeRankingResponse getHomeRanking(Long userId) {
-        // 오늘의 추천 (개인화 추천 또는 기본 추천)
-        List<Post> todayRecommendations = getTodayRecommendations(userId);
+        boolean isAuthenticated = userId != null;
         
-        // 마감 임박 (7일) - 마감일 적게 남은 순 + 가나다순
+        // 오늘의 추천 (인증된 사용자용 추천)
+        List<Post> todayRecommendations = isAuthenticated ? 
+            getPersonalizedRecommendations(userId) : null;
+        
+        // 기본 추천 (비인증 사용자용)
+        List<Post> defaultRecommendations = !isAuthenticated ? 
+            getDefaultRecommendations() : null;
+        
+        // 마감 임박 (7일) - 마감일 적게 남은 순 + 가나다순 (공통)
         LocalDateTime sevenDaysFromNow = LocalDateTime.now().plusDays(7);
         List<Post> deadlineImminent = rankingRepository.findDeadlineImminentForHome(
                 PostStatus.ACTIVE, 
@@ -45,22 +52,27 @@ public class RankingService {
                 PageRequest.of(0, 4)
         );
         
-        // 인기있는 테스트 - 인기순 + 가나다순
+        // 인기있는 테스트 - 인기순 + 가나다순 (공통)
         List<Post> popularTests = rankingRepository.findPopularForHome(
                 PostStatus.ACTIVE, 
                 PageRequest.of(0, 4)
         );
 
-        // 방금 등록한 테스트 - 최신순 + 가나다순
+        // 방금 등록한 테스트 - 최신순 + 가나다순 (공통)
         List<Post> recentTests = rankingRepository.findRecentTestsForHome(
                 PostStatus.ACTIVE, 
                 PageRequest.of(0, 4)
         );
 
         return HomeRankingResponse.builder()
-                .todayRecommendations(todayRecommendations.stream()
+                .todayRecommendations(todayRecommendations != null ? 
+                    todayRecommendations.stream()
                         .map(HomeRankingResponse::from)
-                        .toList())
+                        .toList() : null)
+                .defaultRecommendations(defaultRecommendations != null ? 
+                    defaultRecommendations.stream()
+                        .map(HomeRankingResponse::from)
+                        .toList() : null)
                 .deadlineImminent(deadlineImminent.stream()
                         .map(HomeRankingResponse::from)
                         .toList())
@@ -70,23 +82,14 @@ public class RankingService {
                 .recentTests(recentTests.stream()
                         .map(HomeRankingResponse::from)
                         .toList())
+                .isAuthenticated(isAuthenticated)
                 .build();
     }
 
     /**
-     * 오늘의 추천 로직 (개인화 또는 기본)
+     * 인증된 사용자용 개인화 추천 로직
      */
-    private List<Post> getTodayRecommendations(Long userId) {
-        if (userId == null) {
-            // 비로그인 사용자: 기본 추천 (인기순 + 최신순)
-            log.info("비로그인 사용자에게 기본 추천 제공");
-            return rankingRepository.findTodayRecommendations(
-                    PostStatus.ACTIVE, 
-                    PageRequest.of(0, 4)
-            );
-        }
-
-        // 로그인 사용자: 개인화 추천 시도
+    private List<Post> getPersonalizedRecommendations(Long userId) {
         try {
             UserInterest userInterest = userInterestRepository.findByUserId(userId).orElse(null);
             
@@ -111,6 +114,14 @@ public class RankingService {
 
         // 관심사 정보가 없거나 오류 발생 시: 기본 추천
         log.info("사용자 {}에게 기본 추천 제공 (관심사 정보 없음)", userId);
+        return getDefaultRecommendations();
+    }
+
+    /**
+     * 비인증 사용자용 기본 추천 로직
+     */
+    private List<Post> getDefaultRecommendations() {
+        log.info("비로그인 사용자에게 기본 추천 제공");
         return rankingRepository.findTodayRecommendations(
                 PostStatus.ACTIVE, 
                 PageRequest.of(0, 4)

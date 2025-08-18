@@ -22,7 +22,10 @@ public class RankingController {
 
     private final RankingService rankingService;
 
-    @Operation(summary = "홈 화면 랭킹 조회", description = "오늘의 추천(개인화), 마감 임박, 인기있는 테스트, 방금 등록한 테스트 섹션을 조회합니다. (각 섹션당 4개씩)")
+    @Operation(summary = "홈 화면 랭킹 조회", description = "인증 상태에 따라 다른 추천을 제공합니다. " +
+            "인증된 사용자: 오늘의 추천(개인화), 마감 임박, 인기있는 테스트, 방금 등록한 테스트 섹션을 조회합니다. " +
+            "비인증 사용자: 기본 추천, 마감 임박, 인기있는 테스트, 방금 등록한 테스트 섹션을 조회합니다. " +
+            "각 섹션당 4개씩 제공됩니다.")
     @GetMapping("/home-ranking")
     public ApiResponse<HomeRankingResponse> getHomeRanking(
             @AuthenticationPrincipal CustomUserDetails userDetails) {

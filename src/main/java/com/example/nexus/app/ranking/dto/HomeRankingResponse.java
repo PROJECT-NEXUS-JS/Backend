@@ -12,10 +12,12 @@ import java.util.List;
 @Builder
 public class HomeRankingResponse {
 
-    private List<RankingSection> todayRecommendations;
-    private List<RankingSection> deadlineImminent;
-    private List<RankingSection> popularTests;
-    private List<RankingSection> recentTests;
+    private List<RankingSection> todayRecommendations; // 인증된 사용자용 개인화 추천
+    private List<RankingSection> defaultRecommendations; // 비인증 사용자용 기본 추천
+    private List<RankingSection> deadlineImminent; // 공통: 마감 임박
+    private List<RankingSection> popularTests; // 공통: 인기있는 테스트
+    private List<RankingSection> recentTests; // 공통: 방금 등록한 테스트
+    private boolean isAuthenticated; // 인증 상태 플래그
 
     @Getter
     @Builder
