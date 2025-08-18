@@ -33,6 +33,7 @@ public class ParticipationService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostUserStatusService postUserStatusService;
+    private final ViewCountService viewCountService;
 
     // 참가 신청
     @Transactional
@@ -50,8 +51,9 @@ public class ParticipationService {
         Participation savedParticipation = participationRepository.save(participation);
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
+        Long currentViewCount = viewCountService.getTotalViewCount(postId);
 
-        return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated());
+        return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated(), currentViewCount);
     }
 
     // 참여 신청한 게시글 조회
@@ -214,10 +216,9 @@ public class ParticipationService {
                 postUserStatusService.getPostUserStatuses(postIds, userId);
 
         return participations.map(participation -> {
-            PostUserStatusService.PostUserStatus status =
-                    statusMap.get(participation.getPost().getId());
-            return ParticipationResponse.from(participation, status.isLiked(),
-                    status.isParticipated());
+            PostUserStatusService.PostUserStatus status = statusMap.get(participation.getPost().getId());
+            Long currentViewCount = viewCountService.getTotalViewCount(participation.getPost().getId());
+            return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(), currentViewCount);
         });
     }
 }

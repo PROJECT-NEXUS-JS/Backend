@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +42,7 @@ public class PostService {
     private final PostContentRepository postContentRepository;
     private final S3UploadService s3UploadService;
     private final PostUserStatusService postUserStatusService;
+    private final ViewCountService viewCountService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -106,11 +106,12 @@ public class PostService {
         }
 
         if (incrementView && post.isActive()) {
-            post.incrementViewCount();
+            viewCountService.incrementViewCount(postId);
         }
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
-        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated());
+        Long currentViewCount = viewCountService.getTotalViewCount(postId);
+        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount);
     }
 
 
@@ -275,19 +276,6 @@ public class PostService {
         Post post = postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
         return post;
-    }
-
-    private Page<PostDetailResponse> mapPostsWithUserStatus(Page<Post> posts, Long userId) {
-        List<Long> postIds = posts.getContent().stream()
-                .map(Post::getId)
-                .toList();
-
-        Map<Long, PostUserStatusService.PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
-
-        return posts.map(post -> {
-            PostUserStatusService.PostUserStatus status = statusMap.get(post.getId());
-            return PostDetailResponse.from(post, status.isLiked(), status.isParticipated());
-        });
     }
 
     private Post createPostWithThumbnail(PostCreateRequest request, MultipartFile thumbnailFile, PostStatus status) {
