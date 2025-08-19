@@ -2,6 +2,7 @@ package com.example.nexus.app.review.service;
 
 import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.dto.ReviewCreateRequest;
+import com.example.nexus.app.review.dto.ReviewResponse;
 import com.example.nexus.app.review.dto.ReviewUpdateRequest;
 import com.example.nexus.app.review.dto.WritableReviewResponse;
 import com.example.nexus.app.review.dto.WrittenReviewResponse;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * ReviewService
@@ -38,7 +40,7 @@ public class ReviewService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Review createReview(ReviewCreateRequest request, Long authUserId) {
+    public ReviewResponse createReview(ReviewCreateRequest request, Long authUserId) {
         User currentUser = userRepository.findById(authUserId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
@@ -49,22 +51,27 @@ public class ReviewService {
                 .createdBy(currentUser)
                 .updatedBy(currentUser)
                 .build();
-        return reviewRepository.save(review);
+        Review savedReview = reviewRepository.save(review);
+        return toReviewResponse(savedReview);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Review> getReview(Long reviewId) {
-        return reviewRepository.findById(reviewId);
+    public Optional<ReviewResponse> getReview(Long reviewId) {
+        return reviewRepository.findByIdWithCreatedBy(reviewId)
+                .map(this::toReviewResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<Review> getReviewsByPostId(Long postId) {
+    public List<ReviewResponse> getReviewsByPostId(Long postId) {
         return reviewRepository
-                .findByPostId(postId);
+                .findByPostId(postId)
+                .stream()
+                .map(this::toReviewResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public Review updateReview(Long reviewId, ReviewUpdateRequest request, Long authUserId) {
+    public ReviewResponse updateReview(Long reviewId, ReviewUpdateRequest request, Long authUserId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
@@ -76,7 +83,7 @@ public class ReviewService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         review.update(request.getRating(), request.getContent(), currentUser);
-        return review;
+        return toReviewResponse(review);
     }
 
     @Transactional
@@ -172,6 +179,24 @@ public class ReviewService {
                 .canWriteReview(canWriteReview)
                 .hasWrittenReview(hasWrittenReview)
                 .existingReview(reviewInfo)
+                .build();
+    }
+
+    private ReviewResponse toReviewResponse(Review review) {
+        User createdBy = review.getCreatedBy();
+        
+        return ReviewResponse.builder()
+                .id(review.getId())
+                .postId(review.getPostId())
+                .rating(review.getRating())
+                .content(review.getContent())
+                .createdAt(review.getCreatedAt())
+                .updatedAt(review.getUpdatedAt())
+                .writer(ReviewResponse.WriterInfo.builder()
+                        .id(createdBy.getId())
+                        .nickname(createdBy.getNickname() != null ? createdBy.getNickname() : "")
+                        .profileUrl(createdBy.getProfileUrl() != null ? createdBy.getProfileUrl() : "")
+                        .build())
                 .build();
     }
 }
