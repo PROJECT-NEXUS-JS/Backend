@@ -32,6 +32,11 @@ spring:
     show-sql: true
     open-in-view: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 jwt:
   secretKey: ${JWT_SECRET_KEY}
   access:
@@ -40,11 +45,6 @@ jwt:
   refresh:
     expiration: ${JWT_REFRESH_EXPIRATION:3600000}
     header: ${JWT_REFRESH_HEADER:RefreshToken}
-
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
 
 # Springdoc (Swagger UI)
 springdoc:
