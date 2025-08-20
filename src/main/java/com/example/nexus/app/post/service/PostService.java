@@ -20,6 +20,9 @@ import com.example.nexus.app.post.repository.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.example.nexus.app.user.domain.User;
+import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +46,7 @@ public class PostService {
     private final S3UploadService s3UploadService;
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -111,7 +115,12 @@ public class PostService {
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
         Long currentViewCount = viewCountService.getTotalViewCount(postId);
-        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount);
+
+        String creatorProfileUrl = userRepository.findById(post.getCreatedBy())
+                .map(User::getProfileUrl)
+                .orElse(null);
+
+        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount, creatorProfileUrl);
     }
 
 
