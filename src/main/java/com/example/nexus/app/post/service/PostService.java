@@ -23,13 +23,14 @@ import java.util.stream.Collectors;
 
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
+import com.example.nexus.app.mypage.service.RecentViewedPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.Optional;
 import java.util.List;
 
 @Service
@@ -47,6 +48,7 @@ public class PostService {
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
     private final UserRepository userRepository;
+    private final RecentViewedPostService recentViewedPostService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -111,6 +113,11 @@ public class PostService {
 
         if (incrementView && post.isActive()) {
             viewCountService.incrementViewCount(postId);
+        }
+
+        // 로그인된 사용자가 있을 경우 조회 기록 저장
+        if (userId != null) {
+            recentViewedPostService.saveRecentView(userId, post);
         }
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
@@ -282,9 +289,8 @@ public class PostService {
     }
 
     private Post getPostWithDetail(Long postId) {
-        Post post = postRepository.findByIdWithAllDetails(postId)
+        return postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
-        return post;
     }
 
     private Post createPostWithThumbnail(PostCreateRequest request, MultipartFile thumbnailFile, PostStatus status) {
@@ -346,7 +352,7 @@ public class PostService {
                     return categoryMatch && rewardMatch;
                 })
                 .limit(limit)
-                .collect(Collectors.toList());
+                .toList();
 
         return similarPosts.stream()
                 .map(SimilarPostResponse::from)
@@ -362,6 +368,9 @@ public class PostService {
             throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
         }
 
-        return PostRightSidebarResponse.from(post);
+        Long createdByUserId = post.getCreatedBy();
+        Optional<User> creatorUser = userRepository.findById(createdByUserId);
+
+        return PostRightSidebarResponse.from(post, creatorUser.orElse(null));
     }
 }
