@@ -15,8 +15,13 @@ import java.util.Optional;
  * - 게시글별 리뷰 목록 조회 등 커스텀 메서드 추가 가능
  */
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    // postId의 리뷰 목록 조회
-    List<Review> findByPostId(Long postId);
+    // 단일 리뷰 조회 (작성자 정보 포함)
+    @Query("SELECT r FROM Review r JOIN FETCH r.createdBy WHERE r.id = :id")
+    Optional<Review> findByIdWithCreatedBy(@Param("id") Long id);
+    
+    // postId의 리뷰 목록 조회 (작성자 정보 포함)
+    @Query("SELECT r FROM Review r JOIN FETCH r.createdBy WHERE r.postId = :postId")
+    List<Review> findByPostId(@Param("postId") Long postId);
 
     Page<Review> findByPostIdOrderByCreatedAtDesc(Long postId, Pageable pageable);
 
