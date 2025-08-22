@@ -7,6 +7,7 @@ import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.s3.S3UploadService;
+import com.example.nexus.app.mypage.service.RecentViewedPostService;
 import com.example.nexus.app.post.controller.dto.PostSearchCondition;
 import com.example.nexus.app.post.controller.dto.request.PostCreateRequest;
 import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
@@ -17,10 +18,6 @@ import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.post.repository.*;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +48,7 @@ public class PostService {
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
     private final UserRepository userRepository;
+    private final RecentViewedPostService recentViewedPostService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
@@ -67,7 +69,8 @@ public class PostService {
     }
 
     @Transactional
-    public void updateAndPublishDraft(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
+    public void updateAndPublishDraft(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
+                                      CustomUserDetails userDetails) {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
 
@@ -76,7 +79,8 @@ public class PostService {
         }
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl, request.qnaMethod());
+        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
+                request.description(), newThumbnailUrl, request.qnaMethod());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -104,13 +108,16 @@ public class PostService {
     public PostDetailResponse findPost(Long postId, Long userId, boolean incrementView) {
         Post post = getPostWithDetail(postId);
 
-        // DRAFT 상태인 경우 작성자만 조회 가능
         if (post.isDraft() && !post.isOwner(userId)) {
             throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
         }
 
         if (incrementView && post.isActive()) {
             viewCountService.incrementViewCount(postId);
+        }
+
+        if (userId != null) {
+            recentViewedPostService.saveRecentView(userId, postId);
         }
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
@@ -120,7 +127,8 @@ public class PostService {
                 .map(User::getProfileUrl)
                 .orElse(null);
 
-        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount, creatorProfileUrl);
+        return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount,
+                creatorProfileUrl);
     }
 
 
@@ -150,12 +158,14 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
+    public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
+                           CustomUserDetails userDetails) {
         Post post = getPost(postId);
         validateOwnership(post, userDetails.getUserId());
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(), request.description(), newThumbnailUrl, request.qnaMethod());
+        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
+                request.description(), newThumbnailUrl, request.qnaMethod());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -282,9 +292,8 @@ public class PostService {
     }
 
     private Post getPostWithDetail(Long postId) {
-        Post post = postRepository.findByIdWithAllDetails(postId)
+        return postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
-        return post;
     }
 
     private Post createPostWithThumbnail(PostCreateRequest request, MultipartFile thumbnailFile, PostStatus status) {
@@ -320,6 +329,7 @@ public class PostService {
 
         return PostMainViewDetailResponse.from(post);
     }
+
     public List<SimilarPostResponse> findSimilarPosts(Long postId, int limit) {
         Post basePost = postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
@@ -331,22 +341,26 @@ public class PostService {
 
         Set<MainCategory> baseMainCategories = basePost.getMainCategory();
         Set<GenreCategory> baseGenreCategories = new HashSet<>(basePost.getGenreCategories());
-        boolean baseRewardProvided = basePost.getReward() != null && basePost.getReward().getRewardType() != RewardType.NONE;
+        boolean baseRewardProvided =
+                basePost.getReward() != null && basePost.getReward().getRewardType() != RewardType.NONE;
 
         List<Post> similarPosts = postRepository.findAll().stream()
                 .filter(post -> !post.getId().equals(postId))
                 .filter(Post::isActive)
                 .filter(post -> {
-                    boolean categoryMatch = !post.getMainCategory().stream().filter(baseMainCategories::contains).collect(Collectors.toSet()).isEmpty() ||
+                    boolean categoryMatch = !post.getMainCategory().stream().filter(baseMainCategories::contains)
+                            .collect(Collectors.toSet()).isEmpty() ||
                             !post.getGenreCategories().stream().filter(baseGenreCategories::contains).collect(
                                     Collectors.toSet()).isEmpty();
 
-                    boolean rewardMatch = (post.getReward() != null && post.getReward().getRewardType() != RewardType.NONE) == baseRewardProvided;
+                    boolean rewardMatch =
+                            (post.getReward() != null && post.getReward().getRewardType() != RewardType.NONE)
+                                    == baseRewardProvided;
 
                     return categoryMatch && rewardMatch;
                 })
                 .limit(limit)
-                .collect(Collectors.toList());
+                .toList();
 
         return similarPosts.stream()
                 .map(SimilarPostResponse::from)
@@ -363,9 +377,8 @@ public class PostService {
         }
 
         Long createdByUserId = post.getCreatedBy();
-        User creatorUser = userRepository.findById(createdByUserId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        Optional<User> creatorUser = userRepository.findById(createdByUserId);
 
-        return PostRightSidebarResponse.from(post, creatorUser);
+        return PostRightSidebarResponse.from(post, creatorUser.orElse(null));
     }
 }

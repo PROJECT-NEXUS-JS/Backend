@@ -2,46 +2,46 @@ package com.example.nexus.app.mypage.service;
 
 import com.example.nexus.app.mypage.dto.DashboardDto;
 import com.example.nexus.app.mypage.dto.RecentlyViewedTestDto;
+import com.example.nexus.app.mypage.domain.RecentViewedPost;
+import com.example.nexus.app.mypage.repository.RecentViewedPostRepository;
+import com.example.nexus.app.post.domain.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MyPageService {
 
-    // TODO: 실제 데이터 적용 필요
+    private final RecentViewedPostRepository recentViewedPostRepository;
+
     public DashboardDto getDashboardData(Long userId) {
-        List<RecentlyViewedTestDto> recentTests = List.of(
-                RecentlyViewedTestDto.builder()
-                        .postId(1L)
-                        .category("모바일 앱")
-                        .title("넥서스 캘린더 앱 UX/UI 테스트")
-                        .oneLineIntro("새로운 캘린더 앱의 사용자 경험을 평가해주세요.")
-                        .tags(List.of("#UI/UX", "#모바일", "#캘린더"))
-                        .viewedAt(LocalDateTime.now().minusHours(2))
-                        .build(),
-                RecentlyViewedTestDto.builder()
-                        .postId(2L)
-                        .category("웹 서비스")
-                        .title("넥서스 커뮤니티 신규 기능 테스트")
-                        .oneLineIntro("게시판에 추가된 실시간 채팅 기능을 사용해보고 피드백을 주세요.")
-                        .tags(List.of("#웹", "#커뮤니티", "#실시간"))
-                        .viewedAt(LocalDateTime.now().minusHours(5))
-                        .build(),
-                RecentlyViewedTestDto.builder()
-                        .postId(3L)
-                        .category("게임")
-                        .title("넥서스 RPG 게임 베타 테스트")
-                        .oneLineIntro("새로운 판타지 세계에서 모험을 시작하세요!")
-                        .tags(List.of("#게임", "#RPG", "#베타"))
-                        .viewedAt(LocalDateTime.now().minusDays(1))
-                        .build()
-        );
+        if (userId == null) {
+            return DashboardDto.builder()
+                    .recentlyViewedTests(Collections.emptyList())
+                    .build();
+        }
+
+        List<RecentViewedPost> recentViewedPosts = recentViewedPostRepository.findByUserIdOrderByViewedAtDesc(userId);
+
+        List<RecentlyViewedTestDto> recentTests = recentViewedPosts.stream()
+                .map(recentView -> {
+                    Post post = recentView.getPost();
+                    return RecentlyViewedTestDto.builder()
+                            .postId(post.getId())
+                            .category(post.getMainCategory().stream().map(Enum::toString).collect(Collectors.joining(", ")))
+                            .title(post.getTitle())
+                            .oneLineIntro(post.getServiceSummary())
+                            .tags(post.getGenreCategories().stream().map(Enum::toString).collect(Collectors.toList()))
+                            .viewedAt(recentView.getViewedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
 
         return DashboardDto.builder()
                 .recentlyViewedTests(recentTests)

@@ -80,13 +80,15 @@ public class PostController {
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 상세 정보를 조회합니다.")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPost(@Parameter(description = "게시글 ID", required = true)
-                                                                    @PathVariable Long postId,
+                                                                   @PathVariable Long postId,
                                                                    HttpServletRequest httpServletRequest,
                                                                    HttpServletResponse httpServletResponse,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         boolean shouldIncrementView = cookieService.shouldIncrementViewAndSetCookie(postId, httpServletRequest, httpServletResponse);
 
-        PostDetailResponse response = postService.findPost(postId, userDetails.getUserId(), shouldIncrementView);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+
+        PostDetailResponse response = postService.findPost(postId, userId, shouldIncrementView);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
