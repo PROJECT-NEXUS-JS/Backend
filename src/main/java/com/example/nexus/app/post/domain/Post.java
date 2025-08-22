@@ -53,7 +53,7 @@ public class Post {
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_platform_category", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "platform_category", nullable = false)
+    @Column(name = "platform_category")
     private Set<PlatformCategory> platformCategory;
 
     @ElementCollection
