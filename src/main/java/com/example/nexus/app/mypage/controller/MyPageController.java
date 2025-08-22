@@ -1,6 +1,8 @@
 package com.example.nexus.app.mypage.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
+import com.example.nexus.app.global.code.status.ErrorStatus;
+import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.mypage.dto.DashboardDto;
 import com.example.nexus.app.mypage.dto.ProfileDto;
@@ -34,6 +36,9 @@ public class MyPageController {
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<DashboardDto>> getDashboard(@Parameter(hidden = true)
                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
         Long userId = userDetails.getUserId();
         DashboardDto dashboardData = myPageService.getDashboardData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(dashboardData));
@@ -47,6 +52,9 @@ public class MyPageController {
     @GetMapping("/watchlist")
     public ResponseEntity<ApiResponse<WatchlistDto>> getWatchlist(@Parameter(hidden = true)
                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
         Long userId = userDetails.getUserId();
         WatchlistDto watchlistData = myPageService.getWatchlistData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(watchlistData));
@@ -60,6 +68,9 @@ public class MyPageController {
     @GetMapping("/total-participation")
     public ResponseEntity<ApiResponse<TotalParticipationDto>> getTotalParticipation(@Parameter(hidden = true)
                                                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
         Long userId = userDetails.getUserId();
         TotalParticipationDto totalParticipationData = myPageService.getTotalParticipationData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(totalParticipationData));
@@ -73,6 +84,9 @@ public class MyPageController {
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<ProfileDto>> getProfile(@Parameter(hidden = true)
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+        }
         Long userId = userDetails.getUserId();
         ProfileDto profileData = myPageService.getProfileData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(profileData));
