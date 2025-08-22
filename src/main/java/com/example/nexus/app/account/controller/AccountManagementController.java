@@ -84,7 +84,7 @@ public class AccountManagementController {
     public ResponseEntity<ApiResponse<Void>> withdrawAccount(
             @Valid @RequestBody AccountWithdrawalRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        accountManagementService.withdrawAccount(userDetails.getUserId(), request.confirmation());
+        accountManagementService.withdrawAccount(userDetails.getUserId(), request.confirmation(), request.kakaoAccessToken());
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 }
