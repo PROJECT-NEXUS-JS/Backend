@@ -2,6 +2,7 @@ package com.example.nexus.app.post.repository;
 
 import com.example.nexus.app.post.domain.Participation;
 import com.example.nexus.app.post.domain.ParticipationStatus;
+import com.example.nexus.app.post.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -66,4 +67,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     Long countByPostIdAndStatusAndApprovedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
 
     Page<Participation> findByPostId(Long postId, Pageable pageable);
+
+    @Query("SELECT p.post FROM Participation p JOIN FETCH p.post WHERE p.user.id = :userId AND p.status = :status")
+    List<Post> findPostsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") ParticipationStatus status);
 }

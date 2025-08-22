@@ -1,5 +1,6 @@
 package com.example.nexus.app.post.repository;
 
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostLike;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,9 +36,13 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     long countByPostId(Long postId);
 
     @Query("SELECT pl.post.id " +
-    "FROM PostLike pl " +
-    "WHERE pl.user.id = :userId AND pl.post.id IN :postIds")
+            "FROM PostLike pl " +
+            "WHERE pl.user.id = :userId AND pl.post.id IN :postIds")
     Set<Long> findLikedPostIdsByUserIdAndPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 
     Long countByPostIdAndCreatedAtBefore(Long postId, LocalDateTime dateTime);
+
+    // 마이페이지 관심 목록 - 마감 임박 테스트 조회용 메서드
+    @Query("SELECT p FROM PostLike pl JOIN pl.post p WHERE pl.user.id = :userId AND p.status = 'ACTIVE' AND p.schedule.recruitmentDeadline >= CURRENT_DATE() ORDER BY p.schedule.recruitmentDeadline ASC")
+    List<Post> findLikedPostsWithNearingDeadline(@Param("userId") Long userId);
 }

@@ -3,6 +3,8 @@ package com.example.nexus.app.mypage.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.mypage.dto.DashboardDto;
+import com.example.nexus.app.mypage.dto.TotalParticipationDto;
+import com.example.nexus.app.mypage.dto.WatchlistDto;
 import com.example.nexus.app.mypage.service.MyPageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,5 +36,31 @@ public class MyPageController {
         Long userId = userDetails.getUserId();
         DashboardDto dashboardData = myPageService.getDashboardData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(dashboardData));
+    }
+
+    @Operation(
+            summary = "관심 목록 조회",
+            description = "로그인된 사용자의 관심 목록 중 마감 임박 테스트 목록을 조회합니다.",
+            security = @SecurityRequirement(name = "Authorization")
+    )
+    @GetMapping("/watchlist")
+    public ResponseEntity<ApiResponse<WatchlistDto>> getWatchlist(@Parameter(hidden = true)
+                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        WatchlistDto watchlistData = myPageService.getWatchlistData(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(watchlistData));
+    }
+
+    @Operation(
+            summary = "총 참여 프로젝트 갯수 조회",
+            description = "로그인된 사용자의 총 참여 프로젝트 갯수와 분류별 갯수를 조회합니다.",
+            security = @SecurityRequirement(name = "Authorization")
+    )
+    @GetMapping("/total-participation")
+    public ResponseEntity<ApiResponse<TotalParticipationDto>> getTotalParticipation(@Parameter(hidden = true)
+                                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        TotalParticipationDto totalParticipationData = myPageService.getTotalParticipationData(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(totalParticipationData));
     }
 }
