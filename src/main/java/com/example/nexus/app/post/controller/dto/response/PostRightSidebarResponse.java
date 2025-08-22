@@ -18,6 +18,7 @@ public record PostRightSidebarResponse(
         String testName,            // 게시글 제목 (Post.title)
         String recruiterName,       // 게시글 작성자 이름 (User.nickname)
         String recruiterAffiliation, // 게시글 작성자 소속 (Post.creatorIntroduction)
+        String profileUrl,          // 작성자 프로필 이미지 URL
         String testSummary,         // 게시글 상세 설명 (Post.description)
         Long daysRemaining,         // 모집 마감일 - 현재 날짜 (PostSchedule.recruitmentDeadline)
         Integer scrapCount,         // 스크랩 인원수 (Post.likeCount)
@@ -81,6 +82,7 @@ public record PostRightSidebarResponse(
                 .testName(post.getTitle())
                 .recruiterName(user.getNickname())
                 .recruiterAffiliation(post.getCreatorIntroduction())
+                .profileUrl(user.getProfileUrl())
                 .testSummary(post.getDescription())
                 .daysRemaining(daysRemaining)
                 .scrapCount(post.getLikeCount())
