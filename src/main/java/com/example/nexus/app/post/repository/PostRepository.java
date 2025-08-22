@@ -26,7 +26,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
 
     List<Post> findByCreatedByAndStatus(Long createdBy, PostStatus status);
 
-    // 사용자가 작성한 게시글
     List<Post> findByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 
     @Query("SELECT p " +
@@ -51,4 +50,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     Page<Post> findByStatusAndCreatedBy(@Param("status") PostStatus status, @Param("userId") Long userId, Pageable pageable);
 
     Page<Post> findByCreatedByAndStatus(Long createdBy, PostStatus status, Pageable pageable);
+
+    long countByCreatedBy(Long userId);
+
+    Optional<Post> findFirstByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 }

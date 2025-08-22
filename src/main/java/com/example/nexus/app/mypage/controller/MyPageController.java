@@ -3,6 +3,7 @@ package com.example.nexus.app.mypage.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.mypage.dto.DashboardDto;
+import com.example.nexus.app.mypage.dto.ProfileDto;
 import com.example.nexus.app.mypage.dto.TotalParticipationDto;
 import com.example.nexus.app.mypage.dto.WatchlistDto;
 import com.example.nexus.app.mypage.service.MyPageService;
@@ -62,5 +63,18 @@ public class MyPageController {
         Long userId = userDetails.getUserId();
         TotalParticipationDto totalParticipationData = myPageService.getTotalParticipationData(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(totalParticipationData));
+    }
+
+    @Operation(
+            summary = "프로필 정보 조회",
+            description = "로그인된 사용자의 프로필 정보(이름, 소속, 참여/게시글 수)를 조회합니다.",
+            security = @SecurityRequirement(name = "Authorization")
+    )
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<ProfileDto>> getProfile(@Parameter(hidden = true)
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        ProfileDto profileData = myPageService.getProfileData(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(profileData));
     }
 }

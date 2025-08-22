@@ -1,6 +1,7 @@
 package com.example.nexus.app.mypage.service;
 
 import com.example.nexus.app.mypage.dto.DashboardDto;
+import com.example.nexus.app.mypage.dto.ProfileDto;
 import com.example.nexus.app.mypage.dto.RecentlyViewedTestDto;
 import com.example.nexus.app.mypage.dto.TotalParticipationDto;
 import com.example.nexus.app.mypage.dto.WatchlistDto;
@@ -9,8 +10,12 @@ import com.example.nexus.app.mypage.domain.RecentViewedPost;
 import com.example.nexus.app.mypage.repository.RecentViewedPostRepository;
 import com.example.nexus.app.post.domain.ParticipationStatus;
 import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.post.domain.PostStatus;
 import com.example.nexus.app.post.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostLikeRepository;
+import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.user.domain.User;
+import com.example.nexus.app.user.repository.UserRepository;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,8 @@ public class MyPageService {
     private final RecentViewedPostRepository recentViewedPostRepository;
     private final PostLikeRepository postLikeRepository;
     private final ParticipationRepository participationRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
     public DashboardDto getDashboardData(Long userId) {
         if (userId == null) {
@@ -100,6 +107,40 @@ public class MyPageService {
         return TotalParticipationDto.builder()
                 .totalCount(totalCount)
                 .countByCategory(countByCategory)
+                .build();
+    }
+
+    public ProfileDto getProfileData(Long userId) {
+        if (userId == null) {
+            return ProfileDto.builder()
+                    .testsUploaded(0)
+                    .testsParticipating(0)
+                    .build();
+        }
+
+        User user = userRepository.findById(userId)
+                .orElse(null);
+
+        if (user == null) {
+            return ProfileDto.builder()
+                    .testsUploaded(0)
+                    .testsParticipating(0)
+                    .build();
+        }
+
+        Long testsUploaded = postRepository.countByCreatedBy(userId);
+        Long testsParticipating = participationRepository.countByUserIdAndStatus(userId, ParticipationStatus.APPROVED);
+
+        String affiliation = postRepository.findFirstByCreatedByAndStatusOrderByCreatedAtDesc(userId, PostStatus.ACTIVE)
+                .map(Post::getCreatorIntroduction)
+                .orElse(null);
+
+        return ProfileDto.builder()
+                .profileImageUrl(user.getProfileUrl())
+                .name(user.getNickname())
+                .affiliation(affiliation)
+                .testsUploaded(testsUploaded.intValue())
+                .testsParticipating(testsParticipating.intValue())
                 .build();
     }
 }
