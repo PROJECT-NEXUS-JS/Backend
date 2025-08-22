@@ -32,12 +32,19 @@ public class AccountManagementService {
     private final UserProfileRepository userProfileRepository;
     private final AccountInfoRepository accountInfoRepository;
     private final S3UploadService s3UploadService;
+    private final KakaoUnlinkService kakaoUnlinkService;
 
     /**
      * 계정관리 정보 조회
      */
     public AccountManagementResponse getAccountManagementInfo(Long userId) {
         User user = getUser(userId);
+        
+        // 탈퇴된 사용자인지 확인
+        if (user.isWithdrawn()) {
+            throw new GeneralException(ErrorStatus.USER_ALREADY_WITHDRAWN);
+        }
+        
         UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
         AccountInfo accountInfo = accountInfoRepository.findByUser(user).orElse(null);
         
@@ -138,24 +145,49 @@ public class AccountManagementService {
 
     /**
      * 계정 탈퇴
-     * 카카오 계정의 경우 카카오 연동 해제도 고려해야 함
+     * 카카오 계정의 경우 카카오 연동 해제도 함께 진행
      */
     @Transactional
-    public void withdrawAccount(Long userId, String confirmation) {
+    public void withdrawAccount(Long userId, String confirmation, String kakaoAccessToken) {
         if (!"계정 탈퇴".equals(confirmation)) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
         
         User user = getUser(userId);
         
+        // 이미 탈퇴된 사용자인지 확인
+        if (user.isWithdrawn()) {
+            throw new GeneralException(ErrorStatus.USER_ALREADY_WITHDRAWN);
+        }
+        
+        // 카카오 계정인 경우 연동 해제
+        if (user.getSocialType() != null && user.getSocialType().name().equals("KAKAO")) {
+            try {
+                kakaoUnlinkService.unlinkKakaoAccount(user, kakaoAccessToken);
+            } catch (Exception e) {
+                log.warn("카카오 연동 해제 중 오류 발생했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}", 
+                        userId, e.getMessage());
+            }
+        }
+        
+        // 프로필 이미지가 있다면 S3에서 삭제
+        if (user.getProfileUrl() != null && !isDefaultProfileImage(user.getProfileUrl())) {
+            try {
+                s3UploadService.deleteFile(user.getProfileUrl());
+            } catch (Exception e) {
+                log.warn("프로필 이미지 삭제 실패했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}", 
+                        userId, e.getMessage());
+            }
+        }
+        
         // 계정 상태를 탈퇴로 변경
-        user.updateRefreshToken(null);
-        // TODO: User 엔티티에 withdrawAccount 메서드 추가 필요
-        // TODO: 카카오 연동 해제 API 호출 필요 (카카오 개발자 콘솔에서 설정)
+        user.withdrawAccount();
         
         // 관련 데이터 삭제
         userProfileRepository.findByUser(user).ifPresent(userProfileRepository::delete);
         accountInfoRepository.findByUser(user).ifPresent(accountInfoRepository::delete);
+        
+        log.info("계정 탈퇴 완료: userId={}, email={}", userId, user.getEmail());
     }
 
     private User getUser(Long userId) {
