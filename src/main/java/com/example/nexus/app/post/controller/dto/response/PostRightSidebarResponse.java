@@ -2,6 +2,7 @@ package com.example.nexus.app.post.controller.dto.response;
 
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.user.domain.User;
 import lombok.Builder;
 
 import java.time.LocalDate;
@@ -15,7 +16,9 @@ import java.time.temporal.ChronoUnit;
 @Builder
 public record PostRightSidebarResponse(
         String testName,            // 게시글 제목 (Post.title)
-        String recruiterName,       // 제작자 소개 (Post.creatorIntroduction)
+        String recruiterName,       // 게시글 작성자 이름 (User.nickname)
+        String recruiterAffiliation, // 게시글 작성자 소속 (Post.creatorIntroduction)
+        String profileUrl,          // 작성자 프로필 이미지 URL
         String testSummary,         // 게시글 상세 설명 (Post.description)
         Long daysRemaining,         // 모집 마감일 - 현재 날짜 (PostSchedule.recruitmentDeadline)
         Integer scrapCount,         // 스크랩 인원수 (Post.likeCount)
@@ -26,7 +29,7 @@ public record PostRightSidebarResponse(
         String participationMethod, // 참여 방식 (PostContent.participationMethod)
         String qnaMethod            // Q&A 방법 (Post.qnaMethod)
 ) {
-    public static PostRightSidebarResponse from(Post post) {
+    public static PostRightSidebarResponse from(Post post, User user) {
         // 마감 잔여 일수 계산
         Long daysRemaining = null;
         if (post.getSchedule() != null && post.getSchedule().getRecruitmentDeadline() != null) {
@@ -77,7 +80,9 @@ public record PostRightSidebarResponse(
 
         return PostRightSidebarResponse.builder()
                 .testName(post.getTitle())
-                .recruiterName(post.getCreatorIntroduction())
+                .recruiterName(user.getNickname())
+                .recruiterAffiliation(post.getCreatorIntroduction())
+                .profileUrl(user.getProfileUrl())
                 .testSummary(post.getDescription())
                 .daysRemaining(daysRemaining)
                 .scrapCount(post.getLikeCount())
