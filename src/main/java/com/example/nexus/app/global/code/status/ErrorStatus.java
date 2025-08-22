@@ -76,6 +76,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_COMPLETED_YET(HttpStatus.CONFLICT, "PARTICIPANT4097", "아직 완료되지 않은 참여자입니다."),
     ALREADY_PAID(HttpStatus.CONFLICT, "PARTICIPANT4098", "이미 리워드가 지급된 참여자입니다."),
     USER_ALREADY_WITHDRAWN(HttpStatus.CONFLICT, "USER4099", "이미 탈퇴된 계정입니다."),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "USER40910", "이미 사용 중인 닉네임입니다."),
 
     // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
