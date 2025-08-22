@@ -362,6 +362,10 @@ public class PostService {
             throw new GeneralException(ErrorStatus.POST_ACCESS_DENIED);
         }
 
-        return PostRightSidebarResponse.from(post);
+        Long createdByUserId = post.getCreatedBy();
+        User creatorUser = userRepository.findById(createdByUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        return PostRightSidebarResponse.from(post, creatorUser);
     }
 }

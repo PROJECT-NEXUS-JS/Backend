@@ -19,7 +19,7 @@ public record PostCreateRequest(
         @Schema(description = "서비스 요약", example = "AI 기반 마케팅 자동화 툴")
         String serviceSummary,
 
-        @Schema(description = "제작자 소개", example = "5년차 풀스택 개발자입니다.")
+        @Schema(description = "제작자 소속 및 설명", example = "예시는 설명 5년차 풀스택 개발자입니다.")
         String creatorIntroduction,
 
         @Schema(description = "상세 설명", example = "새로운 마케팅 도구의 사용성을 테스트해주실 분을 찾습니다.")
