@@ -67,9 +67,9 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     Long countByPostIdAndStatusAndApprovedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
 
     Page<Participation> findByPostId(Long postId, Pageable pageable);
-    
-    long countByUserIdAndStatus(Long userId, ParticipationStatus status);
 
-    @Query("SELECT p.post FROM Participation p JOIN FETCH p.post WHERE p.user.id = :userId AND p.status = :status")
-    List<Post> findPostsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") ParticipationStatus status);
+    @Query("SELECT p FROM Participation p JOIN FETCH p.post WHERE p.user.id = :userId AND p.status = :status")
+    List<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId, @Param("status") ParticipationStatus status);
+
+    long countByUserIdAndStatus(Long userId, ParticipationStatus status);
 }

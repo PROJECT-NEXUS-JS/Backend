@@ -18,12 +18,14 @@ import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.example.nexus.app.post.domain.Participation;
 
 @Service
 @RequiredArgsConstructor
@@ -96,8 +98,9 @@ public class MyPageService {
                     .build();
         }
 
-        List<Post> participatedPosts = participationRepository.findPostsByUserIdAndStatus(userId, ParticipationStatus.APPROVED);
+        List<Participation> participated = participationRepository.findByUserIdAndStatusWithPost(userId, ParticipationStatus.APPROVED, Pageable.unpaged()).getContent();
 
+        List<Post> participatedPosts = participated.stream().map(Participation::getPost).collect(Collectors.toList());
         int totalCount = participatedPosts.size();
 
         Map<String, Integer> countByCategory = participatedPosts.stream()
