@@ -14,6 +14,8 @@ import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.ViewCountService;
 import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.repository.ReviewRepository;
+import com.example.nexus.notification.NotificationType;
+import com.example.nexus.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,6 +41,7 @@ public class DashboardService {
     private final ReviewRepository reviewRepository;
     private final PostLikeRepository postLikeRepository;
     private final ViewCountService viewCountService;
+    private final NotificationService notificationService;
 
     // 통계 카드
     public DashboardStatsResponse getDashboardStats(Long userId, Long postId) {
@@ -249,6 +252,14 @@ public class DashboardService {
 
         participantReward.markAsCompleted();
 
+        // 참여 완료 알림 - 참여자에게
+        notificationService.createNotification(
+                participation.getUser().getId(),  // 참여자
+                NotificationType.PARTICIPATION_COMPLETED,
+                "참여가 완료되었습니다. 리워드 지급을 기다려주세요.",
+                null
+        );
+
         return ParticipantDetailResponse.from(participation, participantReward);
     }
 
@@ -271,6 +282,15 @@ public class DashboardService {
         participantReward.markAsPaid();
 
         Participation participation = participantReward.getParticipation();
+
+        // 리워드 지급 알림 - 참여자에게
+        notificationService.createNotification(
+                participation.getUser().getId(),  // 참여자
+                NotificationType.REWARD_PAID,
+                "리워드가 지급되었습니다. 확인해보세요.",
+                null
+        );
+
         return ParticipantDetailResponse.from(participation, participantReward);
     }
 
