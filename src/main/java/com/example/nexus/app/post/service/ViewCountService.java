@@ -54,7 +54,16 @@ public class ViewCountService {
             LocalDate yesterday = LocalDate.now().minusDays(1);
             String dailyKey = DAILY_VIEW_PREFIX + postId + ":" + yesterday.toString();
             String value = stringRedisTemplate.opsForValue().get(dailyKey);
-            return value != null ? Long.parseLong(value) : 0L;
+
+            if (value != null) {
+                // Redis에 어제 데이터가 있으면 그대로 사용
+                return Long.parseLong(value);
+            }
+
+            // Redis에 어제 데이터가 없으면 (총 조회수 - 오늘 조회수)로 계산
+            Long totalCount = getTotalViewCount(postId);
+            Long todayCount = getTodayViewCount(postId);
+            return Math.max(0, totalCount - todayCount);
 
         } catch (Exception e) {
             log.error("어제 조회수 조회 실패: postId={}", postId, e);
@@ -91,6 +100,9 @@ public class ViewCountService {
     public List<Long> getWeeklyViewCounts(Long postId) {
         List<Long> weeklyViews = new ArrayList<>();
         LocalDate today = LocalDate.now();
+        Long totalDbViewCount = postRepository.findById(postId)
+                .map(post -> post.getViewCount().longValue())
+                .orElse(0L);
 
         // 7일간 데이터 수집 (오늘부터 6일 전까지)
         for (int i = 6; i >= 0; i--) {
@@ -98,11 +110,14 @@ public class ViewCountService {
             Long viewCount;
 
             if (i == 0) {
-                // 오늘: 실시간 조회수
                 viewCount = getTodayViewCount(postId);
             } else {
-                // 과거: 정산된 조회수
+                // 과거: 정산된 조회수, 없으면 DB 누적 조회수 사용
                 viewCount = getDailyViewCount(postId, targetDate);
+                if (viewCount == 0L && totalDbViewCount > 0L) {
+                    // Redis에 일별 데이터가 없고 DB에 누적 조회수가 있으면 DB 값 사용
+                    viewCount = totalDbViewCount;
+                }
             }
 
             weeklyViews.add(viewCount);
