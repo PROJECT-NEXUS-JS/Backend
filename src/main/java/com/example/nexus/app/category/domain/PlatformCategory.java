@@ -19,6 +19,7 @@ public enum PlatformCategory {
     PC("PC", MainCategory.GAME),
     MOBILE("모바일", MainCategory.GAME),
     CONSOLE("콘솔", MainCategory.GAME),
+    VR("VR", MainCategory.GAME),
     GAME_ALL("전체", MainCategory.GAME),
     
     // 기타 플랫폼
