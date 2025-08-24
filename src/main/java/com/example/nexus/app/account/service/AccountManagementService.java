@@ -101,8 +101,20 @@ public class AccountManagementService {
             user.updateProfileImage(imageUrl);
         }
         
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
-        AccountInfo accountInfo = accountInfoRepository.findByUser(user).orElse(null);
+        UserProfile userProfile = null;
+        AccountInfo accountInfo = null;
+        
+        try {
+            userProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패: {}", e.getMessage());
+        }
+        
+        try {
+            accountInfo = accountInfoRepository.findByUserWithPreferredGenres(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("AccountInfo 조회 실패: {}", e.getMessage());
+        }
         
         return AccountManagementResponse.from(user, userProfile, accountInfo);
     }
@@ -120,7 +132,13 @@ public class AccountManagementService {
             accountInfo.updatePhoneNumber(request.phoneNumber());
         }
         
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+        UserProfile userProfile = null;
+        
+        try {
+            userProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패: {}", e.getMessage());
+        }
         
         return AccountManagementResponse.from(user, userProfile, accountInfo);
     }
@@ -142,7 +160,23 @@ public class AccountManagementService {
         accountInfo.updateGender(request.gender());
         accountInfo.updatePreferredGenres(request.preferredGenres());
         
-        return AccountManagementResponse.from(user, userProfile, accountInfo);
+        // 업데이트 후 다시 조회하여 Lazy Loading 문제 방지
+        UserProfile updatedUserProfile = null;
+        AccountInfo updatedAccountInfo = null;
+        
+        try {
+            updatedUserProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패: {}", e.getMessage());
+        }
+        
+        try {
+            updatedAccountInfo = accountInfoRepository.findByUserWithPreferredGenres(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("AccountInfo 조회 실패: {}", e.getMessage());
+        }
+        
+        return AccountManagementResponse.from(user, updatedUserProfile, updatedAccountInfo);
     }
 
     /**
@@ -163,29 +197,51 @@ public class AccountManagementService {
     }
 
     private UserProfile getOrCreateUserProfile(User user) {
-        return userProfileRepository.findByUser(user)
-                .orElseGet(() -> {
-                    UserProfile newProfile = UserProfile.builder()
-                            .user(user)
-                            .job("")
-                            .interests(new ArrayList<>())
-                            .build();
-                    return userProfileRepository.save(newProfile);
-                });
+        try {
+            return userProfileRepository.findByUserWithInterests(user)
+                    .orElseGet(() -> {
+                        UserProfile newProfile = UserProfile.builder()
+                                .user(user)
+                                .job("")
+                                .interests(new ArrayList<>())
+                                .build();
+                        return userProfileRepository.save(newProfile);
+                    });
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패, 새로 생성: {}", e.getMessage());
+            UserProfile newProfile = UserProfile.builder()
+                    .user(user)
+                    .job("")
+                    .interests(new ArrayList<>())
+                    .build();
+            return userProfileRepository.save(newProfile);
+        }
     }
 
     private AccountInfo getOrCreateAccountInfo(User user) {
-        return accountInfoRepository.findByUser(user)
-                .orElseGet(() -> {
-                    AccountInfo newAccountInfo = AccountInfo.builder()
-                            .user(user)
-                            .phoneNumber("")
-                            .birthYear("")
-                            .gender("")
-                            .preferredGenres(new ArrayList<>())
-                            .build();
-                    return accountInfoRepository.save(newAccountInfo);
-                });
+        try {
+            return accountInfoRepository.findByUserWithPreferredGenres(user)
+                    .orElseGet(() -> {
+                        AccountInfo newAccountInfo = AccountInfo.builder()
+                                .user(user)
+                                .phoneNumber("")
+                                .birthYear("")
+                                .gender("")
+                                .preferredGenres(new ArrayList<>())
+                                .build();
+                        return accountInfoRepository.save(newAccountInfo);
+                    });
+        } catch (Exception e) {
+            log.warn("AccountInfo 조회 실패, 새로 생성: {}", e.getMessage());
+            AccountInfo newAccountInfo = AccountInfo.builder()
+                    .user(user)
+                    .phoneNumber("")
+                    .birthYear("")
+                    .gender("")
+                    .preferredGenres(new ArrayList<>())
+                    .build();
+            return accountInfoRepository.save(newAccountInfo);
+        }
     }
 
     private void validateImageFile(MultipartFile file) {
