@@ -49,6 +49,10 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     public void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(user -> {
+                    // 탈퇴된 사용자인지 확인
+                    if (user.isWithdrawn()) {
+                        return; // 탈퇴된 사용자는 토큰 재발급 불가
+                    }
                     String reIssuedRefreshToken = reIssueRefreshToken(user);
                     jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(user.getEmail(), user.getId()),
                             reIssuedRefreshToken);
@@ -70,7 +74,12 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 .ifPresent(accessToken -> {
                     String email = jwtService.verifyTokenAndGetEmail(accessToken);
                     userRepository.findByEmail(email)
-                            .ifPresent(this::saveAuthentication);
+                            .ifPresent(user -> {
+                                // 탈퇴된 사용자인지 확인
+                                if (!user.isWithdrawn()) {
+                                    saveAuthentication(user);
+                                }
+                            });
                 });
 
         filterChain.doFilter(request, response);

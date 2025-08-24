@@ -95,6 +95,17 @@ public class User {
         return this.statusType == StatusType.BANNED;
     }
 
+    public boolean isWithdrawn() {
+        return this.statusType == StatusType.WITHDRAWN;
+    }
+
+    public void withdrawAccount() {
+        this.statusType = StatusType.WITHDRAWN;
+        this.refreshToken = null;
+        this.nickname = "탈퇴한 사용자";
+        this.profileUrl = null;
+    }
+
     public void updateRole(RoleType roleType) {
         if (roleType != null) this.roleType = roleType;
     }
