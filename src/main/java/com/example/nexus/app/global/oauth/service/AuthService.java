@@ -64,10 +64,20 @@ public class AuthService {
 
         String lastLoginAtStr = (user.getLastLoginAt() != null) ? user.getLastLoginAt().toString() : null;
         
-        // UserProfile 정보 조회
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
-        String job = userProfile != null ? userProfile.getJob() : null;
-        List<String> interests = userProfile != null ? userProfile.getInterests() : new ArrayList<>();
+        // UserProfile 정보 조회 - JOIN FETCH 사용
+        String job = null;
+        List<String> interests = new ArrayList<>();
+        
+        try {
+            UserProfile userProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
+            if (userProfile != null) {
+                job = userProfile.getJob();
+                interests = userProfile.getInterests();
+            }
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패: {}", e.getMessage());
+            // UserProfile 조회 실패 시에도 기본 정보는 반환
+        }
         
         return new UserInfoResponseDto(
             user.getEmail(), 

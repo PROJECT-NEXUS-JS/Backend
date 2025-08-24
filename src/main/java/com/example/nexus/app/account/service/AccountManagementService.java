@@ -45,8 +45,20 @@ public class AccountManagementService {
             throw new GeneralException(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
         
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
-        AccountInfo accountInfo = accountInfoRepository.findByUser(user).orElse(null);
+        UserProfile userProfile = null;
+        AccountInfo accountInfo = null;
+        
+        try {
+            userProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("UserProfile 조회 실패: {}", e.getMessage());
+        }
+        
+        try {
+            accountInfo = accountInfoRepository.findByUserWithPreferredGenres(user).orElse(null);
+        } catch (Exception e) {
+            log.warn("AccountInfo 조회 실패: {}", e.getMessage());
+        }
         
         return AccountManagementResponse.from(user, userProfile, accountInfo);
     }
