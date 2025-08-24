@@ -235,7 +235,7 @@ public class Post {
         this.qnaMethod = qnaMethod;
     }
 
-    public void updateViewCount(int newDbCount) {
-        this.viewCount = newDbCount;
+    public void incrementViewCount() {
+        viewCount++;
     }
 }
