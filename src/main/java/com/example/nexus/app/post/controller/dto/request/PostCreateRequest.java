@@ -7,6 +7,8 @@ import com.example.nexus.app.post.domain.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import java.util.ArrayList;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -115,6 +117,7 @@ public record PostCreateRequest(
     }
 
     public PostContent toPostContentEntity(Post post) {
-        return PostContent.create(post, participationMethod, storyGuide, mediaUrl);
+        List<String> mediaUrls = mediaUrl != null ? List.of(mediaUrl) : new ArrayList<>();
+        return PostContent.create(post, participationMethod, storyGuide, mediaUrls);
     }
 }

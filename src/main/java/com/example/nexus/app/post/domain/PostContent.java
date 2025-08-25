@@ -3,6 +3,8 @@ package com.example.nexus.app.post.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "post_contents", uniqueConstraints = @UniqueConstraint(columnNames = "post_id"))
@@ -24,22 +26,24 @@ public class PostContent {
     @Column(name = "story_guide", columnDefinition = "TEXT")
     private String storyGuide;
 
+    @ElementCollection
+    @CollectionTable(name = "post_media_urls", joinColumns = @JoinColumn(name = "post_content_id"))
     @Column(name = "media_url")
-    private String mediaUrl;
+    private List<String> mediaUrls = new ArrayList<>();
 
     public static PostContent create(Post post, String participationMethod,
-                                     String storyGuide, String mediaUrl) {
+                                     String storyGuide, List<String> mediaUrls) {
         PostContent content = new PostContent();
         content.post = post;
         content.participationMethod = participationMethod;
         content.storyGuide = storyGuide;
-        content.mediaUrl = mediaUrl;
+        content.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
         return content;
     }
 
-    public void update(String participationMethod, String storyGuide, String mediaUrl) {
+    public void update(String participationMethod, String storyGuide, List<String> mediaUrls) {
         this.participationMethod = participationMethod;
         this.storyGuide = storyGuide;
-        this.mediaUrl = mediaUrl;
+        this.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
     }
 }
