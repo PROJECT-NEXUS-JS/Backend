@@ -20,7 +20,8 @@ public record PostMainViewDetailResponse(
 ) {
     public static PostMainViewDetailResponse from(Post post) {
         // 프로젝트 소개 이미지 (PostContent의 mediaUrl)
-        String projectIntroImage = (post.getPostContent() != null) ? post.getPostContent().getMediaUrl() : null;
+        String projectIntroImage = (post.getPostContent() != null && !post.getPostContent().getMediaUrls().isEmpty()) 
+                ? post.getPostContent().getMediaUrls().get(0) : null;
 
         // 프로젝트 소개 텍스트 (PostContent의 storyGuide)
         String projectIntroText = (post.getPostContent() != null) ? post.getPostContent().getStoryGuide() : null;

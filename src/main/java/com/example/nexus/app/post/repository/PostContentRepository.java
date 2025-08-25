@@ -20,6 +20,6 @@ public interface PostContentRepository extends JpaRepository<PostContent, Long> 
 
     @Query("SELECT pc " +
             "FROM PostContent pc " +
-            "WHERE pc.mediaUrl IS NOT NULL AND pc.mediaUrl != ''")
+            "WHERE SIZE(pc.mediaUrls) > 0")
     List<PostContent> findWithMediaUrl();
 }

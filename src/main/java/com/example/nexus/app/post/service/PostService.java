@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,26 +52,26 @@ public class PostService {
     private final RecentViewedPostService recentViewedPostService;
 
     @Transactional
-    public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, MultipartFile imageFile, CustomUserDetails userDetails) {
-        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFile, PostStatus.ACTIVE);
+    public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
+        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFiles, PostStatus.ACTIVE);
         Post savedPost = postRepository.save(post);
-        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFile);
+        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFiles);
 
         return savedPost.getId();
     }
 
     @Transactional
-    public Long saveDraft(PostCreateRequest request, MultipartFile thumbnailFile, MultipartFile imageFile, CustomUserDetails userDetails) {
-        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFile, PostStatus.DRAFT);
+    public Long saveDraft(PostCreateRequest request, MultipartFile thumbnailFile, List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
+        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFiles, PostStatus.DRAFT);
         Post savedPost = postRepository.save(post);
-        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFile);
+        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFiles);
 
         return savedPost.getId();
     }
 
     @Transactional
     public void updateAndPublishDraft(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
-                                      MultipartFile imageFile, CustomUserDetails userDetails) {
+                                      List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
 
@@ -85,7 +86,7 @@ public class PostService {
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
 
-        updateRelatedEntitiesWithImage(request, post, imageFile);
+        updateRelatedEntitiesWithImage(request, post, imageFiles);
 
         validatePostForPublishing(post);
         post.active();
@@ -159,7 +160,7 @@ public class PostService {
 
     @Transactional
     public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
-                           MultipartFile imageFile, CustomUserDetails userDetails) {
+                           List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
         Post post = getPost(postId);
         validateOwnership(post, userDetails.getUserId());
 
@@ -170,7 +171,7 @@ public class PostService {
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
 
-        updateRelatedEntitiesWithImage(request, post, imageFile);
+        updateRelatedEntitiesWithImage(request, post, imageFiles);
     }
 
     @Transactional
@@ -183,7 +184,7 @@ public class PostService {
         createAndSaveRelatedEntitiesWithImage(request, post, null);
     }
 
-    private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, MultipartFile imageFile) {
+    private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, List<MultipartFile> imageFiles) {
         PostSchedule schedule = request.toPostScheduleEntity(post);
         postScheduleRepository.save(schedule);
 
@@ -198,12 +199,18 @@ public class PostService {
         PostFeedback feedback = request.toPostFeedbackEntity(post);
         postFeedbackRepository.save(feedback);
 
-        // 이미지 파일 업로드 처리
-        String imageUrl = uploadImageIfPresent(imageFile);
-        String finalMediaUrl = imageUrl != null ? imageUrl : request.mediaUrl();
+        // 이미지 파일들 업로드 처리
+        List<String> uploadedImageUrls = uploadImagesIfPresent(imageFiles);
+        List<String> finalMediaUrls = new ArrayList<>();
+        
+        if (!uploadedImageUrls.isEmpty()) {
+            finalMediaUrls = uploadedImageUrls;
+        } else if (request.mediaUrl() != null) {
+            finalMediaUrls.add(request.mediaUrl());
+        }
         
         PostContent content = PostContent.create(post, request.participationMethod(), 
-                request.storyGuide(), finalMediaUrl);
+                request.storyGuide(), finalMediaUrls);
         postContentRepository.save(content);
     }
 
@@ -232,10 +239,11 @@ public class PostService {
         feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
 
         PostContent content = post.getPostContent();
-        content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());
+        List<String> mediaUrls = request.mediaUrl() != null ? List.of(request.mediaUrl()) : new ArrayList<>();
+        content.update(request.participationMethod(), request.storyGuide(), mediaUrls);
     }
 
-    private void updateRelatedEntitiesWithImage(PostUpdateRequest request, Post post, MultipartFile imageFile) {
+    private void updateRelatedEntitiesWithImage(PostUpdateRequest request, Post post, List<MultipartFile> imageFiles) {
         PostSchedule schedule = post.getSchedule();
         schedule.update(request.startDate(), request.endDate(),
                 request.recruitmentDeadline(), request.durationTime());
@@ -260,10 +268,20 @@ public class PostService {
         feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
 
         PostContent content = post.getPostContent();
-        // 이미지 파일 업로드 처리
-        String imageUrl = uploadImageIfPresent(imageFile);
-        String finalMediaUrl = imageUrl != null ? imageUrl : request.mediaUrl();
-        content.update(request.participationMethod(), request.storyGuide(), finalMediaUrl);
+        // 이미지 파일들 업로드 처리
+        List<String> uploadedImageUrls = uploadImagesIfPresent(imageFiles);
+        List<String> finalMediaUrls = new ArrayList<>();
+        
+        if (!uploadedImageUrls.isEmpty()) {
+            finalMediaUrls = uploadedImageUrls;
+        } else if (request.mediaUrl() != null) {
+            finalMediaUrls.add(request.mediaUrl());
+        } else {
+            // 기존 이미지 유지
+            finalMediaUrls = content.getMediaUrls();
+        }
+        
+        content.update(request.participationMethod(), request.storyGuide(), finalMediaUrls);
     }
 
     private void validatePostForPublishing(Post post) {
@@ -348,7 +366,7 @@ public class PostService {
     }
 
     private Post createPostWithThumbnailAndImage(PostCreateRequest request, MultipartFile thumbnailFile, 
-                                                 MultipartFile imageFile, PostStatus status) {
+                                                 List<MultipartFile> imageFiles, PostStatus status) {
         String thumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, null);
         Post post = (status == PostStatus.DRAFT) ? request.toPostEntity(PostStatus.DRAFT) : request.toPostEntity();
 
@@ -370,11 +388,17 @@ public class PostService {
         return currentThumbnailUrl;
     }
 
-    private String uploadImageIfPresent(MultipartFile imageFile) {
-        if (imageFile != null && !imageFile.isEmpty()) {
-            return s3UploadService.uploadFile(imageFile);
+    private List<String> uploadImagesIfPresent(List<MultipartFile> imageFiles) {
+        List<String> uploadedUrls = new ArrayList<>();
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            for (MultipartFile imageFile : imageFiles) {
+                if (imageFile != null && !imageFile.isEmpty()) {
+                    String uploadedUrl = s3UploadService.uploadFile(imageFile);
+                    uploadedUrls.add(uploadedUrl);
+                }
+            }
         }
-        return null;
+        return uploadedUrls;
     }
 
     public PostMainViewDetailResponse findPostMainViewDetails(Long postId) {
