@@ -10,6 +10,7 @@ import com.example.nexus.app.account.service.KakaoUnlinkService;
 import com.example.nexus.app.global.code.dto.LoginResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoUpdateRequest;
+import com.example.nexus.app.global.code.dto.RegistrationInfoUpdateRequest; // 추가
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
@@ -125,12 +126,9 @@ public class AuthService {
     }
 
     @Transactional
-    public UserInfoResponseDto changeRole(Long userId, UserInfoUpdateRequest request) {
+    public UserInfoResponseDto changeRole(Long userId, RegistrationInfoUpdateRequest request) { // 수정
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
-
-        // 닉네임 업데이트 로직은 제거 (최초 가입 시 닉네임은 카카오에서 받아왔다고 가정)
-        // 닉네임 중복 검사 로직도 제거
 
         validateInterests(request.getInterests());
 
