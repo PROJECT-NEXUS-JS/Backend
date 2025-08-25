@@ -13,13 +13,13 @@ import com.example.nexus.app.global.code.dto.UserInfoUpdateRequest;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
-import com.example.nexus.app.global.oauth.service.IdTokenService;
 import com.example.nexus.app.global.security.JwtService;
 import com.example.nexus.app.global.security.TokenBlacklistService;
 import com.example.nexus.app.global.s3.S3UploadService;
 import com.example.nexus.app.mypage.domain.UserProfile;
 import com.example.nexus.app.mypage.repository.UserProfileRepository;
 import com.example.nexus.app.user.domain.User;
+import com.example.nexus.app.user.domain.RoleType;
 import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,11 +63,11 @@ public class AuthService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         String lastLoginAtStr = (user.getLastLoginAt() != null) ? user.getLastLoginAt().toString() : null;
-        
+
         // UserProfile 정보 조회 - JOIN FETCH 사용
         String job = null;
         List<String> interests = new ArrayList<>();
-        
+
         try {
             UserProfile userProfile = userProfileRepository.findByUserWithInterests(user).orElse(null);
             if (userProfile != null) {
@@ -78,15 +78,15 @@ public class AuthService {
             log.warn("UserProfile 조회 실패: {}", e.getMessage());
             // UserProfile 조회 실패 시에도 기본 정보는 반환
         }
-        
+
         return new UserInfoResponseDto(
-            user.getEmail(), 
-            user.getNickname(), 
-            user.getProfileUrl(), 
-            lastLoginAtStr, 
-            user.getRoleType(),
-            job,
-            interests
+                user.getEmail(),
+                user.getNickname(),
+                user.getProfileUrl(),
+                lastLoginAtStr,
+                user.getRoleType(),
+                job,
+                interests
         );
     }
 
@@ -96,8 +96,8 @@ public class AuthService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         // 닉네임 중복 검사
-        if (!user.getNickname().equals(request.getNickname()) && 
-            userRepository.existsByNickname(request.getNickname())) {
+        if (!user.getNickname().equals(request.getNickname()) &&
+                userRepository.existsByNickname(request.getNickname())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_NICKNAME);
         }
 
@@ -121,6 +121,30 @@ public class AuthService {
         }
 
         // 업데이트된 정보 반환
+        return getUserInfo(userId);
+    }
+
+    @Transactional
+    public UserInfoResponseDto changeRole(Long userId, UserInfoUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        validateInterests(request.getInterests());
+
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+        if (userProfile == null) {
+            userProfile = UserProfile.builder()
+                    .user(user)
+                    .job(request.getJob())
+                    .interests(request.getInterests())
+                    .build();
+            userProfileRepository.save(userProfile);
+        } else {
+            userProfile.update(request.getJob(), request.getInterests());
+        }
+
+        user.updateRole(RoleType.ROLE_USER);
+
         return getUserInfo(userId);
     }
 
@@ -168,41 +192,41 @@ public class AuthService {
         if (!"계정 탈퇴".equals(confirmation)) {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
-        
+
         // 이미 탈퇴된 사용자인지 확인
         if (user.isWithdrawn()) {
             throw new GeneralException(ErrorStatus.USER_ALREADY_WITHDRAWN);
         }
-        
+
         // 카카오 계정인 경우 연동 해제
         if (user.getSocialType() != null && user.getSocialType().name().equals("KAKAO")) {
             try {
                 kakaoUnlinkService.unlinkKakaoAccount(user, kakaoAccessToken);
             } catch (Exception e) {
-                log.warn("카카오 연동 해제 중 오류 발생했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}", 
+                log.warn("카카오 연동 해제 중 오류 발생했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}",
                         userId, e.getMessage());
             }
         }
-        
+
         // 프로필 이미지가 있다면 S3에서 삭제
         if (user.getProfileUrl() != null && !isDefaultProfileImage(user.getProfileUrl())) {
             try {
                 s3UploadService.deleteFile(user.getProfileUrl());
             } catch (Exception e) {
-                log.warn("프로필 이미지 삭제 실패했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}", 
+                log.warn("프로필 이미지 삭제 실패했지만 계정 탈퇴는 계속 진행합니다: userId={}, error={}",
                         userId, e.getMessage());
             }
         }
-        
+
         // 계정 상태를 탈퇴로 변경
         user.withdrawAccount();
-        
+
         // 관련 데이터 삭제
         userProfileRepository.findByUser(user).ifPresent(userProfileRepository::delete);
-        
+
         log.info("계정 탈퇴 완료: userId={}, email={}", userId, user.getEmail());
     }
 
