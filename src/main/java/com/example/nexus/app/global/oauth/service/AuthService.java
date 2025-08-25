@@ -151,7 +151,11 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(Long userId) {
+    public void logout(Long userId, String accessToken) {
+        // 액세스 토큰을 블랙리스트에 추가
+        if (accessToken != null && !accessToken.isEmpty()) {
+            tokenBlacklistService.blacklistToken(accessToken);
+        }
         accountManagementService.logout(userId);
     }
 

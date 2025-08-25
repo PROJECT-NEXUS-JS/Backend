@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -69,18 +70,32 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
                                                   FilterChain filterChain) throws ServletException, IOException {
 
-        jwtService.extractAccessToken(request)
-                .filter(accessToken -> !tokenBlacklistService.isTokenBlacklisted(accessToken))
-                .ifPresent(accessToken -> {
-                    String email = jwtService.verifyTokenAndGetEmail(accessToken);
-                    userRepository.findByEmail(email)
-                            .ifPresent(user -> {
-                                // 탈퇴된 사용자인지 확인
-                                if (!user.isWithdrawn()) {
-                                    saveAuthentication(user);
-                                }
-                            });
-                });
+        Optional<String> accessTokenOpt = jwtService.extractAccessToken(request);
+        
+        if (accessTokenOpt.isPresent()) {
+            String accessToken = accessTokenOpt.get();
+            
+            // 블랙리스트에 있는 토큰인지 확인
+            if (tokenBlacklistService.isTokenBlacklisted(accessToken)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+            
+            try {
+                String email = jwtService.verifyTokenAndGetEmail(accessToken);
+                userRepository.findByEmail(email)
+                        .ifPresent(user -> {
+                            // 탈퇴된 사용자인지 확인
+                            if (!user.isWithdrawn()) {
+                                saveAuthentication(user);
+                            }
+                        });
+            } catch (Exception e) {
+                // 토큰 검증 실패 시 401 응답
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+        }
 
         filterChain.doFilter(request, response);
     }

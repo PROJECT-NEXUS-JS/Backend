@@ -107,8 +107,10 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃 처리합니다.")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        authService.logout(userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+        String accessToken = authorizationHeader.substring(7);
+        authService.logout(userDetails.getUserId(), accessToken);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
