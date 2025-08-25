@@ -42,8 +42,9 @@ public class PostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> createPost(@Valid @RequestPart("data") PostCreateRequest request,
                                                         @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
+                                                        @RequestPart(value = "image", required = false) MultipartFile imageFile,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long postId = postService.createPost(request, thumbnailFile, userDetails);
+        Long postId = postService.createPost(request, thumbnailFile, imageFile, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(postId));
     }
@@ -52,8 +53,9 @@ public class PostController {
     @PostMapping(value = "/draft", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> saveDraft(@Valid @RequestPart("data") PostCreateRequest request,
                                                        @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
+                                                       @RequestPart(value = "image", required = false) MultipartFile imageFile,
                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long postId = postService.saveDraft(request, thumbnailFile, userDetails);
+        Long postId = postService.saveDraft(request, thumbnailFile, imageFile, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(postId));
     }
@@ -64,8 +66,9 @@ public class PostController {
             @Parameter(description = "게시글 ID", required = true) @PathVariable Long postId,
             @Valid @RequestPart("data") PostUpdateRequest request,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postService.updateAndPublishDraft(postId, request, thumbnailFile, userDetails);
+        postService.updateAndPublishDraft(postId, request, thumbnailFile, imageFile, userDetails);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
@@ -138,9 +141,10 @@ public class PostController {
             @PathVariable Long postId,
             @Valid @RequestPart("data") PostUpdateRequest request,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnailFile,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        postService.updatePost(postId, request, thumbnailFile, userDetails);
+        postService.updatePost(postId, request, thumbnailFile, imageFile, userDetails);
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
