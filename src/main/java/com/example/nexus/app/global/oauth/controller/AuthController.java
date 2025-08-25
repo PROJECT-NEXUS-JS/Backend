@@ -9,6 +9,7 @@ import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.dto.LoginResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoUpdateRequest;
+import com.example.nexus.app.global.code.dto.RegistrationInfoUpdateRequest; // 추가
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.oauth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,7 +65,7 @@ public class AuthController {
     @PostMapping("/me/change-role")
     public ApiResponse<UserInfoResponseDto> changeRole(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody UserInfoUpdateRequest request) {
+            @Valid @RequestBody RegistrationInfoUpdateRequest request) { // 수정
         if (userDetails == null) {
             return ApiResponse.onFailure("AUTH401", "인증 정보가 없습니다.", null);
         }
