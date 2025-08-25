@@ -14,6 +14,8 @@ import com.example.nexus.app.post.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
+import com.example.nexus.notification.NotificationType;
+import com.example.nexus.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ public class ParticipationService {
     private final UserRepository userRepository;
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
+    private final NotificationService notificationService;
 
     // 참가 신청
     @Transactional
@@ -52,6 +55,14 @@ public class ParticipationService {
 
         PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
         Long currentViewCount = viewCountService.getTotalViewCount(postId);
+
+        // 신청 알림 - 모집자에게
+        notificationService.createNotification(
+                post.getCreatedBy(),  // 모집자
+                NotificationType.NEW_PARTICIPANT,
+                "새로운 참여 신청이 도착했습니다.",
+                postId.toString()
+        );
 
         return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated(), currentViewCount);
     }
@@ -117,6 +128,14 @@ public class ParticipationService {
         Post post = participation.getPost();
         participation.approve();
         post.incrementParticipants();
+
+        // 승인 알림 - 신청자에게
+        notificationService.createNotification(
+                participation.getUser().getId(),  // 신청자
+                NotificationType.PARTICIPATION_APPROVED,
+                "참여 신청이 승인되었습니다. 테스트에 참여해보세요!",
+                post.getId().toString()
+        );
     }
 
     @Transactional
@@ -124,6 +143,14 @@ public class ParticipationService {
         Participation participation = getParticipation(participationId);
         validateParticipationOwnershipAndStatus(participation, userId);
         participation.reject();
+
+        // 거절 알림 - 신청자에게
+        notificationService.createNotification(
+                participation.getUser().getId(),  // 신청자
+                NotificationType.PARTICIPATION_REJECTED,
+                "참여 신청이 거절되었습니다.",
+                participation.getPost().getId().toString()
+        );
     }
 
     @Transactional

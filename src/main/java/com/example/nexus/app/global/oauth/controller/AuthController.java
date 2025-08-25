@@ -60,6 +60,18 @@ public class AuthController {
         return ApiResponse.onSuccess(updatedUserInfo);
     }
 
+    @Operation(summary = "최초 회원가입 시 역할 변경", description = "최초 회원가입 시 직업과 관심사를 입력하면 GUEST 롤을 USER 롤로 변경합니다.")
+    @PostMapping("/me/change-role")
+    public ApiResponse<UserInfoResponseDto> changeRole(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UserInfoUpdateRequest request) {
+        if (userDetails == null) {
+            return ApiResponse.onFailure("AUTH401", "인증 정보가 없습니다.", null);
+        }
+        UserInfoResponseDto updatedUserInfo = authService.changeRole(userDetails.getUserId(), request);
+        return ApiResponse.onSuccess(updatedUserInfo);
+    }
+
     @Operation(summary = "계정관리 정보 조회", description = "현재 로그인한 사용자의 계정관리 정보를 조회합니다.")
     @GetMapping("/account")
     public ResponseEntity<ApiResponse<AccountManagementResponse>> getAccountManagementInfo(
