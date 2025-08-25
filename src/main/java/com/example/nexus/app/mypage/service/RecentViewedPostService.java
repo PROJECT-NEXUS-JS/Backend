@@ -41,4 +41,8 @@ public class RecentViewedPostService {
                 .build();
         recentViewedPostRepository.save(newRecord);
     }
+    
+    public void deleteByPostId(Long postId) {
+        recentViewedPostRepository.deleteByPostId(postId);
+    }
 }
