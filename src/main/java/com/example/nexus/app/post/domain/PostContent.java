@@ -46,4 +46,8 @@ public class PostContent {
         this.storyGuide = storyGuide;
         this.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
     }
+
+    public List<String> getMediaUrls() {
+        return mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
+    }
 }
