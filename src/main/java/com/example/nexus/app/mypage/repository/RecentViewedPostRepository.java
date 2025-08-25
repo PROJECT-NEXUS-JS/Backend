@@ -20,4 +20,8 @@ public interface RecentViewedPostRepository extends JpaRepository<RecentViewedPo
     @Query("DELETE FROM RecentViewedPost r WHERE r.user.id = :userId AND r.id NOT IN "
             + "(SELECT r2.id FROM RecentViewedPost r2 WHERE r2.user.id = :userId ORDER BY r2.viewedAt DESC LIMIT 20)")
     void deleteOldRecords(@Param("userId") Long userId);
+    
+    @Modifying
+    @Query("DELETE FROM RecentViewedPost r WHERE r.post.id = :postId")
+    void deleteByPostId(@Param("postId") Long postId);
 }

@@ -177,6 +177,9 @@ public class PostService {
     @Transactional
     public void deletePost(Long postId, Long userId) {
         Post post = getPostWithValidation(postId, userId);
+        
+        recentViewedPostService.deleteByPostId(postId);
+        
         postRepository.delete(post);
     }
 
