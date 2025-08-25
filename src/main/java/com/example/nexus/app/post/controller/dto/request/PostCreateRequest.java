@@ -85,7 +85,7 @@ public record PostCreateRequest(
         @Schema(description = "스토리 가이드", example = "자유롭게 사용해보시고 솔직한 의견을 남겨주세요.")
         String storyGuide,
 
-        @Schema(description = "미디어 URL", example = "https://example.com/demo-video")
+        @Schema(description = "미디어 URL (파일 업로드 시 무시됨)", example = "https://example.com/demo-video")
         String mediaUrl
 ) {
     public Post toPostEntity() {

@@ -51,26 +51,26 @@ public class PostService {
     private final RecentViewedPostService recentViewedPostService;
 
     @Transactional
-    public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
-        Post post = createPostWithThumbnail(request, thumbnailFile, PostStatus.ACTIVE);
+    public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, MultipartFile imageFile, CustomUserDetails userDetails) {
+        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFile, PostStatus.ACTIVE);
         Post savedPost = postRepository.save(post);
-        createAndSaveRelatedEntities(request, savedPost);
+        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFile);
 
         return savedPost.getId();
     }
 
     @Transactional
-    public Long saveDraft(PostCreateRequest request, MultipartFile thumbnailFile, CustomUserDetails userDetails) {
-        Post post = createPostWithThumbnail(request, thumbnailFile, PostStatus.DRAFT);
+    public Long saveDraft(PostCreateRequest request, MultipartFile thumbnailFile, MultipartFile imageFile, CustomUserDetails userDetails) {
+        Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFile, PostStatus.DRAFT);
         Post savedPost = postRepository.save(post);
-        createAndSaveRelatedEntities(request, savedPost);
+        createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFile);
 
         return savedPost.getId();
     }
 
     @Transactional
     public void updateAndPublishDraft(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
-                                      CustomUserDetails userDetails) {
+                                      MultipartFile imageFile, CustomUserDetails userDetails) {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
 
@@ -85,7 +85,7 @@ public class PostService {
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
 
-        updateRelatedEntities(request, post);
+        updateRelatedEntitiesWithImage(request, post, imageFile);
 
         validatePostForPublishing(post);
         post.active();
@@ -159,7 +159,7 @@ public class PostService {
 
     @Transactional
     public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
-                           CustomUserDetails userDetails) {
+                           MultipartFile imageFile, CustomUserDetails userDetails) {
         Post post = getPost(postId);
         validateOwnership(post, userDetails.getUserId());
 
@@ -170,7 +170,7 @@ public class PostService {
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
 
-        updateRelatedEntities(request, post);
+        updateRelatedEntitiesWithImage(request, post, imageFile);
     }
 
     @Transactional
@@ -180,6 +180,10 @@ public class PostService {
     }
 
     private void createAndSaveRelatedEntities(PostCreateRequest request, Post post) {
+        createAndSaveRelatedEntitiesWithImage(request, post, null);
+    }
+
+    private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, MultipartFile imageFile) {
         PostSchedule schedule = request.toPostScheduleEntity(post);
         postScheduleRepository.save(schedule);
 
@@ -194,7 +198,12 @@ public class PostService {
         PostFeedback feedback = request.toPostFeedbackEntity(post);
         postFeedbackRepository.save(feedback);
 
-        PostContent content = request.toPostContentEntity(post);
+        // 이미지 파일 업로드 처리
+        String imageUrl = uploadImageIfPresent(imageFile);
+        String finalMediaUrl = imageUrl != null ? imageUrl : request.mediaUrl();
+        
+        PostContent content = PostContent.create(post, request.participationMethod(), 
+                request.storyGuide(), finalMediaUrl);
         postContentRepository.save(content);
     }
 
@@ -224,6 +233,37 @@ public class PostService {
 
         PostContent content = post.getPostContent();
         content.update(request.participationMethod(), request.storyGuide(), request.mediaUrl());
+    }
+
+    private void updateRelatedEntitiesWithImage(PostUpdateRequest request, Post post, MultipartFile imageFile) {
+        PostSchedule schedule = post.getSchedule();
+        schedule.update(request.startDate(), request.endDate(),
+                request.recruitmentDeadline(), request.durationTime());
+
+        PostRequirement requirement = post.getRequirement();
+        requirement.update(request.maxParticipants(), request.genderRequirement(),
+                request.ageMin(), request.ageMax(), request.additionalRequirements());
+
+        PostReward reward = post.getReward();
+        if (request.rewardType() != null) {
+            if (reward == null) {
+                reward = request.toPostRewardEntity(post);
+                postRewardRepository.save(reward);
+            } else {
+                reward.update(request.rewardType(), request.rewardDescription());
+            }
+        } else if (reward != null) {
+            postRewardRepository.delete(reward);
+        }
+
+        PostFeedback feedback = post.getFeedback();
+        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
+
+        PostContent content = post.getPostContent();
+        // 이미지 파일 업로드 처리
+        String imageUrl = uploadImageIfPresent(imageFile);
+        String finalMediaUrl = imageUrl != null ? imageUrl : request.mediaUrl();
+        content.update(request.participationMethod(), request.storyGuide(), finalMediaUrl);
     }
 
     private void validatePostForPublishing(Post post) {
@@ -307,6 +347,18 @@ public class PostService {
         return post;
     }
 
+    private Post createPostWithThumbnailAndImage(PostCreateRequest request, MultipartFile thumbnailFile, 
+                                                 MultipartFile imageFile, PostStatus status) {
+        String thumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, null);
+        Post post = (status == PostStatus.DRAFT) ? request.toPostEntity(PostStatus.DRAFT) : request.toPostEntity();
+
+        if (thumbnailUrl != null) {
+            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
+                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod());
+        }
+        return post;
+    }
+
     private String uploadThumbnailIfPresent(MultipartFile thumbnailFile, String currentThumbnailUrl) {
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
 //            기존 이미지 삭제 (선택사항)
@@ -316,6 +368,13 @@ public class PostService {
             return s3UploadService.uploadFile(thumbnailFile);
         }
         return currentThumbnailUrl;
+    }
+
+    private String uploadImageIfPresent(MultipartFile imageFile) {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            return s3UploadService.uploadFile(imageFile);
+        }
+        return null;
     }
 
     public PostMainViewDetailResponse findPostMainViewDetails(Long postId) {

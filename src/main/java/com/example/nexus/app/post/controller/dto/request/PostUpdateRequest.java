@@ -85,7 +85,7 @@ public record PostUpdateRequest(
         @Schema(description = "스토리 가이드", example = "실제 업무 환경에서 사용해보시고 상세한 피드백을 제공해주세요.")
         String storyGuide,
 
-        @Schema(description = "미디어 URL", example = "https://example.com/updated-demo-video")
+        @Schema(description = "미디어 URL (파일 업로드 시 무시됨)", example = "https://example.com/updated-demo-video")
         String mediaUrl
 ) {
 
