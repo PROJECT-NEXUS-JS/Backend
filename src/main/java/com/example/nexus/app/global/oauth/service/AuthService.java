@@ -129,6 +129,9 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
+        // 닉네임 업데이트 로직은 제거 (최초 가입 시 닉네임은 카카오에서 받아왔다고 가정)
+        // 닉네임 중복 검사 로직도 제거
+
         validateInterests(request.getInterests());
 
         UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
