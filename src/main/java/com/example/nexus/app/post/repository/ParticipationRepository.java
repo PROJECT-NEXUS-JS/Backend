@@ -29,6 +29,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     // 사용자의 특정 상태 참가 신청 내역
     @Query("SELECT p FROM Participation p " +
             "JOIN FETCH p.post " +
+            "JOIN FETCH p.user " +
             "WHERE p.user.id = :userId AND p.status = :status " +
             "ORDER BY p.appliedAt DESC")
     Page<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId, @Param("status") ParticipationStatus status,
