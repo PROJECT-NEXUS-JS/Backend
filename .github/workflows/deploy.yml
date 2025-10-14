@@ -32,6 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       JWT_SECRET_KEY:        ${{ secrets.JWT_SECRET_KEY }}
       JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
       JWT_ACCESS_HEADER:     ${{ secrets.JWT_ACCESS_HEADER }}
@@ -79,10 +83,10 @@ jobs:
             
             docker run -d --name my-app -p 8443:8443 \
               -v /etc/certs/keystore.p12:/etc/certs/keystore.p12 \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_HOST=${{ env.DB_HOST }} \
+              -e DB_NAME=${{ env.DB_NAME }} \
+              -e DB_USERNAME=${{ env.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
               -e JWT_SECRET_KEY=${{ env.JWT_SECRET_KEY }} \
               -e JWT_ACCESS_EXPIRATION=${{ env.JWT_ACCESS_EXPIRATION }} \
               -e JWT_ACCESS_HEADER=${{ env.JWT_ACCESS_HEADER }} \
