@@ -46,7 +46,6 @@ jwt:
     expiration: ${JWT_REFRESH_EXPIRATION:3600000}
     header: ${JWT_REFRESH_HEADER:RefreshToken}
 
-# Springdoc (Swagger UI)
 springdoc:
   api-docs:
     path: /v3/api-docs
