@@ -45,4 +45,12 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     // 마이페이지 관심 목록 - 마감 임박 테스트 조회용 메서드
     @Query("SELECT p FROM PostLike pl JOIN pl.post p WHERE pl.user.id = :userId AND p.status = 'ACTIVE' AND p.schedule.recruitmentDeadline >= CURRENT_DATE() ORDER BY p.schedule.recruitmentDeadline ASC")
     List<Post> findLikedPostsWithNearingDeadline(@Param("userId") Long userId);
+
+    @Query("SELECT DATE(pl.createdAt) as date, COUNT(pl) as count " +
+            "FROM PostLike pl " +
+            "WHERE pl.post.id = :postId " +
+            "AND pl.createdAt >= :startDate AND pl.createdAt < :endDate " +
+            "GROUP BY DATE(pl.createdAt) " +
+            "ORDER BY DATE(pl.createdAt)")
+    List<Object[]> countByPostIdGroupByDate(@Param("postId") Long postId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

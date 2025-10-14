@@ -80,10 +80,12 @@ public class PostLikeService {
                 .toList();
 
         Map<Long, PostUserStatusService.PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
+        Map<Long, Long> viewCountMap = viewCountService.getViewCountsForPosts(postIds);
 
         return likes.map(like -> {
-            PostUserStatusService.PostUserStatus status = statusMap.get(like.getPost().getId());
-            Long currentViewCount = viewCountService.getTotalViewCount(like.getPost().getId());
+            Long postId = like.getPost().getId();
+            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId, new PostUserStatusService.PostUserStatus(false, false));
+            Long currentViewCount = viewCountMap.getOrDefault(postId, 0L);
             return PostDetailResponse.from(like.getPost(), status.isLiked(), status.isParticipated(), currentViewCount);
         });
     }
