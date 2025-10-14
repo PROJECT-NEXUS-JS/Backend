@@ -80,9 +80,9 @@ jobs:
             docker run -d --name my-app -p 8443:8443 \
               -v /etc/certs/keystore.p12:/etc/certs/keystore.p12 \
               -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DB_NAME=mydatabase \
               -e JWT_SECRET_KEY=${{ env.JWT_SECRET_KEY }} \
               -e JWT_ACCESS_EXPIRATION=${{ env.JWT_ACCESS_EXPIRATION }} \
               -e JWT_ACCESS_HEADER=${{ env.JWT_ACCESS_HEADER }} \
