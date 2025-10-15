@@ -42,6 +42,6 @@ out/
 
 **/*.properties
 !gradle/wrapper/gradle-wrapper.properties
-src/main/resources/application.yml
-/src/main/resources/
+src/main/resources/application-secret.yml
+src/main/resources/application-local.yml
 /.github/

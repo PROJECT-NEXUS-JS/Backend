@@ -1,0 +1,44 @@
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: file:/etc/certs/keystore.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-alias: ssl-alias
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: false
+    show-sql: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+cloud:
+  aws:
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKETNAME}
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  access:
+    expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+    header: ${JWT_ACCESS_HEADER:Authorization}
+  refresh:
+    expiration: ${JWT_REFRESH_EXPIRATION:3600000}
+    header: ${JWT_REFRESH_HEADER:RefreshToken}
