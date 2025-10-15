@@ -23,10 +23,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -171,21 +174,36 @@ public class DashboardService {
 
         List<LocalDate> labels = new ArrayList<>();
         LocalDate today = LocalDate.now();
+        LocalDateTime startDate = today.minusDays(6).atStartOfDay();
+        LocalDateTime endDate = today.plusDays(1).atStartOfDay();
+
         for (int i = 6; i >= 0 ; i--) {
             labels.add(today.minusDays(i));
         }
 
-        List<Long> likesData = new ArrayList<>();
-        List<Long> applicationsData = new ArrayList<>();
+        // 한 번의 쿼리로 7일치 데이터 조회
+        List<Object[]> likesRaw = postLikeRepository.countByPostIdGroupByDate(postId, startDate, endDate);
+        List<Object[]> applicationsRaw = participationRepository.countByPostIdAndStatusGroupByDate(postId, ParticipationStatus.PENDING, startDate, endDate);
 
-        for (LocalDate date : labels) {
-            LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
-            Long likesUntilDate = postLikeRepository.countByPostIdAndCreatedAtBefore(postId, endOfDay);
-            Long applicationUntilDate = participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, endOfDay);
+        Map<LocalDate, Long> likesMap = likesRaw.stream()
+                .collect(Collectors.toMap(
+                        arr -> ((java.sql.Date)arr[0]).toLocalDate(),
+                        arr -> (Long) arr[1]
+                ));
+        Map<LocalDate, Long> applicationsMap = applicationsRaw.stream()
+                .collect(Collectors.toMap(
+                        arr -> ((java.sql.Date) arr[0]).toLocalDate(),
+                        arr -> (Long) arr[1]
+                ));
 
-            likesData.add(likesUntilDate != null ? likesUntilDate : 0L);
-            applicationsData.add(applicationUntilDate != null ? applicationUntilDate : 0L);
-        }
+        // 7일치 데이터 생성 (없는 날은 0)
+        List<Long> likesData = labels.stream()
+                .map(date -> likesMap.getOrDefault(date, 0L))
+                .toList();
+
+        List<Long> applicationsData = labels.stream()
+                .map(date -> applicationsMap.getOrDefault(date, 0L))
+                .toList();
 
         return LineChartResponse.of(labels, likesData, applicationsData, viewsData);
     }
@@ -210,8 +228,20 @@ public class DashboardService {
                         postId, searchRequest.getStatus(), searchRequest.getRewardStatus(), searchRequest.getNickname(),
                         searchRequest.getSortBy(), searchRequest.getSortDirection(), pageable);
 
+        List<Long> participationIds = participations.getContent()
+                .stream()
+                .map(Participation::getId)
+                .toList();
+
+        Map<Long, ParticipantReward> rewardMap = participantRewardRepository.findByParticipationIds(participationIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        reward -> reward.getParticipation().getId(),
+                        reward -> reward
+                ));
+
         return participations.map(participation -> {
-            ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participation.getId()).orElse(null);
+            ParticipantReward participantReward = rewardMap.get(participation.getId());
             return ParticipantListResponse.from(participation, participantReward);
         });
     }
@@ -231,7 +261,7 @@ public class DashboardService {
     public ParticipantDetailResponse completeParticipant(Long postId, Long participationId, Long userId) {
         validatePostOwnership(userId, postId);
 
-        Participation participation = participationRepository.findById(participationId)
+        Participation participation = participationRepository.findByIdWithPostAndReward(participationId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
 
         PostReward postReward = participation.getPost().getReward();

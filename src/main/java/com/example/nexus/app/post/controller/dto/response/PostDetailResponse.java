@@ -106,7 +106,7 @@ public record PostDetailResponse(
                 post.getStatus(),
                 post.getQnaMethod(),
                 post.getLikeCount(),
-                currentViewCount.intValue(),
+                currentViewCount != null ? currentViewCount.intValue() : 0,
                 post.getCurrentParticipants(),
                 post.getSchedule() != null ? PostScheduleResponse.from(post.getSchedule()) : null,
                 post.getRequirement() != null ? PostRequirementResponse.from(post.getRequirement()) : null,

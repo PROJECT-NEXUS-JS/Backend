@@ -42,6 +42,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "AND m.isDeleted = false")
     long countUnreadMessagesByRoom(@Param("roomId") Long roomId, @Param("userId") Long userId);
 
+    @Query("SELECT m FROM Message m " +
+            "JOIN FETCH m.sender " +
+            "WHERE m.room.post.id = :postId " +
+            "ORDER BY m.createdAt DESC")
     Page<Message> findByRoomPostId(Long postId, Pageable pageable);
 
     @Query("SELECT SUM(unread.count) FROM (" +

@@ -20,21 +20,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             "LEFT JOIN FETCH p.reward " +
             "LEFT JOIN FETCH p.feedback " +
             "LEFT JOIN FETCH p.postContent " +
-            "WHERE p.status = :status " +
-            "ORDER BY p.createdAt DESC")
-    Page<Post> findByStatusOrderByCreatedAtDesc(@Param("status") PostStatus status, Pageable pageable);
-
-    List<Post> findByCreatedByAndStatus(Long createdBy, PostStatus status);
-
-    List<Post> findByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
-
-    @Query("SELECT p " +
-            "FROM Post p " +
-            "LEFT JOIN FETCH p.schedule " +
-            "LEFT JOIN FETCH p.requirement " +
-            "LEFT JOIN FETCH p.reward " +
-            "LEFT JOIN FETCH p.feedback " +
-            "LEFT JOIN FETCH p.postContent " +
             "WHERE p.id = :postId")
     Optional<Post> findByIdWithAllDetails(@Param("postId") Long postId);
 
@@ -56,4 +41,13 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     Optional<Post> findFirstByCreatedByAndStatusOrderByCreatedAtDesc(Long userId, PostStatus status);
 
     List<Post> findByStatus(PostStatus postStatus);
+
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.schedule " +
+            "LEFT JOIN FETCH p.requirement " +
+            "LEFT JOIN FETCH p.reward " +
+            "LEFT JOIN FETCH p.feedback " +
+            "LEFT JOIN FETCH p.postContent " +
+            "WHERE p.id = :postId")
+    Optional<Post> findByIdWithAllDetailsAndUser(@Param("postId") Long postId);
 }

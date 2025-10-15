@@ -220,9 +220,8 @@ public class ParticipationService {
     }
 
     private Participation getParticipation(Long participationId) {
-        return participationRepository.findById(participationId)
-                .orElseThrow(() -> new
-                        GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
+        return participationRepository.findByIdWithUserAndPost(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
     }
 
     private void validateParticipationOwnershipAndStatus(Participation participation, Long userId) {
@@ -236,15 +235,19 @@ public class ParticipationService {
     }
 
     private Page<ParticipationResponse> mapParticipationsWithUserStatus(Page<Participation> participations, Long userId) {
-        List<Long> postIds = participations.getContent().stream()
+        List<Long> postIds = participations.getContent()
+                .stream()
                 .map(participation -> participation.getPost().getId())
                 .toList();
         Map<Long, PostUserStatusService.PostUserStatus> statusMap =
                 postUserStatusService.getPostUserStatuses(postIds, userId);
 
+        Map<Long, Long> viewCountMap = viewCountService.getViewCountsForPosts(postIds);
+
         return participations.map(participation -> {
-            PostUserStatusService.PostUserStatus status = statusMap.get(participation.getPost().getId());
-            Long currentViewCount = viewCountService.getTotalViewCount(participation.getPost().getId());
+            Long postId = participation.getPost().getId();
+            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId, new PostUserStatusService.PostUserStatus(false, false));
+            Long currentViewCount = viewCountMap.getOrDefault(postId, 0L);
             return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(), currentViewCount);
         });
     }

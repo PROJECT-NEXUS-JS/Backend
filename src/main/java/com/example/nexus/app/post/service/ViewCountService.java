@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +79,14 @@ public class ViewCountService {
         }
 
         return weeklyViews;
+    }
+
+    // Redis에서 일괄 조회
+    public Map<Long, Long> getViewCountsForPosts(List<Long> postIds) {
+        return postIds.stream()
+                .collect(Collectors.toMap(
+                        postId -> postId,
+                        this::getTotalViewCount
+                ));
     }
 }

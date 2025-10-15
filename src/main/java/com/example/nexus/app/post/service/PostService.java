@@ -161,7 +161,7 @@ public class PostService {
     @Transactional
     public void updatePost(Long postId, PostUpdateRequest request, MultipartFile thumbnailFile,
                            List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
-        Post post = getPost(postId);
+        Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
@@ -181,10 +181,6 @@ public class PostService {
         recentViewedPostService.deleteByPostId(postId);
         
         postRepository.delete(post);
-    }
-
-    private void createAndSaveRelatedEntities(PostCreateRequest request, Post post) {
-        createAndSaveRelatedEntitiesWithImage(request, post, null);
     }
 
     private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, List<MultipartFile> imageFiles) {
@@ -215,35 +211,6 @@ public class PostService {
         PostContent content = PostContent.create(post, request.participationMethod(), 
                 request.storyGuide(), finalMediaUrls);
         postContentRepository.save(content);
-    }
-
-    private void updateRelatedEntities(PostUpdateRequest request, Post post) {
-        PostSchedule schedule = post.getSchedule();
-        schedule.update(request.startDate(), request.endDate(),
-                request.recruitmentDeadline(), request.durationTime());
-
-        PostRequirement requirement = post.getRequirement();
-        requirement.update(request.maxParticipants(), request.genderRequirement(),
-                request.ageMin(), request.ageMax(), request.additionalRequirements());
-
-        PostReward reward = post.getReward();
-        if (request.rewardType() != null) {
-            if (reward == null) {
-                reward = request.toPostRewardEntity(post);
-                postRewardRepository.save(reward);
-            } else {
-                reward.update(request.rewardType(), request.rewardDescription());
-            }
-        } else if (reward != null) {
-            postRewardRepository.delete(reward);
-        }
-
-        PostFeedback feedback = post.getFeedback();
-        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
-
-        PostContent content = post.getPostContent();
-        List<String> mediaUrls = request.mediaUrl() != null ? List.of(request.mediaUrl()) : new ArrayList<>();
-        content.update(request.participationMethod(), request.storyGuide(), mediaUrls);
     }
 
     private void updateRelatedEntitiesWithImage(PostUpdateRequest request, Post post, List<MultipartFile> imageFiles) {
@@ -355,17 +322,6 @@ public class PostService {
     private Post getPostWithDetail(Long postId) {
         return postRepository.findByIdWithAllDetails(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
-    }
-
-    private Post createPostWithThumbnail(PostCreateRequest request, MultipartFile thumbnailFile, PostStatus status) {
-        String thumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, null);
-        Post post = (status == PostStatus.DRAFT) ? request.toPostEntity(PostStatus.DRAFT) : request.toPostEntity();
-
-        if (thumbnailUrl != null) {
-            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
-                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod());
-        }
-        return post;
     }
 
     private Post createPostWithThumbnailAndImage(PostCreateRequest request, MultipartFile thumbnailFile, 

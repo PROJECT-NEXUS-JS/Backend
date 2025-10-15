@@ -23,6 +23,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r FROM Review r JOIN FETCH r.createdBy WHERE r.postId = :postId")
     List<Review> findByPostId(@Param("postId") Long postId);
 
+    @Query("SELECT r FROM Review r " +
+            "JOIN FETCH r.createdBy " +
+            "WHERE r.postId = :postId " +
+            "ORDER BY r.createdAt DESC")
     Page<Review> findByPostIdOrderByCreatedAtDesc(Long postId, Pageable pageable);
 
     Long countByPostId(Long postId);
