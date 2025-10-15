@@ -4,13 +4,13 @@ server:
     enabled: true
     key-store-type: PKCS12
     key-store: file:/etc/certs/keystore.p12
-    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-store-password: 1qwer2345
     key-alias: ssl-alias
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -24,8 +24,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 cloud:
   aws:
