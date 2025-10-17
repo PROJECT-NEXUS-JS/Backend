@@ -46,7 +46,7 @@ public class UserInterestService {
                         .map(PlatformCategory::name)
                         .collect(Collectors.toSet()),
                 userInterest.getGenreCategories().stream()
-                        .map(GenreCategory::getCode)
+                        .map(GenreCategory::name)
                         .collect(Collectors.toSet())
         );
     }
@@ -97,7 +97,7 @@ public class UserInterestService {
                         .map(PlatformCategory::name)
                         .collect(Collectors.toSet()),
                 savedInterest.getGenreCategories().stream()
-                        .map(GenreCategory::getCode)
+                        .map(GenreCategory::name)
                         .collect(Collectors.toSet())
         );
     }
@@ -107,7 +107,7 @@ public class UserInterestService {
      */
     private GenreCategory findGenreCategoryByCode(String code) {
         for (GenreCategory category : GenreCategory.values()) {
-            if (category.getCode().equals(code)) {
+            if (category.name().equals(code)) {
                 return category;
             }
         }
