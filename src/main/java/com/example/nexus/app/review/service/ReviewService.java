@@ -44,6 +44,22 @@ public class ReviewService {
         User currentUser = userRepository.findById(authUserId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
+        // 게시글 존재 확인
+        postRepository.findById(request.getPostId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+
+        // 참여 여부 확인
+        boolean hasParticipated = participationRepository.existsByUserIdAndPostIdAndStatus(
+                authUserId, request.getPostId(), ParticipationStatus.APPROVED);
+        if (!hasParticipated) {
+            throw new GeneralException(ErrorStatus.NOT_PARTICIPATED);
+        }
+
+        // 중복 리뷰 확인
+        if (reviewRepository.findByCreatedByAndPostId(authUserId, request.getPostId()).isPresent()) {
+            throw new GeneralException(ErrorStatus.REVIEW_ALREADY_EXISTS);
+        }
+
         Review review = Review.builder()
                 .postId(request.getPostId())
                 .rating(request.getRating())
@@ -56,9 +72,10 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<ReviewResponse> getReview(Long reviewId) {
-        return reviewRepository.findByIdWithCreatedBy(reviewId)
-                .map(this::toReviewResponse);
+    public ReviewResponse getReview(Long reviewId) {
+        Review review = reviewRepository.findByIdWithCreatedBy(reviewId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
+        return toReviewResponse(review);
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +90,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponse updateReview(Long reviewId, ReviewUpdateRequest request, Long authUserId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
 
         if (!review.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
@@ -89,7 +106,7 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long reviewId, Long authUserId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
 
         if (!review.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
@@ -128,10 +145,20 @@ public class ReviewService {
     public Page<WrittenReviewResponse> getWrittenReviews(Long userId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.findByCreatedByOrderByCreatedAtDesc(userId, pageable);
 
+        // Post ID 목록 추출 및 한 번에 조회 (N+1 문제 해결)
+        Set<Long> postIds = reviews.getContent().stream()
+                .map(Review::getPostId)
+                .collect(Collectors.toSet());
+        
+        java.util.Map<Long, com.example.nexus.app.post.domain.Post> postMap = 
+                postRepository.findAllById(postIds).stream()
+                        .collect(Collectors.toMap(
+                                com.example.nexus.app.post.domain.Post::getId, 
+                                post -> post
+                        ));
+
         return reviews.map(review -> {
-            // Post 정보 조회
-            com.example.nexus.app.post.domain.Post post = postRepository.findById(review.getPostId())
-                    .orElse(null);
+            com.example.nexus.app.post.domain.Post post = postMap.get(review.getPostId());
 
             return WrittenReviewResponse.builder()
                     .reviewId(review.getId())
@@ -144,9 +171,14 @@ public class ReviewService {
                     .content(review.getContent())
                     .reviewCreatedAt(review.getCreatedAt())
                     .reviewUpdatedAt(review.getUpdatedAt())
-                    .canEdit(true) // TODO: 수정 가능 여부 로직 추가
+                    .canEdit(canEditReview(review))
                     .build();
         });
+    }
+
+    // 리뷰 수정 가능 여부 확인 (작성 후 30일 이내)
+    private boolean canEditReview(Review review) {
+        return review.getCreatedAt().isAfter(LocalDateTime.now().minusDays(30));
     }
 
     // 리뷰 작성 상태 확인
