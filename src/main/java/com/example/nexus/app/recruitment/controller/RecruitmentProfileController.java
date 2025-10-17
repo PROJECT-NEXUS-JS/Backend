@@ -2,6 +2,7 @@ package com.example.nexus.app.recruitment.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
+import com.example.nexus.app.recruitment.controller.doc.RecruitmentProfileControllerDoc;
 import com.example.nexus.app.recruitment.controller.dto.request.RecruitmentProfileUpdateRequest;
 import com.example.nexus.app.recruitment.controller.dto.response.RecruitmentProfileResponse;
 import com.example.nexus.app.recruitment.service.RecruitmentProfileService;
@@ -15,15 +16,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "모집자 프로필", description = "모집자 프로필 관리 API")
 @RestController
 @RequestMapping("/v1/users/profile")
 @RequiredArgsConstructor
-public class RecruitmentProfileController {
+public class RecruitmentProfileController implements RecruitmentProfileControllerDoc {
 
     private final RecruitmentProfileService recruitmentProfileService;
 
-    @Operation(summary = "프로필 조회", description = "현재 로그인한 모집자의 프로필 정보를 조회합니다.")
+    @Override
     @GetMapping
     public ResponseEntity<ApiResponse<RecruitmentProfileResponse>> getMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -31,7 +31,7 @@ public class RecruitmentProfileController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
-    @Operation(summary = "모집자 프로필 수정", description = "닉네임, 호스트 소개글,프로필 이미지를 수정합니다.")
+    @Override
     @PatchMapping(value = "/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<RecruitmentProfileResponse>> updateCompleteProfile(
             @RequestPart("profile") @Valid RecruitmentProfileUpdateRequest request,
