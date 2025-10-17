@@ -64,6 +64,16 @@ public class IdTokenService {
         if (findUser == null) {
             return createUser(idTokenAttributes);
         }
+        
+        if (findUser.isWithdrawn()) {
+            log.info("탈퇴한 사용자 재가입 처리: email={}", findUser.getEmail());
+            findUser.reactivateAccount(
+                idTokenAttributes.getUserInfo().getNickname(),
+                idTokenAttributes.getUserInfo().getProfileUrl()
+            );
+            return findUser;
+        }
+        
         findUser.markLogin();
         return findUser;
     }
