@@ -106,6 +106,14 @@ public class User {
         this.profileUrl = null;
     }
 
+    public void reactivateAccount(String nickname, String profileUrl) {
+        this.statusType = StatusType.ACTIVE;
+        this.nickname = nickname != null ? nickname : this.email.split("@")[0];
+        this.profileUrl = profileUrl;
+        this.roleType = RoleType.ROLE_GUEST;
+        this.lastLoginAt = LocalDateTime.now();
+    }
+
     public void updateRole(RoleType roleType) {
         if (roleType != null) this.roleType = roleType;
     }
