@@ -16,21 +16,21 @@ public record CategoryResponse(
     public static CategoryResponse from(MainCategory category) {
         return new CategoryResponse(
                 category.name(), // Enum name : "WEB", "APP" 등
-                category.getDisplayName() // Display name: "웹", "앱" 등
+                category.getDescription() // Display name: "웹", "앱" 등
         );
     }
     
     public static CategoryResponse from(PlatformCategory category) {
         return new CategoryResponse(
                 category.name(),
-                category.getDisplayName()
+                category.getDescription()
         );
     }
     
     public static CategoryResponse from(GenreCategory category) {
         return new CategoryResponse(
-                category.getCode(),
-                category.getDisplayName()
+                category.name(),
+                category.getDescription()
         );
     }
 }
