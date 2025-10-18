@@ -15,9 +15,10 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @EntityGraph(attributePaths = {"sender", "room"})
-    @Query("SELECT m " +
-            "FROM Message m " +
-            "WHERE m.room.id = :roomId AND m.isDeleted = false ORDER BY m.createdAt ASC")
+    @Query(value = "SELECT m FROM Message m " +
+            "WHERE m.room.id = :roomId AND m.isDeleted = false " +
+            "ORDER BY m.createdAt ASC", countQuery = "SELECT COUNT(m) FROM Message m " +
+            "WHERE m.room.id = :roomId AND m.isDeleted = false")
     Page<Message> findByRoomIdAndNotDeleted(@Param("roomId") Long roomId, Pageable pageable);
 
     @Modifying
