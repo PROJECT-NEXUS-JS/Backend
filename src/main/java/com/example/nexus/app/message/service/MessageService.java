@@ -22,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -40,6 +42,7 @@ public class MessageService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
+    private final SseEmitterService sseEmitterService;
 
     public List<MessageRoomResponse> findMyRooms(Long userId) {
         List<MessageRoom> rooms = messageRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
@@ -78,7 +81,24 @@ public class MessageService {
 
         updateRoomAfterMessage(room, savedMessage);
 
-        return MessageResponse.from(savedMessage, userId);
+        MessageResponse response = MessageResponse.from(savedMessage, userId);
+
+        // SSE 이벤트 전송 (수신자에게)
+        Long receiverId = room.getOtherUser(userId).getId();
+
+        // 채팅방 업데이트 전송 (수신자에게)
+        MessageRoomResponse roomResponse = MessageRoomResponse.from(room, receiverId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendMessage(receiverId, response);
+                sseEmitterService.sendRoomUpdate(receiverId, roomResponse);
+            }
+        });
+
+        return response;
     }
 
     @Transactional
@@ -93,12 +113,28 @@ public class MessageService {
 
         String content = message != null ? message : fileName;
 
-        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl,
-                fileName, fileSize, messageType);
+        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl, fileName, fileSize, messageType);
         Message savedMessage = messageRepository.save(fileMessage);
         updateRoomAfterMessage(room, savedMessage);
 
-        return MessageResponse.from(savedMessage, userId);
+        MessageResponse response = MessageResponse.from(savedMessage, userId);
+
+        // SSE 이벤트 전송 (수신자에게)
+        Long receiverId = room.getOtherUser(userId).getId();
+
+        // 채팅방 업데이트 전송 (수신자에게)
+        MessageRoomResponse roomResponse = MessageRoomResponse.from(room, receiverId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendMessage(receiverId, response);
+                sseEmitterService.sendRoomUpdate(receiverId, roomResponse);
+            }
+        });
+
+        return response;
     }
 
     @Transactional
@@ -124,11 +160,21 @@ public class MessageService {
         MessageRoom room = findRoomByIdAndUserId(roomId, userId);
 
         messageRepository.markMessagesAsReadByRoom(roomId, userId, LocalDateTime.now());
-        
-        long unreadMessages = messageRepository.countUnreadMessagesByRoom(roomId, userId);
-        if (unreadMessages == 0) {
-            room.resetUnreadCount(userId);
-        }
+
+        // 항상 리셋 (벌크 업데이트 후에는 카운트가 0이어야 함)
+        room.resetUnreadCount(userId);
+
+        // 읽음 상태 SSE 이벤트 전송 (상대방에게)
+        Long otherUserId = room.getOtherUser(userId).getId();
+        Integer unreadCount = room.getUnreadCountForUser(otherUserId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendReadStatus(otherUserId, roomId, unreadCount);
+            }
+        });
     }
 
     public Integer getUnreadMessageCount(Long userId) {
