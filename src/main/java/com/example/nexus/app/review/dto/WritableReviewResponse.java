@@ -18,12 +18,4 @@ public class WritableReviewResponse {
     private LocalDateTime approvedAt;
     private Boolean canWriteReview;
 
-    @Getter
-    @Builder
-    public static class PostInfo {
-        private Long id;
-        private String title;
-        private String thumbnail;
-        private String category;
-    }
 }

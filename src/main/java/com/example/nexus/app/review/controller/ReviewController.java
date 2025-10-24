@@ -13,6 +13,7 @@ import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +39,7 @@ public class ReviewController {
     @Operation(summary = "리뷰 생성", description = "게시글에 리뷰를 작성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
-            @RequestBody ReviewCreateRequest request,
+            @Valid @RequestBody ReviewCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if (userDetails == null) {
@@ -54,8 +55,7 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<ReviewResponse>> getReview(
             @PathVariable Long id
     ) {
-        ReviewResponse review = reviewService.getReview(id)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+        ReviewResponse review = reviewService.getReview(id);
         return ResponseEntity.ok(ApiResponse.onSuccess(review));
     }
 
@@ -72,7 +72,7 @@ public class ReviewController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReview(
             @PathVariable Long id,
-            @RequestBody ReviewUpdateRequest request,
+            @Valid @RequestBody ReviewUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if (userDetails == null) {

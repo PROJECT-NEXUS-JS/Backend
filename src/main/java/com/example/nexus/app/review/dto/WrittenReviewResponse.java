@@ -22,12 +22,4 @@ public class WrittenReviewResponse {
     private LocalDateTime reviewUpdatedAt;
     private Boolean canEdit;
 
-    @Getter
-    @Builder
-    public static class PostInfo {
-        private Long id;
-        private String title;
-        private String thumbnail;
-        private String category;
-    }
 }
