@@ -32,8 +32,9 @@ public class MessageController implements MessageControllerDoc {
     @Override
     @GetMapping("/rooms")
     public ResponseEntity<ApiResponse<List<MessageRoomResponse>>> getMyRooms(
+            @RequestParam(value = "unreadOnly", required = false, defaultValue = "false") Boolean unreadOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageRoomResponse> response = messageService.findMyRooms(userDetails.getUserId());
+        List<MessageRoomResponse> response = messageService.findMyRooms(userDetails.getUserId(), unreadOnly);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 

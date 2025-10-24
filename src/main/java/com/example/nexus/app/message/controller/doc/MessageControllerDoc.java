@@ -24,10 +24,12 @@ import java.util.List;
 public interface MessageControllerDoc {
 
     @Operation(
-            summary = "내 채팅방 목록",
-            description = "사용자의 채팅방 목록을 조회합니다."
+            summary = "내 채팅방 목록 조회",
+            description = "내가 참여한 채팅방 목록을 조회합니다."
     )
     ResponseEntity<ApiResponse<List<MessageRoomResponse>>> getMyRooms(
+            @Parameter(name = "unreadOnly", required = false, description = "안 읽은 메시지가 있는 채팅방만 조회 (기본값: false)")
+            @RequestParam Boolean unreadOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

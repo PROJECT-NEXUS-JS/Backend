@@ -44,8 +44,8 @@ public class MessageService {
     private final S3UploadService s3UploadService;
     private final SseEmitterService sseEmitterService;
 
-    public List<MessageRoomResponse> findMyRooms(Long userId) {
-        List<MessageRoom> rooms = messageRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
+    public List<MessageRoomResponse> findMyRooms(Long userId, Boolean unreadOnly) {
+        List<MessageRoom> rooms = findRoomsByFilter(userId, unreadOnly);
 
         return rooms.stream()
                 .map(room -> MessageRoomResponse.from(room, userId))
@@ -113,7 +113,8 @@ public class MessageService {
 
         String content = message != null ? message : fileName;
 
-        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl, fileName, fileSize, messageType);
+        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl, fileName, fileSize,
+                messageType);
         Message savedMessage = messageRepository.save(fileMessage);
         updateRoomAfterMessage(room, savedMessage);
 
@@ -143,7 +144,8 @@ public class MessageService {
         User participant = getUser(userId);
         User postOwner = getUser(post.getCreatedBy());
 
-        Optional<MessageRoom> existingRoom = messageRoomRepository.findByPostAndUsers(postId, postOwner.getId(), participant.getId());
+        Optional<MessageRoom> existingRoom = messageRoomRepository.findByPostAndUsers(postId, postOwner.getId(),
+                participant.getId());
 
         if (existingRoom.isPresent()) {
             throw new GeneralException(ErrorStatus.MESSAGE_ROOM_ALREADY_EXISTS);
@@ -249,5 +251,12 @@ public class MessageService {
 
         String content = message.getContent();
         return content.length() > 50 ? content.substring(0, 50) + "..." : content;
+    }
+
+    private List<MessageRoom> findRoomsByFilter(Long userId, Boolean unreadOnly) {
+        if (unreadOnly) {
+            return messageRoomRepository.findUnreadRoomsByUserId(userId);
+        }
+        return messageRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
     }
 }
