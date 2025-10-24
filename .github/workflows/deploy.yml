@@ -81,7 +81,7 @@ jobs:
             
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
             
-            docker run -d --name my-app -p 8443:8443 \
+            docker run -d --name my-app -p 8080:8080 \
               -v /etc/certs/keystore.p12:/etc/certs/keystore.p12 \
               -e DB_HOST=${{ env.DB_HOST }} \
               -e DB_NAME=${{ env.DB_NAME }} \

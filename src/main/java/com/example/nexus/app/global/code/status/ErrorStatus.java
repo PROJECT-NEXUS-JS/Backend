@@ -31,6 +31,10 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_NOT_DRAFT(HttpStatus.BAD_REQUEST, "POST40017", "임시저장 상태가 아닌 게시글입니다."),
     INVALID_IMAGE_FORMAT(HttpStatus.BAD_REQUEST, "FILE40018", "지원하지 않는 이미지 형식입니다. (jpg, png만 지원)"),
     IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "FILE40019", "이미지 크기가 너무 큽니다. (최대 5MB)"),
+    INVALID_RATING(HttpStatus.BAD_REQUEST, "REVIEW40020", "평점은 1에서 5 사이의 값이어야 합니다."),
+    REVIEW_CONTENT_TOO_SHORT(HttpStatus.BAD_REQUEST, "REVIEW40021", "리뷰 내용은 최소 10자 이상이어야 합니다."),
+    REVIEW_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "REVIEW40022", "리뷰 내용은 최대 1000자까지 입력 가능합니다."),
+    NOT_PARTICIPATED(HttpStatus.BAD_REQUEST, "REVIEW40023", "해당 게시글에 참여하지 않은 사용자입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),
@@ -61,6 +65,7 @@ public enum ErrorStatus implements BaseErrorCode {
     POST_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_CONTENT40412", "게시글 콘텐츠 정보를 찾을 수 없습니다."),
     MESSAGE_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "MESSAGE40413", "채팅방을 찾을 수 없습니다."),
     PARTICIPANT_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPANT_REWARD40414", "참여자 리워드 정보를 찾을 수 없습니다."),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW40415", "리뷰를 찾을 수 없습니다."),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "허용되지 않는 HTTP 메서드입니다."),
@@ -77,6 +82,7 @@ public enum ErrorStatus implements BaseErrorCode {
     ALREADY_PAID(HttpStatus.CONFLICT, "PARTICIPANT4098", "이미 리워드가 지급된 참여자입니다."),
     USER_ALREADY_WITHDRAWN(HttpStatus.CONFLICT, "USER4099", "이미 탈퇴된 계정입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "USER40910", "이미 사용 중인 닉네임입니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW40911", "이미 해당 게시글에 리뷰를 작성했습니다."),
 
     // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
