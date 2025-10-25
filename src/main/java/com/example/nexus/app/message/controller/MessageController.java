@@ -32,8 +32,9 @@ public class MessageController implements MessageControllerDoc {
     @Override
     @GetMapping("/rooms")
     public ResponseEntity<ApiResponse<List<MessageRoomResponse>>> getMyRooms(
+            @RequestParam(value = "unreadOnly", required = false, defaultValue = "false") Boolean unreadOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageRoomResponse> response = messageService.findMyRooms(userDetails.getUserId());
+        List<MessageRoomResponse> response = messageService.findMyRooms(userDetails.getUserId(), unreadOnly);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -84,15 +85,6 @@ public class MessageController implements MessageControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         MessageResponse response = messageService.sendFileMessage(roomId, file, message, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    @Override
-    @PatchMapping("/rooms/{roomId}/read")
-    public ResponseEntity<ApiResponse<Void>> markMessagesAsRead(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        messageService.markMessagesAsRead(roomId, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.nexus.app.message.repository;
 import com.example.nexus.app.message.domain.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,9 +14,11 @@ import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    @Query("SELECT m " +
-            "FROM Message m " +
-            "WHERE m.room.id = :roomId AND m.isDeleted = false ORDER BY m.createdAt ASC")
+    @EntityGraph(attributePaths = {"sender", "room"})
+    @Query(value = "SELECT m FROM Message m " +
+            "WHERE m.room.id = :roomId AND m.isDeleted = false " +
+            "ORDER BY m.createdAt ASC", countQuery = "SELECT COUNT(m) FROM Message m " +
+            "WHERE m.room.id = :roomId AND m.isDeleted = false")
     Page<Message> findByRoomIdAndNotDeleted(@Param("roomId") Long roomId, Pageable pageable);
 
     @Modifying
@@ -25,6 +28,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "AND m.isDeleted = false")
     void markMessagesAsReadByRoom(@Param("roomId") Long roomId, @Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
 
+    @EntityGraph(attributePaths = {"sender", "room"})
     @Query("SELECT m FROM Message m " +
             "WHERE m.room.post.id = :postId " +
             "AND m.room.postOwner.id = :userId " +
