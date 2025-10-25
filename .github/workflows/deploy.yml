@@ -76,12 +76,17 @@ jobs:
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
               | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             
+            docker network create betalab-network || true
+            docker network connect betalab-network betalab-redis || true
+            
             docker stop my-app || true
             docker rm   my-app || true
             
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
             
-            docker run -d --name my-app -p 8080:8080 \
+            docker run -d --name my-app \
+              --network betalab-network \
+              -p 8080:8080 \
               -v /etc/certs/keystore.p12:/etc/certs/keystore.p12 \
               -e DB_HOST=${{ env.DB_HOST }} \
               -e DB_NAME=${{ env.DB_NAME }} \
@@ -94,4 +99,6 @@ jobs:
               -e JWT_REFRESH_HEADER=${{ env.JWT_REFRESH_HEADER }} \
               -e S3_REGION=${{ secrets.S3_REGION }} \
               -e S3_BUCKETNAME=${{ secrets.S3_BUCKETNAME }} \
+              -e REDIS_HOST=betalab-redis \
+              -e REDIS_PORT=6379 \
               ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
