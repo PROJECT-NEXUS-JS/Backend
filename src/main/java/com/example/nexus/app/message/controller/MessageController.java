@@ -88,15 +88,6 @@ public class MessageController implements MessageControllerDoc {
     }
 
     @Override
-    @PatchMapping("/rooms/{roomId}/read")
-    public ResponseEntity<ApiResponse<Void>> markMessagesAsRead(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        messageService.markMessagesAsRead(roomId, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(null));
-    }
-
-    @Override
     @GetMapping("/unread-count")
     public ResponseEntity<ApiResponse<Integer>> getUnreadMessageCount(
             @AuthenticationPrincipal CustomUserDetails userDetails) {

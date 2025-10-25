@@ -64,9 +64,27 @@ public class MessageService {
         return MessageRoomResponse.from(room, userId);
     }
 
+    @Transactional
     public Page<MessageResponse> findRoomMessages(Long roomId, Long userId, Pageable pageable) {
         MessageRoom room = findRoomByIdAndUserId(roomId, userId);
         Page<Message> messages = messageRepository.findByRoomIdAndNotDeleted(roomId, pageable);
+
+        // 자동 읽음 처리
+        messageRepository.markMessagesAsReadByRoom(roomId, userId, LocalDateTime.now());
+        // 항상 리셋 (벌크 업데이트 후에는 카운트가 0이어야 함)
+        room.resetUnreadCount(userId);
+
+        // 읽음 상태 SSE 이벤트 전송 (상대방에게)
+        Long otherUserId = room.getOtherUser(userId).getId();
+        Integer unreadCount = room.getUnreadCountForUser(otherUserId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendReadStatus(otherUserId, roomId, unreadCount);
+            }
+        });
 
         return messages.map(message -> MessageResponse.from(message, userId));
     }
@@ -155,28 +173,6 @@ public class MessageService {
         MessageRoom savedRoom = messageRoomRepository.save(newRoom);
 
         return MessageRoomResponse.from(savedRoom, userId);
-    }
-
-    @Transactional
-    public void markMessagesAsRead(Long roomId, Long userId) {
-        MessageRoom room = findRoomByIdAndUserId(roomId, userId);
-
-        messageRepository.markMessagesAsReadByRoom(roomId, userId, LocalDateTime.now());
-
-        // 항상 리셋 (벌크 업데이트 후에는 카운트가 0이어야 함)
-        room.resetUnreadCount(userId);
-
-        // 읽음 상태 SSE 이벤트 전송 (상대방에게)
-        Long otherUserId = room.getOtherUser(userId).getId();
-        Integer unreadCount = room.getUnreadCountForUser(otherUserId);
-
-        // 트랜잭션 커밋 후 SSE 전송
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                sseEmitterService.sendReadStatus(otherUserId, roomId, unreadCount);
-            }
-        });
     }
 
     public Integer getUnreadMessageCount(Long userId) {
