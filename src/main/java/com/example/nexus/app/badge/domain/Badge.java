@@ -45,8 +45,15 @@ public class Badge {
 
     @Builder
     public Badge(BadgeName badgeName, String iconUrl) {
+        validateBadgeName(badgeName);
         this.badgeName = badgeName;
         this.iconUrl = iconUrl;
+    }
+
+    private void validateBadgeName(BadgeName badgeName) {
+        if (badgeName == null) {
+            throw new IllegalArgumentException("BadgeName은 필수입니다.");
+        }
     }
 
     public String getName() {

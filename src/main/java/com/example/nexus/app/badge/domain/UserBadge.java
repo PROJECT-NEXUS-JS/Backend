@@ -59,7 +59,17 @@ public class UserBadge {
 
     @Builder
     public UserBadge(User user, Badge badge) {
+        validateUserBadge(user, badge);
         this.user = user;
         this.badge = badge;
+    }
+
+    private void validateUserBadge(User user, Badge badge) {
+        if (user == null) {
+            throw new IllegalArgumentException("User는 필수입니다.");
+        }
+        if (badge == null) {
+            throw new IllegalArgumentException("Badge는 필수입니다.");
+        }
     }
 }
