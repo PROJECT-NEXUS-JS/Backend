@@ -4,6 +4,8 @@ import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.post.domain.*;
+import com.example.nexus.app.reward.domain.PostReward;
+import com.example.nexus.app.reward.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

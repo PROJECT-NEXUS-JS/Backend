@@ -50,26 +50,6 @@ public interface DashboardControllerDoc {
     );
 
     @Operation(
-            summary = "참여자 완료 처리",
-            description = "특정 참여자의 테스트를 완료 처리합니다"
-    )
-    ResponseEntity<ApiResponse<ParticipantDetailResponse>> completeParticipant(
-            @PathVariable @Schema(description = "게시글 ID") Long postId,
-            @PathVariable @Schema(description = "참여 ID") Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
-    @Operation(
-            summary = "리워드 지급 처리",
-            description = "특정 참여자에게 리워드를 지급 처리합니다"
-    )
-    ResponseEntity<ApiResponse<ParticipantDetailResponse>> payReward(
-            @PathVariable @Schema(description = "게시글 ID") Long postId,
-            @PathVariable @Schema(description = "참여 ID") Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
-    @Operation(
             summary = "대시보드 통계 카드",
             description = "특정 게시글의 좋아요, 찜하기, 참여 대기, 참여자, 리뷰, 조회수 통계, 안 읽은 메시지 (전일 대비 증감 포함)"
     )

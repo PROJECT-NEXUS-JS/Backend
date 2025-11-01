@@ -16,15 +16,15 @@ import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.message.domain.Message;
 import com.example.nexus.app.message.repository.MessageRepository;
-import com.example.nexus.app.participation.domain.ParticipantReward;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.participation.domain.RewardStatus;
-import com.example.nexus.app.participation.repository.ParticipantRewardRepository;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
+import com.example.nexus.app.reward.domain.ParticipantReward;
+import com.example.nexus.app.reward.domain.RewardStatus;
+import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.app.post.domain.Post;
-import com.example.nexus.app.post.domain.PostReward;
 import com.example.nexus.app.post.domain.PostStatus;
+import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.ViewCountService;
@@ -267,73 +267,6 @@ public class DashboardService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
 
         ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId).orElse(null);
-
-        return ParticipantDetailResponse.from(participation, participantReward);
-    }
-
-    @Transactional
-    public ParticipantDetailResponse completeParticipant(Long postId, Long participationId, Long userId) {
-        validatePostOwnership(userId, postId);
-
-        Participation participation = participationRepository.findByIdWithPostAndReward(participationId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
-
-        PostReward postReward = participation.getPost().getReward();
-
-        if (postReward == null) {
-            throw new GeneralException(ErrorStatus.POST_REWARD_NOT_FOUND);
-        }
-
-        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId)
-                        .orElseGet(() -> {
-                            ParticipantReward newReward = ParticipantReward.create(participation, postReward);
-                            return participantRewardRepository.save(newReward);
-                        });
-
-        if (participantReward.isCompleted()) {
-            throw new GeneralException(ErrorStatus.ALREADY_COMPLETED);
-        }
-
-        participantReward.markAsCompleted();
-
-        // 참여 완료 알림 - 참여자에게
-        notificationService.createNotification(
-                participation.getUser().getId(),  // 참여자
-                NotificationType.PARTICIPATION_COMPLETED,
-                "참여가 완료되었습니다. 리워드 지급을 기다려주세요.",
-                null
-        );
-
-        return ParticipantDetailResponse.from(participation, participantReward);
-    }
-
-    @Transactional
-    public ParticipantDetailResponse payReward(Long postId, Long participationId, Long userId) {
-        validatePostOwnership(userId, postId);
-
-        ParticipantReward participantReward = participantRewardRepository
-                .findByParticipationId(participationId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPANT_REWARD_NOT_FOUND));
-
-        if (!participantReward.isCompleted()) {
-            throw new GeneralException(ErrorStatus.NOT_COMPLETED_YET);
-        }
-
-        if (participantReward.isRewardPaid()) {
-            throw new GeneralException(ErrorStatus.ALREADY_PAID);
-        }
-
-        participantReward.markAsPaid();
-
-        Participation participation = participantReward.getParticipation();
-
-        // 리워드 지급 알림 - 참여자에게
-        notificationService.createNotification(
-                participation.getUser().getId(),  // 참여자
-                NotificationType.REWARD_PAID,
-                "리워드가 지급되었습니다. 확인해보세요.",
-                null
-        );
 
         return ParticipantDetailResponse.from(participation, participantReward);
     }

@@ -1,4 +1,4 @@
-package com.example.nexus.app.post.domain;
+package com.example.nexus.app.reward.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;

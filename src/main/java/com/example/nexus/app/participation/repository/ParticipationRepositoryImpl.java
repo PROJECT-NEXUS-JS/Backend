@@ -1,6 +1,9 @@
 package com.example.nexus.app.participation.repository;
 
-import com.example.nexus.app.participation.domain.*;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.reward.domain.QParticipantReward;
+import com.example.nexus.app.reward.domain.RewardStatus;
 import com.example.nexus.app.user.domain.QUser;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -14,8 +17,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static com.example.nexus.app.participation.domain.QParticipantReward.participantReward;
 import static com.example.nexus.app.participation.domain.QParticipation.participation;
+import static com.example.nexus.app.reward.domain.QParticipantReward.participantReward;
 import static com.example.nexus.app.user.domain.QUser.user;
 
 @Repository

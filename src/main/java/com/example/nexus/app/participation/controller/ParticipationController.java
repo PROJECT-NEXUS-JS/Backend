@@ -1,5 +1,6 @@
 package com.example.nexus.app.participation.controller;
 
+import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
@@ -26,7 +27,6 @@ public class ParticipationController implements ParticipationControllerDoc {
 
     private final ParticipationService participationService;
 
-    // 게시글에 참가 신청
     @Override
     @PostMapping("/posts/{postId}/apply")
     public ResponseEntity<ApiResponse<ParticipationResponse>> applyForParticipation(
@@ -39,7 +39,6 @@ public class ParticipationController implements ParticipationControllerDoc {
                 .body(ApiResponse.onSuccess(response));
     }
 
-    // 내 모든 참가 신청 내역 조회
     @Override
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplications(
@@ -50,7 +49,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
-    // 내 참가 신청 내역 상태별 조회
     @Override
     @GetMapping("/{status}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplicationsByStatus(
@@ -62,7 +60,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
-    // 참가 신청 취소
     @Override
     @DeleteMapping("/{participationId}")
     public ResponseEntity<ApiResponse<Void>> cancelApplication(
@@ -74,7 +71,6 @@ public class ParticipationController implements ParticipationControllerDoc {
                 .body(ApiResponse.onSuccess(null));
     }
 
-    // 게시글 참가 신청 여부 확인
     @Override
     @GetMapping("/posts/{postId}/status")
     public ResponseEntity<ApiResponse<Boolean>> getApplicationStatus(
@@ -85,7 +81,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(hasApplied));
     }
 
-    // 게시글 신청자 목록 조회 (게시글 작성자용)
     @Override
     @GetMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplications(
@@ -97,7 +92,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
-    // 게시글 신청자 목록 상태별 조회 (게시글 작성자용)
     @Override
     @GetMapping("/posts/{postId}/status/{status}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
@@ -110,7 +104,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
-    // 참가 신청 승인
     @Override
     @PatchMapping("/{participationId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveApplication(
@@ -121,7 +114,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
-    // 참가 신청 거절
     @Override
     @PatchMapping("/{participationId}/reject")
     public ResponseEntity<ApiResponse<Void>> rejectApplication(
@@ -132,7 +124,6 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
-    // 게시글 신청자 개인정보 조회 (게시글 작성자용)
     @Override
     @GetMapping("/posts/{postId}/privacy")
     public ResponseEntity<ApiResponse<Page<ParticipantPrivacyResponse>>> getParticipantsPrivacyInfo(

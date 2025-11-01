@@ -1,5 +1,6 @@
 package com.example.nexus.app.participation.controller.doc;
 
+import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.domain.ParticipationStatus;

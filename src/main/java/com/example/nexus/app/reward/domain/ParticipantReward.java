@@ -1,7 +1,7 @@
-package com.example.nexus.app.participation.domain;
+package com.example.nexus.app.reward.domain;
 
-
-import com.example.nexus.app.post.domain.PostReward;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
