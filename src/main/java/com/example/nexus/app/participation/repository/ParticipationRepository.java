@@ -2,16 +2,16 @@ package com.example.nexus.app.participation.repository;
 
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ParticipationRepository extends JpaRepository<Participation, Long>, ParticipationRepositoryCustom {
 
@@ -43,7 +43,8 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "LEFT JOIN FETCH po.postContent " +
             "WHERE p.user.id = :userId AND p.status = :status " +
             "ORDER BY p.appliedAt DESC")
-    Page<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId, @Param("status") ParticipationStatus status,
+    Page<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId,
+                                                      @Param("status") ParticipationStatus status,
                                                       Pageable pageable);
 
     // 게시글의 참가 신청자 목록 조회
@@ -70,7 +71,8 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "LEFT JOIN FETCH po.postContent " +
             "WHERE p.post.id = :postId AND p.status = :status " +
             "ORDER BY p.appliedAt ASC")
-    Page<Participation> findByPostIdAndStatusWithUser(@Param("postId") Long postId, @Param("status") ParticipationStatus status,
+    Page<Participation> findByPostIdAndStatusWithUser(@Param("postId") Long postId,
+                                                      @Param("status") ParticipationStatus status,
                                                       Pageable pageable);
 
     @Query("SELECT p.post.id " +
@@ -83,11 +85,13 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "JOIN FETCH p.user " +
             "WHERE p.post.id = :postId AND p.status = :status " +
             "ORDER BY p.appliedAt DESC")
-    Page<Participation> findByPostIdAndStatus(@Param("postId") Long postId, @Param("status") ParticipationStatus status, Pageable pageable);
+    Page<Participation> findByPostIdAndStatus(@Param("postId") Long postId, @Param("status") ParticipationStatus status,
+                                              Pageable pageable);
 
     Long countByPostIdAndStatus(Long postId, ParticipationStatus status);
 
     Long countByPostIdAndStatusAndAppliedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
+
     Long countByPostIdAndStatusAndApprovedAtBefore(Long postId, ParticipationStatus status, LocalDateTime dateTime);
 
     @Query("SELECT p FROM Participation p " +
@@ -96,7 +100,8 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     Page<Participation> findByPostId(Long postId, Pageable pageable);
 
     @Query("SELECT p FROM Participation p JOIN FETCH p.post WHERE p.user.id = :userId AND p.status = :status")
-    List<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId, @Param("status") ParticipationStatus status);
+    List<Participation> findByUserIdAndStatusWithPost(@Param("userId") Long userId,
+                                                      @Param("status") ParticipationStatus status);
 
     long countByUserIdAndStatus(Long userId, ParticipationStatus status);
 
@@ -112,7 +117,9 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "AND p.appliedAt >= :startDate AND p.appliedAt < :endDate " +
             "GROUP BY DATE(p.appliedAt) " +
             "ORDER BY DATE(p.appliedAt)")
-    List<Object[]> countByPostIdAndStatusGroupByDate(@Param("postId") Long postId, @Param("status") ParticipationStatus status, @Param("startDate") LocalDateTime startDate,
+    List<Object[]> countByPostIdAndStatusGroupByDate(@Param("postId") Long postId,
+                                                     @Param("status") ParticipationStatus status,
+                                                     @Param("startDate") LocalDateTime startDate,
                                                      @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT p FROM Participation p " +
@@ -120,4 +127,24 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "JOIN FETCH p.post " +
             "WHERE p.id = :participationId")
     Optional<Participation> findByIdWithUserAndPost(@Param("participationId") Long participationId);
+
+    @Query("SELECT p FROM Participation p " +
+            "JOIN FETCH p.user " +
+            "WHERE p.post.id = :postId AND p.status = :status AND p.isPaid = :isPaid " +
+            "ORDER BY p.appliedAt ASC")
+    Page<Participation> findByPostIdAndStatusAndIsPaidWithUser(
+            @Param("postId") Long postId,
+            @Param("status") ParticipationStatus status,
+            @Param("isPaid") Boolean isPaid,
+            Pageable pageable);
+
+    @Query("SELECT p FROM Participation p " +
+            "JOIN FETCH p.user " +
+            "WHERE p.user.id = :userId AND p.status = :status AND p.isPaid = :isPaid " +
+            "ORDER BY p.appliedAt DESC")
+    Page<Participation> findByUserIdAndStatusAndIsPaidWithPost(
+            @Param("userId") Long userId,
+            @Param("status") ParticipationStatus status,
+            @Param("isPaid") Boolean isPaid,
+            Pageable pageable);
 }

@@ -2,12 +2,13 @@ package com.example.nexus.app.participation.service;
 
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.participation.dto.ParticipationApplicationDto;
-import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.participation.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
+import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PrivacyItem;
@@ -74,45 +75,44 @@ public class ParticipationService {
                 currentViewCount);
     }
 
-    // 참여 신청한 게시글 조회
-    public Page<ParticipationResponse> getMyApplications(Long userId, Pageable pageable) {
+    public Page<ParticipationSummaryResponse> getMyApplications(Long userId, String statusParam, Pageable pageable) {
         getUser(userId);
 
-        Page<Participation> participations = participationRepository.findByUserIdWithPost(userId, pageable);
+        Page<Participation> participations;
 
-        return mapParticipationsWithUserStatus(participations, userId);
-    }
+        // status가 없으면 전체 조회
+        if (statusParam == null || statusParam.isEmpty()) {
+            participations = participationRepository.findByUserIdWithPost(userId, pageable);
+        } else if ("PAID".equalsIgnoreCase(statusParam)) {
+            participations = participationRepository.findByUserIdAndStatusAndIsPaidWithPost(
+                    userId, ParticipationStatus.COMPLETED, true, pageable);
+        } else {
+            ParticipationStatus status = ParticipationStatus.valueOf(statusParam.toUpperCase());
+            participations = participationRepository.findByUserIdAndStatusWithPost(userId, status, pageable);
+        }
 
-    // 참여 신청한 게시글 상태별 조회
-    public Page<ParticipationResponse> getMyApplications(Long userId, ParticipationStatus status, Pageable pageable) {
-        getUser(userId);
-
-        Page<Participation> participations = participationRepository.findByUserIdAndStatusWithPost(userId, status,
-                pageable);
-
-        return mapParticipationsWithUserStatus(participations, userId);
-    }
-
-    // 게시글에 대한 참가 신청자 조회
-    public Page<ParticipationResponse> getPostApplications(Long postId, Long userId, Pageable pageable) {
-        Post post = getPost(postId);
-        validatePostOwnership(post, userId);
-
-        Page<Participation> applications = participationRepository.findByPostIdWithUser(postId, pageable);
-
-        return mapParticipationsWithUserStatus(applications, userId);
+        return participations.map(ParticipationSummaryResponse::from);
     }
 
     // 게시글에 대한 참가 신청자 상태별 조회
-    public Page<ParticipationResponse> getPostApplications(Long postId, Long userId, ParticipationStatus status,
-                                                           Pageable pageable) {
+    public Page<ParticipationSummaryResponse> getPostApplications(Long postId, Long userId, String statusParam,
+                                                                  Pageable pageable) {
         Post post = getPost(postId);
         validatePostOwnership(post, userId);
 
-        Page<Participation> applications = participationRepository.findByPostIdAndStatusWithUser(postId, status,
-                pageable);
+        Page<Participation> applications;
 
-        return mapParticipationsWithUserStatus(applications, userId);
+        if (statusParam == null || statusParam.isEmpty()) {
+            applications = participationRepository.findByPostIdWithUser(postId, pageable);
+        } else if ("PAID".equalsIgnoreCase(statusParam)) {
+            applications = participationRepository.findByPostIdAndStatusAndIsPaidWithUser(
+                    postId, ParticipationStatus.COMPLETED, true, pageable);
+        } else {
+            ParticipationStatus status = ParticipationStatus.valueOf(statusParam.toUpperCase());
+            applications = participationRepository.findByPostIdAndStatusWithUser(postId, status, pageable);
+        }
+
+        return applications.map(ParticipationSummaryResponse::from);
     }
 
     public Page<ParticipantPrivacyResponse> getParticipantsPrivacyInfo(Long postId, Pageable pageable, Long userId) {
@@ -271,6 +271,7 @@ public class ParticipationService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
 
         validatePostOwnership(participation.getPost(), userId);
+        participation.complete();
 
         PostReward postReward = participation.getPost().getReward();
 

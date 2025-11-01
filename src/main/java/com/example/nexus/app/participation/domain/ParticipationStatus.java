@@ -8,14 +8,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Schema(description = "참가 신청 상태")
 public enum ParticipationStatus {
-    @Schema(description = "대기중")
-    PENDING("대기중"),
+    @Schema(description = "승인 대기")
+    PENDING("승인 대기"),
 
-    @Schema(description = "승인됨")
-    APPROVED("승인됨"),
+    @Schema(description = "진행중")
+    APPROVED("진행중"),
 
-    @Schema(description = "테스트 완료")
-    COMPLETED("테스트 완료"),
+    @Schema(description = "지급 대기")
+    COMPLETED("지급 대기"),
 
     @Schema(description = "거절됨")
     REJECTED("거절됨");

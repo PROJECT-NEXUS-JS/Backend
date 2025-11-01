@@ -3,10 +3,11 @@ package com.example.nexus.app.participation.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.participation.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.participation.service.ParticipationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,24 +50,13 @@ public class ParticipationController implements ParticipationControllerDoc {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplications(
+    public ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getMyApplications(
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(),
-                pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(applications));
-    }
-
-    @Override
-    @GetMapping("/{status}")
-    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplicationsByStatus(
-            @PathVariable ParticipationStatus status,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
-
-        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(),
-                status, pageable);
+        Page<ParticipationSummaryResponse> applications = participationService.getMyApplications(
+                userDetails.getUserId(), status, pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
@@ -92,26 +83,13 @@ public class ParticipationController implements ParticipationControllerDoc {
 
     @Override
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplications(
+    public ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getPostApplications(
             @PathVariable Long postId,
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
-
-        Page<ParticipationResponse> applications = participationService.getPostApplications(postId,
-                userDetails.getUserId(), pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(applications));
-    }
-
-    @Override
-    @GetMapping("/posts/{postId}/status/{status}")
-    public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
-            @PathVariable Long postId,
-            @PathVariable ParticipationStatus status,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
-
-        Page<ParticipationResponse> applications = participationService.getPostApplications(postId,
-                userDetails.getUserId(), status, pageable);
+        Page<ParticipationSummaryResponse> applications = participationService.getPostApplications(
+                postId, userDetails.getUserId(), status, pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 

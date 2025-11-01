@@ -2,15 +2,16 @@ package com.example.nexus.app.participation.controller.dto.response;
 
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.UserSummaryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
 
-public record ParticipationResponse(
+public record ParticipationSummaryResponse(
         @Schema(description = "참여 ID")
         Long id,
+
+        @Schema(description = "게시글 ID")
+        Long postId,
 
         @Schema(description = "신청 일시")
         LocalDateTime appliedAt,
@@ -42,16 +43,13 @@ public record ParticipationResponse(
         @Schema(description = "신청 사유")
         String applicationReason,
 
-        @Schema(description = "게시글 정보")
-        PostDetailResponse post,
-
         @Schema(description = "참여자 정보")
         UserSummaryResponse user
 ) {
-
-    public static ParticipationResponse from(Participation participation, Boolean isLiked, Boolean isParticipated, Long currentViewCount) {
-        return new ParticipationResponse(
+    public static ParticipationSummaryResponse from(Participation participation) {
+        return new ParticipationSummaryResponse(
                 participation.getId(),
+                participation.getPost().getId(),
                 participation.getAppliedAt(),
                 participation.getApprovedAt(),
                 participation.getCompletedAt(),
@@ -62,7 +60,6 @@ public record ParticipationResponse(
                 participation.getContactNumber(),
                 participation.getApplicantEmail(),
                 participation.getApplicationReason(),
-                PostDetailResponse.from(participation.getPost(), isLiked, isParticipated, currentViewCount),
                 UserSummaryResponse.from(participation.getUser())
         );
     }

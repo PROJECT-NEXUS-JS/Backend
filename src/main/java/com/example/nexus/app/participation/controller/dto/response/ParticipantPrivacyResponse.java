@@ -1,4 +1,4 @@
-package com.example.nexus.app.participation.dto.response;
+package com.example.nexus.app.participation.controller.dto.response;
 
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.post.domain.PrivacyItem;

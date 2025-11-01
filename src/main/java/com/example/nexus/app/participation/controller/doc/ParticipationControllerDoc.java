@@ -2,10 +2,10 @@ package com.example.nexus.app.participation.controller.doc;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
-import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.participation.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "참가 신청", description = "게시글 참가 신청 관련 API")
 public interface ParticipationControllerDoc {
@@ -33,33 +34,23 @@ public interface ParticipationControllerDoc {
     );
 
     @Operation(
-            summary = "내 신청 내역 조회 (전체)",
-            description = "사용자의 모든 참가 신청내역을 조회합니다."
-    )
-    ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplications(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            Pageable pageable
-    );
-
-    @Operation(
-            summary = "내 신청 내역 조회 (상태별)",
+            summary = "내 신청 내역 조회",
             description = """
-                    특정 상태의 참가 신청 내역을 조회합니다.
+                    내 참가 신청 내역을 조회합니다. status 파라미터로 필터링 가능
                     
                     **ParticipationStatus (참가 신청 상태):**
-                    - `PENDING`: 대기중
-                    - `APPROVED`: 승인됨
-                    - `COMPLETED`: 테스트 완료
+                    - `PENDING`: 승인 대기
+                    - `APPROVED`: 진행중
+                    - `COMPLETED`: 지급 대기
                     - `REJECTED`: 거절됨
+                    - `PAID`: 완료 (지급완료)
+                    
+                    status를 입력하지 않으면 전체 조회
                     """
     )
-    ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplicationsByStatus(
-            @Parameter(
-                    description = "참가 상태",
-                    required = true,
-                    schema = @Schema(implementation = ParticipationStatus.class)
-            )
-            @PathVariable ParticipationStatus status,
+    ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getMyApplications(
+            @Parameter(description = "참가 상태 (선택사항)", required = false)
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable
     );
@@ -84,41 +75,24 @@ public interface ParticipationControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
-    @Operation(
-            summary = "게시글 신청자 목록 조회 (전체)",
-            description = "게시글의 모든 신청자 목록을 조회합니다. (작성자만 가능)"
-    )
-    ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplications(
-            @Parameter(description = "게시글 ID", required = true)
-            @PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            Pageable pageable
-    );
-
-    @Operation(
-            summary = "게시글 신청자 목록 조회 (상태별)",
+    @Operation(summary = "게시글의 참가 신청자 조회",
             description = """
-                    게시글의 특정 상태 신청자 목록을 조회합니다. (작성자만 가능)
+                      게시글의 특정 상태 신청자 목록을 조회합니다. (작성자만 가능)
                     
                     **ParticipationStatus (참가 신청 상태):**
-                    - `PENDING`: 대기중
-                    - `APPROVED`: 승인됨
-                    - `COMPLETED`: 테스트 완료
+                    - `PENDING`: 승인 대기
+                    - `APPROVED`: 진행중
+                    - `COMPLETED`: 지급 대기
                     - `REJECTED`: 거절됨
-                    """
-    )
-    ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
-            @Parameter(description = "게시글 ID", required = true)
+                    - `PAID`: 완료 (지급완료)
+                    
+                    status를 입력하지 않으면 전체 조회
+                    """)
+    ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getPostApplications(
             @PathVariable Long postId,
-            @Parameter(
-                    description = "참가 상태",
-                    required = true,
-                    schema = @Schema(implementation = ParticipationStatus.class)
-            )
-            @PathVariable ParticipationStatus status,
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            Pageable pageable
-    );
+            Pageable pageable);
 
     @Operation(
             summary = "참가 신청 승인",

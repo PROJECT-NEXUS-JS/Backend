@@ -8,6 +8,7 @@ import com.example.nexus.app.reward.domain.ParticipantReward;
 import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.notification.NotificationType;
 import com.example.nexus.notification.service.NotificationService;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class RewardService {
         }
 
         participantReward.markAsPaid();
+        participation.updatePaidStatus(LocalDateTime.now());
 
         notificationService.createNotification(
                 participation.getUser().getId(),
