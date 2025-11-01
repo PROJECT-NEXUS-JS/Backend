@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/rewards")
+@RequestMapping("/v1/users/rewards")
 @RequiredArgsConstructor
 public class RewardController implements RewardControllerDoc {
 
