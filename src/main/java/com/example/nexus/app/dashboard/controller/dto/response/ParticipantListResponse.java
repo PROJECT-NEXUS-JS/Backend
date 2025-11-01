@@ -31,13 +31,9 @@ public record ParticipantListResponse(
         RewardStatus rewardStatus,
 
         @Schema(description = "리워드 지급일")
-        LocalDateTime paidAt,
-
-        @Schema(description = "지급하기 버튼 표시 여부")
-        Boolean showPayButton
+        LocalDateTime paidAt
 ) {
     public static ParticipantListResponse from(Participation participation, ParticipantReward participantReward) {
-        boolean showPayButton = participantReward != null && participantReward.isCompleted() && !participantReward.isRewardPaid();
 
         return new ParticipantListResponse(
                 participation.getId(),
@@ -47,8 +43,7 @@ public record ParticipantListResponse(
                 participation.getApprovedAt(),
                 participation.getStatus(),
                 participantReward != null ? participantReward.getRewardStatus() : null,
-                participantReward != null ? participantReward.getPaidAt() : null,
-                showPayButton
+                participantReward != null ? participantReward.getPaidAt() : null
         );
     }
 }
