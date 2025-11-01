@@ -2,6 +2,7 @@ package com.example.nexus.app.participation.service;
 
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
@@ -185,6 +186,63 @@ public class ParticipationService {
         return participationRepository.existsByUserIdAndPostId(userId, postId);
     }
 
+    // 참여자 완료 처리
+    @Transactional
+    public void completeParticipant(Long participationId, Long userId) {
+        Participation participation = participationRepository.findByIdWithPostAndReward(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
+
+        validatePostOwnership(participation.getPost(), userId);
+        participation.complete();
+
+        PostReward postReward = participation.getPost().getReward();
+
+        if (postReward == null) {
+            throw new GeneralException(ErrorStatus.POST_REWARD_NOT_FOUND);
+        }
+
+        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId)
+                .orElseGet(() -> {
+                    ParticipantReward newReward = ParticipantReward.create(participation, postReward);
+                    return participantRewardRepository.save(newReward);
+                });
+
+        if (participantReward.isCompleted()) {
+            throw new GeneralException(ErrorStatus.ALREADY_COMPLETED);
+        }
+
+        participantReward.markAsCompleted();
+
+        notificationService.createNotification(
+                participation.getUser().getId(),
+                NotificationType.PARTICIPATION_COMPLETED,
+                "참여가 완료되었습니다. 리워드 지급을 기다려주세요.",
+                null
+        );
+    }
+
+    // 게시글 상태별 인원 통계
+    public ParticipationStatisticsResponse getPostApplicationStatistics(Long postId, Long userId) {
+        Post post = getPost(postId);
+        validatePostOwnership(post, userId);
+
+        Long pendingCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
+        Long approvedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
+        Long completedCount = participationRepository.countByPostIdAndStatusAndIsPaid(
+                postId, ParticipationStatus.COMPLETED, false);
+        Long paidCount = participationRepository.countByPostIdAndStatusAndIsPaid(
+                postId, ParticipationStatus.COMPLETED, true);
+        Long rejectedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.REJECTED);
+
+        return ParticipationStatisticsResponse.of(
+                pendingCount,
+                approvedCount,
+                completedCount,
+                paidCount,
+                rejectedCount
+        );
+    }
+
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -262,40 +320,5 @@ public class ParticipationService {
             return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(),
                     currentViewCount);
         });
-    }
-
-    // 참여자 완료 처리
-    @Transactional
-    public void completeParticipant(Long participationId, Long userId) {
-        Participation participation = participationRepository.findByIdWithPostAndReward(participationId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
-
-        validatePostOwnership(participation.getPost(), userId);
-        participation.complete();
-
-        PostReward postReward = participation.getPost().getReward();
-
-        if (postReward == null) {
-            throw new GeneralException(ErrorStatus.POST_REWARD_NOT_FOUND);
-        }
-
-        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId)
-                .orElseGet(() -> {
-                    ParticipantReward newReward = ParticipantReward.create(participation, postReward);
-                    return participantRewardRepository.save(newReward);
-                });
-
-        if (participantReward.isCompleted()) {
-            throw new GeneralException(ErrorStatus.ALREADY_COMPLETED);
-        }
-
-        participantReward.markAsCompleted();
-
-        notificationService.createNotification(
-                participation.getUser().getId(),
-                NotificationType.PARTICIPATION_COMPLETED,
-                "참여가 완료되었습니다. 리워드 지급을 기다려주세요.",
-                null
-        );
     }
 }

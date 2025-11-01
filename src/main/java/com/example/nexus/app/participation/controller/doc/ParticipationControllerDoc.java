@@ -5,6 +5,7 @@ import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -131,6 +132,25 @@ public interface ParticipationControllerDoc {
     ResponseEntity<ApiResponse<Void>> completeParticipant(
             @Parameter(description = "참여 ID", required = true)
             @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(
+            summary = "게시글 참가 신청 통계",
+            description = """
+                  게시글의 상태별 참가 신청자 인원 통계를 조회합니다. (작성자만 가능)
+
+                  - pendingCount: 승인 대기 인원
+                  - approvedCount: 진행중 인원
+                  - completedCount: 완료 (지급 대기) 인원
+                  - paidCount: 지급 완료 인원
+                  - rejectedCount: 거절됨 인원
+                  - totalCount: 전체 신청 인원
+                  """
+    )
+    ResponseEntity<ApiResponse<ParticipationStatisticsResponse>> getPostApplicationStatistics(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }

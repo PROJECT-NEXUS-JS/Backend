@@ -3,6 +3,7 @@ package com.example.nexus.app.participation.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
@@ -133,5 +134,15 @@ public class ParticipationController implements ParticipationControllerDoc {
 
         participationService.completeParticipant(participationId, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
+
+    @Override
+    @GetMapping("/posts/{postId}/statistics")
+    public ResponseEntity<ApiResponse<ParticipationStatisticsResponse>> getPostApplicationStatistics(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ParticipationStatisticsResponse statistics = participationService.getPostApplicationStatistics(
+                postId, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(statistics));
     }
 }

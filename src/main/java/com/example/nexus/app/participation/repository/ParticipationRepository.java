@@ -147,4 +147,11 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             @Param("status") ParticipationStatus status,
             @Param("isPaid") Boolean isPaid,
             Pageable pageable);
+
+    @Query("SELECT COUNT(p) FROM Participation p "
+            + "WHERE p.post.id = :postId AND p.status = :status AND p.isPaid = :isPaid")
+    Long countByPostIdAndStatusAndIsPaid(
+            @Param("postId") Long postId,
+            @Param("status") ParticipationStatus status,
+            @Param("isPaid") Boolean isPaid);
 }
