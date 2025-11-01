@@ -1,6 +1,6 @@
-package com.example.nexus.app.post.controller.dto.response;
+package com.example.nexus.app.participation.dto.response;
 
-import com.example.nexus.app.post.domain.Participation;
+import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.post.domain.PrivacyItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 

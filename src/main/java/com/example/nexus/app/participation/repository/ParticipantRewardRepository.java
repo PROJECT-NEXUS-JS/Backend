@@ -1,7 +1,7 @@
-package com.example.nexus.app.post.repository;
+package com.example.nexus.app.participation.repository;
 
-import com.example.nexus.app.post.domain.ParticipantReward;
-import com.example.nexus.app.post.domain.RewardStatus;
+import com.example.nexus.app.participation.domain.ParticipantReward;
+import com.example.nexus.app.participation.domain.RewardStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

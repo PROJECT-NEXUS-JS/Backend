@@ -1,7 +1,9 @@
-package com.example.nexus.app.post.controller.dto.response;
+package com.example.nexus.app.participation.dto.response;
 
-import com.example.nexus.app.post.domain.Participation;
-import com.example.nexus.app.post.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
+import com.example.nexus.app.post.controller.dto.response.UserSummaryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

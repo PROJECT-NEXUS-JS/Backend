@@ -1,6 +1,6 @@
-package com.example.nexus.app.post.domain.dto;
+package com.example.nexus.app.participation.dto;
 
-import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
 
 public record ParticipationApplicationDto(
         String applicantName,

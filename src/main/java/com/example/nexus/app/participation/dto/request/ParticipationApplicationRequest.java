@@ -1,4 +1,4 @@
-package com.example.nexus.app.post.controller.dto.request;
+package com.example.nexus.app.participation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;

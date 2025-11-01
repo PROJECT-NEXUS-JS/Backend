@@ -1,9 +1,9 @@
 package com.example.nexus.app.dashboard.controller.dto.response;
 
-import com.example.nexus.app.post.domain.ParticipantReward;
-import com.example.nexus.app.post.domain.Participation;
-import com.example.nexus.app.post.domain.ParticipationStatus;
-import com.example.nexus.app.post.domain.RewardStatus;
+import com.example.nexus.app.participation.domain.ParticipantReward;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.RewardStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

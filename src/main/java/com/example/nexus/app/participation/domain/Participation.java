@@ -1,6 +1,7 @@
-package com.example.nexus.app.post.domain;
+package com.example.nexus.app.participation.domain;
 
-import com.example.nexus.app.post.domain.dto.ParticipationApplicationDto;
+import com.example.nexus.app.participation.dto.ParticipationApplicationDto;
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;

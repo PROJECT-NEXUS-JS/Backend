@@ -1,14 +1,30 @@
 package com.example.nexus.app.dashboard.service;
 
 import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
-import com.example.nexus.app.dashboard.controller.dto.response.*;
+import com.example.nexus.app.dashboard.controller.dto.response.BarChartResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.DashboardStatsResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.LineChartResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.MyPostSummaryResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.ParticipantListResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.PieChartResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.PostStatusResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.RecentMessageResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.RecentReviewResponse;
+import com.example.nexus.app.dashboard.controller.dto.response.WaitingParticipantResponse;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.message.domain.Message;
 import com.example.nexus.app.message.repository.MessageRepository;
-import com.example.nexus.app.post.domain.*;
-import com.example.nexus.app.post.repository.ParticipantRewardRepository;
-import com.example.nexus.app.post.repository.ParticipationRepository;
+import com.example.nexus.app.participation.domain.ParticipantReward;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.RewardStatus;
+import com.example.nexus.app.participation.repository.ParticipantRewardRepository;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
+import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.post.domain.PostReward;
+import com.example.nexus.app.post.domain.PostStatus;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.ViewCountService;
@@ -16,20 +32,18 @@ import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.repository.ReviewRepository;
 import com.example.nexus.notification.NotificationType;
 import com.example.nexus.notification.service.NotificationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor

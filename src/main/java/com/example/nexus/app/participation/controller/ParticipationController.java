@@ -1,13 +1,13 @@
-package com.example.nexus.app.post.controller;
+package com.example.nexus.app.participation.controller;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
-import com.example.nexus.app.post.controller.doc.ParticipationControllerDoc;
-import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.post.controller.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.post.controller.dto.response.ParticipationResponse;
-import com.example.nexus.app.post.domain.ParticipationStatus;
-import com.example.nexus.app.post.service.ParticipationService;
+import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.service.ParticipationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,14 +20,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/users/posts")
+@RequestMapping("/v1/users/participations")
 @RequiredArgsConstructor
 public class ParticipationController implements ParticipationControllerDoc {
 
     private final ParticipationService participationService;
 
+    // 게시글에 참가 신청
     @Override
-    @PostMapping("/{postId}/apply")
+    @PostMapping("/posts/{postId}/apply")
     public ResponseEntity<ApiResponse<ParticipationResponse>> applyForParticipation(
             @PathVariable Long postId,
             @Valid @RequestBody ParticipationApplicationRequest request,
@@ -38,8 +39,9 @@ public class ParticipationController implements ParticipationControllerDoc {
                 .body(ApiResponse.onSuccess(response));
     }
 
+    // 내 모든 참가 신청 내역 조회
     @Override
-    @GetMapping("/applications")
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplications(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -48,8 +50,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
+    // 내 참가 신청 내역 상태별 조회
     @Override
-    @GetMapping("/applications/{status}")
+    @GetMapping("/{status}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplicationsByStatus(
             @PathVariable ParticipationStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -59,8 +62,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
+    // 참가 신청 취소
     @Override
-    @DeleteMapping("/applications/{participationId}")
+    @DeleteMapping("/{participationId}")
     public ResponseEntity<ApiResponse<Void>> cancelApplication(
             @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -70,8 +74,9 @@ public class ParticipationController implements ParticipationControllerDoc {
                 .body(ApiResponse.onSuccess(null));
     }
 
+    // 게시글 참가 신청 여부 확인
     @Override
-    @GetMapping("/{postId}/apply/status")
+    @GetMapping("/posts/{postId}/status")
     public ResponseEntity<ApiResponse<Boolean>> getApplicationStatus(
             @PathVariable Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -80,8 +85,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(hasApplied));
     }
 
+    // 게시글 신청자 목록 조회 (게시글 작성자용)
     @Override
-    @GetMapping("/{postId}/applications")
+    @GetMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplications(
             @PathVariable Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -91,8 +97,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
+    // 게시글 신청자 목록 상태별 조회 (게시글 작성자용)
     @Override
-    @GetMapping("/{postId}/applications/{status}")
+    @GetMapping("/posts/{postId}/status/{status}")
     public ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
             @PathVariable Long postId,
             @PathVariable ParticipationStatus status,
@@ -103,8 +110,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
+    // 참가 신청 승인
     @Override
-    @PatchMapping("/applications/{participationId}/approve")
+    @PatchMapping("/{participationId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveApplication(
             @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -113,8 +121,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
+    // 참가 신청 거절
     @Override
-    @PatchMapping("/applications/{participationId}/reject")
+    @PatchMapping("/{participationId}/reject")
     public ResponseEntity<ApiResponse<Void>> rejectApplication(
             @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -123,8 +132,9 @@ public class ParticipationController implements ParticipationControllerDoc {
         return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 
+    // 게시글 신청자 개인정보 조회 (게시글 작성자용)
     @Override
-    @GetMapping("/{postId}/participants/privacy")
+    @GetMapping("/posts/{postId}/privacy")
     public ResponseEntity<ApiResponse<Page<ParticipantPrivacyResponse>>> getParticipantsPrivacyInfo(
             @PathVariable Long postId,
             @PageableDefault(size = 20, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable,

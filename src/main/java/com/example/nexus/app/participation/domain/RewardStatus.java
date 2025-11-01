@@ -1,4 +1,4 @@
-package com.example.nexus.app.post.domain;
+package com.example.nexus.app.participation.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;

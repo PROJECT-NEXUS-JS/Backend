@@ -1,17 +1,19 @@
-package com.example.nexus.app.post.service;
+package com.example.nexus.app.participation.service;
 
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
-import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.post.controller.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.post.controller.dto.response.ParticipationResponse;
-import com.example.nexus.app.post.domain.Participation;
-import com.example.nexus.app.post.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.dto.ParticipationApplicationDto;
+import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PrivacyItem;
-import com.example.nexus.app.post.domain.dto.ParticipationApplicationDto;
-import com.example.nexus.app.post.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.post.service.PostUserStatusService;
+import com.example.nexus.app.post.service.ViewCountService;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
 import com.example.nexus.notification.NotificationType;

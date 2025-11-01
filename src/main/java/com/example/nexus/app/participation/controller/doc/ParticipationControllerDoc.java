@@ -1,11 +1,11 @@
-package com.example.nexus.app.post.controller.doc;
+package com.example.nexus.app.participation.controller.doc;
 
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
-import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.post.controller.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.post.controller.dto.response.ParticipationResponse;
-import com.example.nexus.app.post.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.dto.response.ParticipationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;

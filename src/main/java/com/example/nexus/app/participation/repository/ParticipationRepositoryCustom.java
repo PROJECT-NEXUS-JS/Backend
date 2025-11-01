@@ -1,6 +1,6 @@
-package com.example.nexus.app.post.repository;
+package com.example.nexus.app.participation.repository;
 
-import com.example.nexus.app.post.domain.Participation;
+import com.example.nexus.app.participation.domain.Participation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
