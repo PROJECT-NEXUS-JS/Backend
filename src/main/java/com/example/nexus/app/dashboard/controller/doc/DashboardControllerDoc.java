@@ -1,4 +1,4 @@
-package com.example.nexus.app.dashboard.doc;
+package com.example.nexus.app.dashboard.controller.doc;
 
 import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.dashboard.controller.dto.response.*;
