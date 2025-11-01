@@ -1,6 +1,5 @@
 package com.example.nexus.app.participation.controller;
 
-import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
@@ -18,7 +17,14 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/users/participations")
@@ -34,7 +40,8 @@ public class ParticipationController implements ParticipationControllerDoc {
             @Valid @RequestBody ParticipationApplicationRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        ParticipationResponse response = participationService.applyForParticipation(postId, userDetails.getUserId(), request);
+        ParticipationResponse response = participationService.applyForParticipation(postId, userDetails.getUserId(),
+                request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(response));
     }
@@ -45,7 +52,8 @@ public class ParticipationController implements ParticipationControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(), pageable);
+        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(),
+                pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
@@ -56,7 +64,8 @@ public class ParticipationController implements ParticipationControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(), status, pageable);
+        Page<ParticipationResponse> applications = participationService.getMyApplications(userDetails.getUserId(),
+                status, pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
@@ -88,7 +97,8 @@ public class ParticipationController implements ParticipationControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ParticipationResponse> applications = participationService.getPostApplications(postId, userDetails.getUserId(), pageable);
+        Page<ParticipationResponse> applications = participationService.getPostApplications(postId,
+                userDetails.getUserId(), pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
@@ -100,7 +110,8 @@ public class ParticipationController implements ParticipationControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ParticipationResponse> applications = participationService.getPostApplications(postId, userDetails.getUserId(), status, pageable);
+        Page<ParticipationResponse> applications = participationService.getPostApplications(postId,
+                userDetails.getUserId(), status, pageable);
         return ResponseEntity.ok(ApiResponse.onSuccess(applications));
     }
 
@@ -131,7 +142,18 @@ public class ParticipationController implements ParticipationControllerDoc {
             @PageableDefault(size = 20, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Page<ParticipantPrivacyResponse> response = participationService.getParticipantsPrivacyInfo(postId, pageable, userDetails.getUserId());
+        Page<ParticipantPrivacyResponse> response = participationService.getParticipantsPrivacyInfo(postId, pageable,
+                userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Override
+    @PatchMapping("/{participationId}/complete")
+    public ResponseEntity<ApiResponse<Void>> completeParticipant(
+            @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        participationService.completeParticipant(participationId, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
     }
 }

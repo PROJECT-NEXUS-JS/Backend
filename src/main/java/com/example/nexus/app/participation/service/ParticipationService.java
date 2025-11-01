@@ -14,19 +14,21 @@ import com.example.nexus.app.post.domain.PrivacyItem;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.PostUserStatusService;
 import com.example.nexus.app.post.service.ViewCountService;
+import com.example.nexus.app.reward.domain.ParticipantReward;
+import com.example.nexus.app.reward.domain.PostReward;
+import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
 import com.example.nexus.notification.NotificationType;
 import com.example.nexus.notification.service.NotificationService;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,10 +41,12 @@ public class ParticipationService {
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
     private final NotificationService notificationService;
+    private final ParticipantRewardRepository participantRewardRepository;
 
     // 참가 신청
     @Transactional
-    public ParticipationResponse applyForParticipation(Long postId, Long userId, ParticipationApplicationRequest request) {
+    public ParticipationResponse applyForParticipation(Long postId, Long userId,
+                                                       ParticipationApplicationRequest request) {
         Post post = getPostWithDetail(postId);
         User user = getUser(userId);
         validatePostForApplication(post);
@@ -66,7 +70,8 @@ public class ParticipationService {
                 postId.toString()
         );
 
-        return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated(), currentViewCount);
+        return ParticipationResponse.from(savedParticipation, status.isLiked(), status.isParticipated(),
+                currentViewCount);
     }
 
     // 참여 신청한 게시글 조회
@@ -79,10 +84,11 @@ public class ParticipationService {
     }
 
     // 참여 신청한 게시글 상태별 조회
-    public Page<ParticipationResponse> getMyApplications(Long userId, ParticipationStatus status ,Pageable pageable) {
+    public Page<ParticipationResponse> getMyApplications(Long userId, ParticipationStatus status, Pageable pageable) {
         getUser(userId);
 
-        Page<Participation> participations = participationRepository.findByUserIdAndStatusWithPost(userId, status, pageable);
+        Page<Participation> participations = participationRepository.findByUserIdAndStatusWithPost(userId, status,
+                pageable);
 
         return mapParticipationsWithUserStatus(participations, userId);
     }
@@ -103,7 +109,8 @@ public class ParticipationService {
         Post post = getPost(postId);
         validatePostOwnership(post, userId);
 
-        Page<Participation> applications = participationRepository.findByPostIdAndStatusWithUser(postId, status, pageable);
+        Page<Participation> applications = participationRepository.findByPostIdAndStatusWithUser(postId, status,
+                pageable);
 
         return mapParticipationsWithUserStatus(applications, userId);
     }
@@ -236,7 +243,8 @@ public class ParticipationService {
         }
     }
 
-    private Page<ParticipationResponse> mapParticipationsWithUserStatus(Page<Participation> participations, Long userId) {
+    private Page<ParticipationResponse> mapParticipationsWithUserStatus(Page<Participation> participations,
+                                                                        Long userId) {
         List<Long> postIds = participations.getContent()
                 .stream()
                 .map(participation -> participation.getPost().getId())
@@ -248,9 +256,45 @@ public class ParticipationService {
 
         return participations.map(participation -> {
             Long postId = participation.getPost().getId();
-            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId, new PostUserStatusService.PostUserStatus(false, false));
+            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId,
+                    new PostUserStatusService.PostUserStatus(false, false));
             Long currentViewCount = viewCountMap.getOrDefault(postId, 0L);
-            return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(), currentViewCount);
+            return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(),
+                    currentViewCount);
         });
+    }
+
+    // 참여자 완료 처리
+    @Transactional
+    public void completeParticipant(Long participationId, Long userId) {
+        Participation participation = participationRepository.findByIdWithPostAndReward(participationId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
+
+        validatePostOwnership(participation.getPost(), userId);
+
+        PostReward postReward = participation.getPost().getReward();
+
+        if (postReward == null) {
+            throw new GeneralException(ErrorStatus.POST_REWARD_NOT_FOUND);
+        }
+
+        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId)
+                .orElseGet(() -> {
+                    ParticipantReward newReward = ParticipantReward.create(participation, postReward);
+                    return participantRewardRepository.save(newReward);
+                });
+
+        if (participantReward.isCompleted()) {
+            throw new GeneralException(ErrorStatus.ALREADY_COMPLETED);
+        }
+
+        participantReward.markAsCompleted();
+
+        notificationService.createNotification(
+                participation.getUser().getId(),
+                NotificationType.PARTICIPATION_COMPLETED,
+                "참여가 완료되었습니다. 리워드 지급을 기다려주세요.",
+                null
+        );
     }
 }

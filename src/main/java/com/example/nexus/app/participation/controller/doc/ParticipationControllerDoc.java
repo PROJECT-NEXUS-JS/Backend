@@ -1,6 +1,5 @@
 package com.example.nexus.app.participation.controller.doc;
 
-import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
@@ -45,14 +44,14 @@ public interface ParticipationControllerDoc {
     @Operation(
             summary = "내 신청 내역 조회 (상태별)",
             description = """
-                      특정 상태의 참가 신청 내역을 조회합니다.
-
-                      **ParticipationStatus (참가 신청 상태):**
-                      - `PENDING`: 대기중
-                      - `APPROVED`: 승인됨
-                      - `COMPLETED`: 테스트 완료
-                      - `REJECTED`: 거절됨
-                      """
+                    특정 상태의 참가 신청 내역을 조회합니다.
+                    
+                    **ParticipationStatus (참가 신청 상태):**
+                    - `PENDING`: 대기중
+                    - `APPROVED`: 승인됨
+                    - `COMPLETED`: 테스트 완료
+                    - `REJECTED`: 거절됨
+                    """
     )
     ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getMyApplicationsByStatus(
             @Parameter(
@@ -99,14 +98,14 @@ public interface ParticipationControllerDoc {
     @Operation(
             summary = "게시글 신청자 목록 조회 (상태별)",
             description = """
-                      게시글의 특정 상태 신청자 목록을 조회합니다. (작성자만 가능)
-
-                      **ParticipationStatus (참가 신청 상태):**
-                      - `PENDING`: 대기중
-                      - `APPROVED`: 승인됨
-                      - `COMPLETED`: 테스트 완료
-                      - `REJECTED`: 거절됨
-                      """
+                    게시글의 특정 상태 신청자 목록을 조회합니다. (작성자만 가능)
+                    
+                    **ParticipationStatus (참가 신청 상태):**
+                    - `PENDING`: 대기중
+                    - `APPROVED`: 승인됨
+                    - `COMPLETED`: 테스트 완료
+                    - `REJECTED`: 거절됨
+                    """
     )
     ResponseEntity<ApiResponse<Page<ParticipationResponse>>> getPostApplicationsByStatus(
             @Parameter(description = "게시글 ID", required = true)
@@ -148,6 +147,16 @@ public interface ParticipationControllerDoc {
     ResponseEntity<ApiResponse<Page<ParticipantPrivacyResponse>>> getParticipantsPrivacyInfo(
             @PathVariable @Schema(description = "게시글 ID") Long postId,
             Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(
+            summary = "참여자 완료 처리",
+            description = "특정 참여자의 테스트를 완료 처리합니다 (게시글 작성자만 가능)"
+    )
+    ResponseEntity<ApiResponse<Void>> completeParticipant(
+            @Parameter(description = "참여 ID", required = true)
+            @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }
