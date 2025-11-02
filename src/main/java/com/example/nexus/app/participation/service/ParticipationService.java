@@ -5,6 +5,7 @@ import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
 import com.example.nexus.app.participation.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantListResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
@@ -240,6 +241,13 @@ public class ParticipationService {
         Page<Participation> participations = findParticipationsWithFilters(postId, searchRequest, sortedPageable);
 
         return mapToParticipantListResponse(participations);
+    }
+
+    public ParticipantDetailResponse getParticipantDetail(Long participationId, Long userId) {
+        Participation participation = getParticipation(participationId);
+        validatePostOwnership(participation.getPost(), userId);
+
+        return ParticipantDetailResponse.from(participation);
     }
 
     private Pageable createSortedPageable(ParticipantSearchRequest searchRequest, Pageable pageable) {

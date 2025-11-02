@@ -5,6 +5,7 @@ import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
 import com.example.nexus.app.participation.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantListResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
@@ -145,6 +146,16 @@ public class ParticipationController implements ParticipationControllerDoc {
 
         Page<ParticipantListResponse> response = participationService.getParticipants(
                 postId, searchRequest, pageable, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Override
+    @GetMapping("/{participationId}")
+    public ResponseEntity<ApiResponse<ParticipantDetailResponse>> getParticipantDetail(
+            @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ParticipantDetailResponse response = participationService.getParticipantDetail(
+                participationId, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }

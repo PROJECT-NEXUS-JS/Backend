@@ -4,6 +4,7 @@ import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
 import com.example.nexus.app.participation.controller.dto.request.ParticipantSearchRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantDetailResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantListResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
@@ -162,6 +163,16 @@ public interface ParticipationControllerDoc {
             @PathVariable Long postId,
             ParticipantSearchRequest searchRequest,
             Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(
+            summary = "참여자 상세 정보 조회",
+            description = "특정 참여자의 상세 정보를 조회합니다. (게시글 작성자만 가능)"
+    )
+    ResponseEntity<ApiResponse<ParticipantDetailResponse>> getParticipantDetail(
+            @Parameter(description = "참여 ID", required = true)
+            @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }
