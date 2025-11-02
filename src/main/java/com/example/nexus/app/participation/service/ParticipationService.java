@@ -2,14 +2,16 @@ package com.example.nexus.app.participation.service;
 
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
+import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
+import com.example.nexus.app.participation.controller.dto.request.ParticipantSearchRequest;
+import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantListResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
-import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
-import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
-import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PrivacyItem;
@@ -26,9 +28,12 @@ import com.example.nexus.notification.service.NotificationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ParticipationService {
+
+    private static final String SORT_DIRECTION_ASC = "ASC";
+    private static final String SORT_FIELD_APPLIED_AT = "appliedAt";
 
     private final ParticipationRepository participationRepository;
     private final PostRepository postRepository;
@@ -93,27 +101,6 @@ public class ParticipationService {
         }
 
         return participations.map(ParticipationSummaryResponse::from);
-    }
-
-    // 게시글에 대한 참가 신청자 상태별 조회
-    public Page<ParticipationSummaryResponse> getPostApplications(Long postId, Long userId, String statusParam,
-                                                                  Pageable pageable) {
-        Post post = getPost(postId);
-        validatePostOwnership(post, userId);
-
-        Page<Participation> applications;
-
-        if (statusParam == null || statusParam.isEmpty()) {
-            applications = participationRepository.findByPostIdWithUser(postId, pageable);
-        } else if ("PAID".equalsIgnoreCase(statusParam)) {
-            applications = participationRepository.findByPostIdAndStatusAndIsPaidWithUser(
-                    postId, ParticipationStatus.COMPLETED, true, pageable);
-        } else {
-            ParticipationStatus status = ParticipationStatus.valueOf(statusParam.toUpperCase());
-            applications = participationRepository.findByPostIdAndStatusWithUser(postId, status, pageable);
-        }
-
-        return applications.map(ParticipationSummaryResponse::from);
     }
 
     public Page<ParticipantPrivacyResponse> getParticipantsPrivacyInfo(Long postId, Pageable pageable, Long userId) {
@@ -243,6 +230,68 @@ public class ParticipationService {
         );
     }
 
+    // 참여자 목록 조회 (리워드 관리용)
+    public Page<ParticipantListResponse> getParticipants(Long postId, ParticipantSearchRequest searchRequest,
+                                                         Pageable pageable, Long userId) {
+        Post post = getPost(postId);
+        validatePostOwnership(post, userId);
+
+        Pageable sortedPageable = createSortedPageable(searchRequest, pageable);
+        Page<Participation> participations = findParticipationsWithFilters(postId, searchRequest, sortedPageable);
+
+        return mapToParticipantListResponse(participations);
+    }
+
+    private Pageable createSortedPageable(ParticipantSearchRequest searchRequest, Pageable pageable) {
+        Sort.Direction direction = getSortDirection(searchRequest);
+        Sort sort = Sort.by(direction, SORT_FIELD_APPLIED_AT);
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+
+    private Sort.Direction getSortDirection(ParticipantSearchRequest searchRequest) {
+        if (SORT_DIRECTION_ASC.equalsIgnoreCase(searchRequest.sortDirection())) {
+            return Sort.Direction.ASC;
+        }
+        return Sort.Direction.DESC;
+    }
+
+    private Page<Participation> findParticipationsWithFilters(
+            Long postId,
+            ParticipantSearchRequest searchRequest,
+            Pageable pageable) {
+
+        return participationRepository.findParticipantsWithFilters(
+                postId,
+                searchRequest.status(),
+                searchRequest.searchKeyword(),
+                pageable
+        );
+    }
+
+    private Page<ParticipantListResponse> mapToParticipantListResponse(Page<Participation> participations) {
+        List<Long> participationIds = extractParticipationIds(participations);
+        Map<Long, ParticipantReward> rewardMap = createRewardMap(participationIds);
+
+        return participations.map(participation ->
+                ParticipantListResponse.from(participation, rewardMap.get(participation.getId())));
+    }
+
+    private List<Long> extractParticipationIds(Page<Participation> participations) {
+        return participations.getContent()
+                .stream()
+                .map(Participation::getId)
+                .toList();
+    }
+
+    private Map<Long, ParticipantReward> createRewardMap(List<Long> participationIds) {
+        return participantRewardRepository.findByParticipationIds(participationIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        reward -> reward.getParticipation().getId(),
+                        reward -> reward
+                ));
+    }
+
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -299,26 +348,5 @@ public class ParticipationService {
         if (!participation.isPending()) {
             throw new GeneralException(ErrorStatus.ALREADY_PROCESSED_APPLICATION);
         }
-    }
-
-    private Page<ParticipationResponse> mapParticipationsWithUserStatus(Page<Participation> participations,
-                                                                        Long userId) {
-        List<Long> postIds = participations.getContent()
-                .stream()
-                .map(participation -> participation.getPost().getId())
-                .toList();
-        Map<Long, PostUserStatusService.PostUserStatus> statusMap =
-                postUserStatusService.getPostUserStatuses(postIds, userId);
-
-        Map<Long, Long> viewCountMap = viewCountService.getViewCountsForPosts(postIds);
-
-        return participations.map(participation -> {
-            Long postId = participation.getPost().getId();
-            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId,
-                    new PostUserStatusService.PostUserStatus(false, false));
-            Long currentViewCount = viewCountMap.getOrDefault(postId, 0L);
-            return ParticipationResponse.from(participation, status.isLiked(), status.isParticipated(),
-                    currentViewCount);
-        });
     }
 }

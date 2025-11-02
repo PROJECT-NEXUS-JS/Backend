@@ -1,79 +1,105 @@
 package com.example.nexus.app.participation.repository;
 
+import static com.example.nexus.app.participation.domain.QParticipation.participation;
+import static com.example.nexus.app.user.domain.QUser.user;
+
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
-import com.example.nexus.app.reward.domain.QParticipantReward;
-import com.example.nexus.app.reward.domain.RewardStatus;
-import com.example.nexus.app.user.domain.QUser;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-
-import static com.example.nexus.app.participation.domain.QParticipation.participation;
-import static com.example.nexus.app.reward.domain.QParticipantReward.participantReward;
-import static com.example.nexus.app.user.domain.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
 public class ParticipationRepositoryImpl implements ParticipationRepositoryCustom {
+    private static final String PAID_STATUS = "PAID";
 
     private final JPAQueryFactory queryFactory;
 
 
     @Override
-    public Page<Participation> findParticipantsWithFilters(Long postId, String status, String rewardStatus, String nickname,
-                                                           String sortBy, String sortDirection, Pageable pageable) {
+    public Page<Participation> findParticipantsWithFilters(Long postId, String status,
+                                                           String searchKeyword, Pageable pageable) {
 
-        JPAQuery<Participation> query = queryFactory
+        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(pageable);
+
+        List<Participation> participations = queryFactory
                 .selectFrom(participation)
-                .leftJoin(participation.user, user)
-                .fetchJoin()
-                .leftJoin(participantReward).on(participantReward.participation.id.eq(participation.id))
+                .leftJoin(participation.user, user).fetchJoin()
                 .where(
                         participation.post.id.eq(postId),
                         statusCondition(status),
-                        rewardStatusCondition(rewardStatus, participantReward),
-                        nicknameCondition(nickname, user)
-                );
-
-        // 정렬 조건
-        List<Participation> participations = query
+                        searchKeywordCondition(searchKeyword)
+                )
+                .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
+        Long totalCount = queryFactory
                 .select(participation.count())
                 .from(participation)
-                .leftJoin(participantReward).on(participantReward.participation.id.eq(participation.id))
                 .where(
                         participation.post.id.eq(postId),
                         statusCondition(status),
-                        rewardStatusCondition(rewardStatus, participantReward),
-                        nicknameCondition(nickname, participation.user)
+                        searchKeywordCondition(searchKeyword)
                 )
                 .fetchOne();
+
+        long total = getTotalCount(totalCount);
 
         return new PageImpl<>(participations, pageable, total);
     }
 
+    private OrderSpecifier<?> getOrderSpecifier(Pageable pageable) {
+        if (pageable.getSort().isSorted()) {
+            return createOrderSpecifierFromPageable(pageable);
+        }
+        return participation.appliedAt.desc();
+    }
+
+    private OrderSpecifier<?> createOrderSpecifierFromPageable(Pageable pageable) {
+        Sort.Order order = pageable.getSort().iterator().next();
+
+        if (order.isAscending()) {
+            return participation.appliedAt.asc();
+        }
+        return participation.appliedAt.desc();
+    }
+
+    private long getTotalCount(Long totalCount) {
+        if (totalCount == null) {
+            return 0L;
+        }
+        return totalCount;
+    }
+
     private BooleanExpression statusCondition(String status) {
-        return StringUtils.hasText(status) ? participation.status.eq(ParticipationStatus.valueOf(status)) : null;
+        if (!StringUtils.hasText(status)) {
+            return null;
+        }
+
+        if (PAID_STATUS.equalsIgnoreCase(status)) {
+            return participation.status.eq(ParticipationStatus.COMPLETED)
+                    .and(participation.isPaid.isTrue());
+        }
+
+        return participation.status.eq(ParticipationStatus.valueOf(status));
     }
 
-    private BooleanExpression rewardStatusCondition(String rewardStatus, QParticipantReward participantReward) {
-        return StringUtils.hasText(rewardStatus) ? participantReward.rewardStatus.eq(RewardStatus.valueOf(rewardStatus)) : null;
-    }
-
-    private BooleanExpression nicknameCondition(String nickname, QUser user) {
-        return StringUtils.hasText(nickname) ? user.nickname.containsIgnoreCase(nickname) : null;
+    private BooleanExpression searchKeywordCondition(String searchKeyword) {
+        if (!StringUtils.hasText(searchKeyword)) {
+            return null;
+        }
+        return participation.user.nickname.containsIgnoreCase(searchKeyword)
+                .or(participation.applicantEmail.containsIgnoreCase(searchKeyword));
     }
 }

@@ -5,6 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ParticipationRepositoryCustom {
-    Page<Participation> findParticipantsWithFilters(Long postId, String status, String rewardStatus,
-                                                    String nickname, String sortBy, String sortDirection, Pageable pageable);
+    Page<Participation> findParticipantsWithFilters(Long postId, String status,
+                                                    String searchKeyword, Pageable pageable);
 }

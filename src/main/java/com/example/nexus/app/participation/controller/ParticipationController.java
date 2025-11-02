@@ -3,12 +3,13 @@ package com.example.nexus.app.participation.controller;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.participation.controller.doc.ParticipationControllerDoc;
-import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
-import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
-import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.participation.controller.dto.request.ParticipationApplicationRequest;
+import com.example.nexus.app.participation.controller.dto.response.ParticipantListResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipantPrivacyResponse;
 import com.example.nexus.app.participation.controller.dto.response.ParticipationResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationStatisticsResponse;
+import com.example.nexus.app.participation.controller.dto.response.ParticipationSummaryResponse;
 import com.example.nexus.app.participation.service.ParticipationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -83,18 +84,6 @@ public class ParticipationController implements ParticipationControllerDoc {
     }
 
     @Override
-    @GetMapping("/posts/{postId}")
-    public ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getPostApplications(
-            @PathVariable Long postId,
-            @RequestParam(required = false) String status,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
-        Page<ParticipationSummaryResponse> applications = participationService.getPostApplications(
-                postId, userDetails.getUserId(), status, pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(applications));
-    }
-
-    @Override
     @PatchMapping("/{participationId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveApplication(
             @PathVariable Long participationId,
@@ -144,5 +133,18 @@ public class ParticipationController implements ParticipationControllerDoc {
         ParticipationStatisticsResponse statistics = participationService.getPostApplicationStatistics(
                 postId, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(statistics));
+    }
+
+    @Override
+    @GetMapping("/posts/{postId}/participants")
+    public ResponseEntity<ApiResponse<Page<ParticipantListResponse>>> getParticipants(
+            @PathVariable Long postId,
+            ParticipantSearchRequest searchRequest,
+            @PageableDefault(size = 20) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Page<ParticipantListResponse> response = participationService.getParticipants(
+                postId, searchRequest, pageable, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }

@@ -1,6 +1,5 @@
 package com.example.nexus.app.dashboard.controller.doc;
 
-import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.dashboard.controller.dto.response.*;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
@@ -15,39 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "모집자 대시보드", description = "모집자 대시보드 API")
 public interface DashboardControllerDoc {
-
-    @Operation(
-            summary = "게시글 참여자 목록 조회 (리워드 지급용)",
-            description = """
-                    특정 게시글의 참여자 목록 조회 (페이징, 필터링, 정렬, 검색 지원)
-                    
-                    **필터링 가능 항목:**
-                    - ParticipationStatus (참가 상태)
-                      - `PENDING`: 대기중
-                      - `APPROVED`: 승인됨
-                      - `COMPLETED`: 테스트 완료
-                      - `REJECTED`: 거절됨
-                    - RewardStatus (리워드 지급 상태)
-                      - `PENDING`: 지급 대기
-                      - `PAID`: 지급 완료
-                    """
-    )
-    ResponseEntity<ApiResponse<Page<ParticipantListResponse>>> getParticipants(
-            @PathVariable @Schema(description = "게시글 ID") Long postId,
-            ParticipantSearchRequest searchRequest,
-            Pageable pageable,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
-    @Operation(
-            summary = "참여자 상세 조회",
-            description = "특정 참여자의 상세 정보 조회"
-    )
-    ResponseEntity<ApiResponse<ParticipantDetailResponse>> getParticipantDetail(
-            @PathVariable @Schema(description = "게시글 ID") Long postId,
-            @PathVariable @Schema(description = "참여 ID") Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
 
     @Operation(
             summary = "대시보드 통계 카드",

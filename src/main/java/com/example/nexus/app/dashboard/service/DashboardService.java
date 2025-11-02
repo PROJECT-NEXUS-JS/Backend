@@ -1,12 +1,9 @@
 package com.example.nexus.app.dashboard.service;
 
-import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.dashboard.controller.dto.response.BarChartResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.DashboardStatsResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.LineChartResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.MyPostSummaryResponse;
-import com.example.nexus.app.dashboard.controller.dto.response.ParticipantDetailResponse;
-import com.example.nexus.app.dashboard.controller.dto.response.ParticipantListResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.PieChartResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.PostStatusResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.RecentMessageResponse;
@@ -19,18 +16,15 @@ import com.example.nexus.app.message.repository.MessageRepository;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
-import com.example.nexus.app.reward.domain.ParticipantReward;
-import com.example.nexus.app.reward.domain.RewardStatus;
-import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostStatus;
-import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.ViewCountService;
 import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.repository.ReviewRepository;
-import com.example.nexus.notification.NotificationType;
+import com.example.nexus.app.reward.domain.RewardStatus;
+import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.notification.service.NotificationService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -231,44 +225,6 @@ public class DashboardService {
                 post.getStatus(),
                 post.getCreatedAt()
         ));
-    }
-
-    // 참여자 관리
-    public Page<ParticipantListResponse> getParticipants(Long postId, ParticipantSearchRequest searchRequest,
-                                                         Pageable pageable, Long userId) {
-        validatePostOwnership(userId, postId);
-
-        Page<Participation> participations = participationRepository.findParticipantsWithFilters(
-                        postId, searchRequest.getStatus(), searchRequest.getRewardStatus(), searchRequest.getNickname(),
-                        searchRequest.getSortBy(), searchRequest.getSortDirection(), pageable);
-
-        List<Long> participationIds = participations.getContent()
-                .stream()
-                .map(Participation::getId)
-                .toList();
-
-        Map<Long, ParticipantReward> rewardMap = participantRewardRepository.findByParticipationIds(participationIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        reward -> reward.getParticipation().getId(),
-                        reward -> reward
-                ));
-
-        return participations.map(participation -> {
-            ParticipantReward participantReward = rewardMap.get(participation.getId());
-            return ParticipantListResponse.from(participation, participantReward);
-        });
-    }
-
-    public ParticipantDetailResponse getParticipantDetail(Long postId, Long participationId, Long userId) {
-        validatePostOwnership(userId, postId);
-
-        Participation participation = participationRepository.findById(participationId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
-
-        ParticipantReward participantReward = participantRewardRepository.findByParticipationId(participationId).orElse(null);
-
-        return ParticipantDetailResponse.from(participation, participantReward);
     }
 
     private void validatePostOwnership(Long userId, Long postId) {
