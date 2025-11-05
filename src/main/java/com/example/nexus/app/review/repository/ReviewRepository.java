@@ -40,4 +40,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT DISTINCT r.postId FROM Review r WHERE r.createdBy.id = :userId")
     List<Long> findPostIdsByCreatedBy(@Param("userId") Long userId);
+
+    // 뱃지 시스템용 카운팅 메서드
+    /**
+     * 사용자가 작성한 리뷰 수 조회
+     */
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.createdBy.id = :userId")
+    long countByCreatedById(@Param("userId") Long userId);
+
+    /**
+     * 기획자가 받은 총 리뷰 수 조회 (기획자가 작성한 게시글에 달린 리뷰)
+     */
+    @Query("SELECT COUNT(r) FROM Review r " +
+           "JOIN Post p ON p.id = r.postId " +
+           "WHERE p.createdBy = :creatorId")
+    long countReviewsByPostCreator(@Param("creatorId") Long creatorId);
 }
