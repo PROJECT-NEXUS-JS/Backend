@@ -1,5 +1,7 @@
 package com.example.nexus.app.post.service;
 
+import com.example.nexus.app.badge.domain.BadgeConditionType;
+import com.example.nexus.app.badge.service.BadgeService;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
@@ -50,12 +52,16 @@ public class PostService {
     private final ViewCountService viewCountService;
     private final UserRepository userRepository;
     private final RecentViewedPostService recentViewedPostService;
+    private final BadgeService badgeService;
 
     @Transactional
     public Long createPost(PostCreateRequest request, MultipartFile thumbnailFile, List<MultipartFile> imageFiles, CustomUserDetails userDetails) {
         Post post = createPostWithThumbnailAndImage(request, thumbnailFile, imageFiles, PostStatus.ACTIVE);
         Post savedPost = postRepository.save(post);
         createAndSaveRelatedEntitiesWithImage(request, savedPost, imageFiles);
+
+        // 뱃지 부여 체크 - 플래너 뱃지 (테스트 모집)
+        badgeService.checkAndAwardBadge(userDetails.getUserId(), BadgeConditionType.POST_PUBLISHED);
 
         return savedPost.getId();
     }
@@ -79,6 +85,9 @@ public class PostService {
             throw new GeneralException(ErrorStatus.POST_NOT_DRAFT);
         }
 
+        // Draft를 Active로 변경 전에 상태 확인
+        boolean wasDraft = post.isDraft();
+
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
         post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
                 request.description(), newThumbnailUrl, request.qnaMethod());
@@ -90,6 +99,11 @@ public class PostService {
 
         validatePostForPublishing(post);
         post.active();
+
+        // 뱃지 부여 체크 - 플래너 뱃지 (Draft를 Active로 변경하여 테스트 모집)
+        if (wasDraft) {
+            badgeService.checkAndAwardBadge(userDetails.getUserId(), BadgeConditionType.POST_PUBLISHED);
+        }
     }
 
     @Transactional
@@ -103,6 +117,9 @@ public class PostService {
 
         validatePostForPublishing(post);
         post.active();
+
+        // 뱃지 부여 체크 - 플래너 뱃지 (Draft를 Active로 변경하여 테스트 모집)
+        badgeService.checkAndAwardBadge(userId, BadgeConditionType.POST_PUBLISHED);
     }
 
     @Transactional
