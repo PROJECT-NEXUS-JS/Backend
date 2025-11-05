@@ -1,20 +1,18 @@
 package com.example.nexus.app.badge.controller;
 
-import com.example.nexus.app.badge.dto.UserBadgeResponse;
 import com.example.nexus.app.badge.dto.UserBadgeSummaryResponse;
 import com.example.nexus.app.badge.service.BadgeService;
 import com.example.nexus.app.global.code.dto.ApiResponse;
-import com.example.nexus.app.global.code.status.ErrorStatus;
-import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 뱃지 컨트롤러
@@ -32,22 +30,7 @@ public class BadgeController {
     public ResponseEntity<ApiResponse<UserBadgeSummaryResponse>> getMyBadges(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        if (userDetails == null) {
-            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
-        }
-
-        List<UserBadgeResponse> badges = badgeService.getUserBadges(userDetails.getUserId())
-                .stream()
-                .map(UserBadgeResponse::from)
-                .toList();
-
-        Long totalCount = (long) badges.size();
-        UserBadgeSummaryResponse response = UserBadgeSummaryResponse.of(
-                userDetails.getUserId(),
-                totalCount,
-                badges
-        );
-
+        UserBadgeSummaryResponse response = badgeService.getUserBadgeSummary(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
@@ -56,18 +39,7 @@ public class BadgeController {
     public ResponseEntity<ApiResponse<UserBadgeSummaryResponse>> getUserBadges(
             @PathVariable Long userId
     ) {
-        List<UserBadgeResponse> badges = badgeService.getUserBadges(userId)
-                .stream()
-                .map(UserBadgeResponse::from)
-                .toList();
-
-        Long totalCount = (long) badges.size();
-        UserBadgeSummaryResponse response = UserBadgeSummaryResponse.of(
-                userId,
-                totalCount,
-                badges
-        );
-
+        UserBadgeSummaryResponse response = badgeService.getUserBadgeSummary(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }

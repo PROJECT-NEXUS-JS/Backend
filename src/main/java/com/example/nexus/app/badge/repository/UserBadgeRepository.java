@@ -2,6 +2,7 @@ package com.example.nexus.app.badge.repository;
 
 import com.example.nexus.app.badge.domain.BadgeName;
 import com.example.nexus.app.badge.domain.UserBadge;
+import com.example.nexus.app.badge.dto.BadgeStatisticsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -98,11 +99,13 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     /**
      * 가장 많이 획득된 뱃지 Top N 조회
      */
-    @Query("SELECT ub.badge, COUNT(ub) as cnt " +
+    @Query("SELECT new com.example.nexus.app.badge.dto.BadgeStatisticsDto(" +
+           "ub.badge.id, ub.badge.badgeName.displayName, ub.badge.badgeName.description, " +
+           "ub.badge.badgeName.badgeType, COUNT(ub)) " +
            "FROM UserBadge ub " +
            "GROUP BY ub.badge " +
-           "ORDER BY cnt DESC")
-    List<Object[]> findMostAcquiredBadges(Pageable pageable);
+           "ORDER BY COUNT(ub) DESC")
+    List<BadgeStatisticsDto> findMostAcquiredBadges(Pageable pageable);
 
     /**
      * 특정 뱃지를 최근에 획득한 사용자 조회

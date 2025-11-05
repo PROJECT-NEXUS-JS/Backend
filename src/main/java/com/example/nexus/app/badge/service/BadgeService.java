@@ -4,6 +4,8 @@ import com.example.nexus.app.badge.domain.Badge;
 import com.example.nexus.app.badge.domain.BadgeConditionType;
 import com.example.nexus.app.badge.domain.BadgeName;
 import com.example.nexus.app.badge.domain.UserBadge;
+import com.example.nexus.app.badge.dto.UserBadgeResponse;
+import com.example.nexus.app.badge.dto.UserBadgeSummaryResponse;
 import com.example.nexus.app.badge.repository.BadgeRepository;
 import com.example.nexus.app.badge.repository.UserBadgeRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
@@ -48,25 +50,20 @@ public class BadgeService {
     public void checkAndAwardBadge(Long userId, BadgeConditionType conditionType) {
         User user = getUserOrThrow(userId);
         
-        // 해당 조건 타입에 해당하는 모든 뱃지 조회
         List<BadgeName> eligibleBadges = BadgeName.getByConditionType(conditionType);
         
-        // N+1 방지: 사용자가 보유한 모든 뱃지를 한 번에 조회
         Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(userId)
                 .stream()
                 .map(userBadge -> userBadge.getBadge().getBadgeName())
                 .collect(Collectors.toSet());
         
         for (BadgeName badgeName : eligibleBadges) {
-            // 이미 보유한 뱃지는 스킵
             if (ownedBadgeNames.contains(badgeName)) {
                 continue;
             }
             
-            // 조건 확인
             if (checkBadgeCondition(userId, badgeName)) {
                 awardBadge(user, badgeName);
-                // 새로 부여한 뱃지를 Set에 추가하여 중복 부여 방지
                 ownedBadgeNames.add(badgeName);
             }
         }
@@ -74,6 +71,7 @@ public class BadgeService {
 
     /**
      * 특정 게시글에 대한 첫 리뷰 작성 시 뱃지 부여
+     * 동시성 제어: synchronized 블록으로 race condition 방지
      * @param userId 사용자 ID
      * @param postId 게시글 ID
      */
@@ -81,14 +79,16 @@ public class BadgeService {
     public void checkAndAwardFirstReviewBadge(Long userId, Long postId) {
         User user = getUserOrThrow(userId);
         
-        // 해당 게시글의 첫 리뷰인지 확인
-        long reviewCount = reviewRepository.countByPostId(postId);
-        
-        // 첫 리뷰인 경우 (방금 작성한 리뷰가 1개째)
-        if (reviewCount == 1) {
-            BadgeName pioneerBadge = BadgeName.PIONEER;
-            if (!userBadgeRepository.existsByUserIdAndBadgeName(userId, pioneerBadge)) {
-                awardBadge(user, pioneerBadge);
+        // 동시성 제어: postId별로 락을 획득하여 race condition 방지
+        String lockKey = ("FIRST_REVIEW_LOCK:" + postId).intern();
+        synchronized (lockKey) {
+            long reviewCount = reviewRepository.countByPostId(postId);
+            
+            if (reviewCount == 1) {
+                BadgeName pioneerBadge = BadgeName.PIONEER;
+                if (!userBadgeRepository.existsByUserIdAndBadgeName(userId, pioneerBadge)) {
+                    awardBadge(user, pioneerBadge);
+                }
             }
         }
     }
@@ -101,13 +101,10 @@ public class BadgeService {
     public void checkAndAwardReviewReceivedBadge(Long postCreatorId) {
         User user = getUserOrThrow(postCreatorId);
         
-        // 해당 사용자가 작성한 모든 게시글에 달린 총 리뷰 수 조회
         long totalReviewCount = reviewRepository.countReviewsByPostCreator(postCreatorId);
         
-        // 소통 뱃지 체크
         List<BadgeName> communicationBadges = BadgeName.getByConditionType(BadgeConditionType.REVIEW_RECEIVED);
         
-        // N+1 방지: 사용자가 보유한 소통 뱃지를 한 번에 조회
         Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(postCreatorId)
                 .stream()
                 .map(userBadge -> userBadge.getBadge().getBadgeName())
@@ -131,13 +128,10 @@ public class BadgeService {
     public void checkAndAwardTesterCountBadge(Long postCreatorId) {
         User user = getUserOrThrow(postCreatorId);
         
-        // 해당 사용자가 작성한 모든 게시글의 승인된 테스터 수 조회
         long totalTesterCount = participationRepository.countApprovedParticipantsByPostCreator(postCreatorId);
         
-        // 모집가 뱃지 체크
         List<BadgeName> recruiterBadges = BadgeName.getByConditionType(BadgeConditionType.TESTER_COUNT_INCREASED);
         
-        // N+1 방지: 사용자가 보유한 모집가 뱃지를 한 번에 조회
         Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(postCreatorId)
                 .stream()
                 .map(userBadge -> userBadge.getBadge().getBadgeName())
@@ -160,6 +154,25 @@ public class BadgeService {
      */
     public List<UserBadge> getUserBadges(Long userId) {
         return userBadgeRepository.findAllByUserIdWithBadge(userId);
+    }
+
+    /**
+     * 사용자의 뱃지 요약 정보 조회
+     * @param userId 사용자 ID
+     * @return 사용자 뱃지 요약 응답
+     */
+    public UserBadgeSummaryResponse getUserBadgeSummary(Long userId) {
+        List<UserBadge> userBadges = getUserBadges(userId);
+        
+        List<UserBadgeResponse> badgeResponses = userBadges.stream()
+                .map(UserBadgeResponse::from)
+                .toList();
+        
+        return UserBadgeSummaryResponse.of(
+                userId,
+                (long) badgeResponses.size(),
+                badgeResponses
+        );
     }
 
     /**
@@ -198,7 +211,6 @@ public class BadgeService {
      */
     @Transactional
     public void awardBadge(User user, BadgeName badgeName) {
-        // 뱃지 조회 또는 생성
         Badge badge = badgeRepository.findByBadgeName(badgeName)
                 .orElseGet(() -> {
                     Badge newBadge = Badge.builder()
@@ -208,13 +220,11 @@ public class BadgeService {
                     return badgeRepository.save(newBadge);
                 });
         
-        // 중복 체크 (방어적 코드)
         if (userBadgeRepository.existsByUserIdAndBadgeName(user.getId(), badgeName)) {
             log.debug("User {} already has badge {}", user.getId(), badgeName);
             return;
         }
         
-        // 사용자 뱃지 부여
         UserBadge userBadge = UserBadge.builder()
                 .user(user)
                 .badge(badge)
