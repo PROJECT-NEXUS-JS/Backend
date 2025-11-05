@@ -1,14 +1,10 @@
 package com.example.nexus.app.dashboard.controller;
 
-import com.example.nexus.app.dashboard.controller.dto.request.ParticipantSearchRequest;
 import com.example.nexus.app.dashboard.controller.dto.response.*;
-import com.example.nexus.app.dashboard.doc.DashboardControllerDoc;
+import com.example.nexus.app.dashboard.controller.doc.DashboardControllerDoc;
 import com.example.nexus.app.dashboard.service.DashboardService;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,48 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class DashboardController implements DashboardControllerDoc {
 
     private final DashboardService dashboardService;
-
-    @Override
-    @GetMapping("/{postId}/participants")
-    public ResponseEntity<ApiResponse<Page<ParticipantListResponse>>> getParticipants(
-            @PathVariable Long postId,
-            ParticipantSearchRequest searchRequest,
-            @PageableDefault(size = 20) Pageable pageable,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Page<ParticipantListResponse> response = dashboardService.getParticipants(postId, searchRequest, pageable, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    @Override
-    @GetMapping("/{postId}/participants/{participationId}")
-    public ResponseEntity<ApiResponse<ParticipantDetailResponse>> getParticipantDetail(
-            @PathVariable Long postId,
-            @PathVariable Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ParticipantDetailResponse response = dashboardService.getParticipantDetail(postId, participationId, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    @Override
-    @PostMapping("/{postId}/participants/{participationId}/complete")
-    public ResponseEntity<ApiResponse<ParticipantDetailResponse>> completeParticipant(
-            @PathVariable Long postId,
-            @PathVariable Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ParticipantDetailResponse response = dashboardService.completeParticipant(postId, participationId, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
-
-    @Override
-    @PostMapping("/{postId}/participants/{participationId}/reward")
-    public ResponseEntity<ApiResponse<ParticipantDetailResponse>> payReward(
-            @PathVariable Long postId,
-            @PathVariable Long participationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ParticipantDetailResponse response = dashboardService.payReward(postId, participationId, userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
-    }
 
     @Override
     @GetMapping("/{postId}/stats")

@@ -1,7 +1,7 @@
 package com.example.nexus.app.post.controller.dto.response;
 
-import com.example.nexus.app.post.domain.PostReward;
-import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.reward.domain.PostReward;
+import com.example.nexus.app.reward.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record PostRewardResponse(
