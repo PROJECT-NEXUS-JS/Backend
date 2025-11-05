@@ -1,5 +1,7 @@
 package com.example.nexus.app.post.service;
 
+import com.example.nexus.app.badge.domain.BadgeConditionType;
+import com.example.nexus.app.badge.service.BadgeService;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.post.controller.dto.request.ParticipationApplicationRequest;
@@ -37,6 +39,7 @@ public class ParticipationService {
     private final PostUserStatusService postUserStatusService;
     private final ViewCountService viewCountService;
     private final NotificationService notificationService;
+    private final BadgeService badgeService;
 
     // 참가 신청
     @Transactional
@@ -136,6 +139,12 @@ public class ParticipationService {
                 "참여 신청이 승인되었습니다. 테스트에 참여해보세요!",
                 post.getId().toString()
         );
+
+        // 뱃지 부여 체크 - 테스터(신청자)의 참여 관련 뱃지
+        badgeService.checkAndAwardBadge(participation.getUser().getId(), BadgeConditionType.PARTICIPATION_APPROVED);
+
+        // 뱃지 부여 체크 - 기획자(모집자)의 모집가 뱃지
+        badgeService.checkAndAwardTesterCountBadge(post.getCreatedBy());
     }
 
     @Transactional
