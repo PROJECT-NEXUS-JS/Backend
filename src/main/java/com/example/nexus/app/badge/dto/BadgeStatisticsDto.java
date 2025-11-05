@@ -10,3 +10,5 @@ public class BadgeStatisticsDto {
     private Badge badge;
     private Long count;
 }
+
+
