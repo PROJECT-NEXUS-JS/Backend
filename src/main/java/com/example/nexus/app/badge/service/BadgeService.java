@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 뱃지 서비스
@@ -49,15 +51,23 @@ public class BadgeService {
         // 해당 조건 타입에 해당하는 모든 뱃지 조회
         List<BadgeName> eligibleBadges = BadgeName.getByConditionType(conditionType);
         
+        // N+1 방지: 사용자가 보유한 모든 뱃지를 한 번에 조회
+        Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(userId)
+                .stream()
+                .map(userBadge -> userBadge.getBadge().getBadgeName())
+                .collect(Collectors.toSet());
+        
         for (BadgeName badgeName : eligibleBadges) {
             // 이미 보유한 뱃지는 스킵
-            if (userBadgeRepository.existsByUserIdAndBadgeName(userId, badgeName)) {
+            if (ownedBadgeNames.contains(badgeName)) {
                 continue;
             }
             
             // 조건 확인
             if (checkBadgeCondition(userId, badgeName)) {
                 awardBadge(user, badgeName);
+                // 새로 부여한 뱃지를 Set에 추가하여 중복 부여 방지
+                ownedBadgeNames.add(badgeName);
             }
         }
     }
@@ -97,10 +107,17 @@ public class BadgeService {
         // 소통 뱃지 체크
         List<BadgeName> communicationBadges = BadgeName.getByConditionType(BadgeConditionType.REVIEW_RECEIVED);
         
+        // N+1 방지: 사용자가 보유한 소통 뱃지를 한 번에 조회
+        Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(postCreatorId)
+                .stream()
+                .map(userBadge -> userBadge.getBadge().getBadgeName())
+                .collect(Collectors.toSet());
+        
         for (BadgeName badgeName : communicationBadges) {
-            if (!userBadgeRepository.existsByUserIdAndBadgeName(postCreatorId, badgeName)) {
+            if (!ownedBadgeNames.contains(badgeName)) {
                 if (totalReviewCount >= badgeName.getConditionValue()) {
                     awardBadge(user, badgeName);
+                    ownedBadgeNames.add(badgeName);
                 }
             }
         }
@@ -120,10 +137,17 @@ public class BadgeService {
         // 모집가 뱃지 체크
         List<BadgeName> recruiterBadges = BadgeName.getByConditionType(BadgeConditionType.TESTER_COUNT_INCREASED);
         
+        // N+1 방지: 사용자가 보유한 모집가 뱃지를 한 번에 조회
+        Set<BadgeName> ownedBadgeNames = userBadgeRepository.findAllByUserIdWithBadge(postCreatorId)
+                .stream()
+                .map(userBadge -> userBadge.getBadge().getBadgeName())
+                .collect(Collectors.toSet());
+        
         for (BadgeName badgeName : recruiterBadges) {
-            if (!userBadgeRepository.existsByUserIdAndBadgeName(postCreatorId, badgeName)) {
+            if (!ownedBadgeNames.contains(badgeName)) {
                 if (totalTesterCount >= badgeName.getConditionValue()) {
                     awardBadge(user, badgeName);
+                    ownedBadgeNames.add(badgeName);
                 }
             }
         }
@@ -170,6 +194,7 @@ public class BadgeService {
 
     /**
      * 뱃지 부여
+     * 주의: 호출 전에 이미 보유 여부를 확인하는 것이 좋습니다.
      */
     @Transactional
     public void awardBadge(User user, BadgeName badgeName) {
@@ -183,9 +208,9 @@ public class BadgeService {
                     return badgeRepository.save(newBadge);
                 });
         
-        // 중복 체크
+        // 중복 체크 (방어적 코드)
         if (userBadgeRepository.existsByUserIdAndBadgeName(user.getId(), badgeName)) {
-            log.warn("User {} already has badge {}", user.getId(), badgeName);
+            log.debug("User {} already has badge {}", user.getId(), badgeName);
             return;
         }
         
