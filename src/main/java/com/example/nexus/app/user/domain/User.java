@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,13 @@ public class User {
 
     @Column(name = "profile_url")
     private String profileUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role_type")
@@ -85,6 +93,15 @@ public class User {
         this.socialType = socialType;
         this.statusType = StatusType.ACTIVE;
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public void updateOnboardingDetails(Gender gender, LocalDate birthDate) {
+        if (gender != null) {
+            this.gender = gender;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
     }
 
     public boolean isActive() {
