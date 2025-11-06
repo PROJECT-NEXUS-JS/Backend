@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: prod # 배포 시 prod로 변경
+    active: local # 배포 시 prod로 변경
     include: secret
 
   jpa:
