@@ -24,10 +24,12 @@ import java.util.List;
 public interface MessageControllerDoc {
 
     @Operation(
-            summary = "내 채팅방 목록",
-            description = "사용자의 채팅방 목록을 조회합니다."
+            summary = "내 채팅방 목록 조회",
+            description = "내가 참여한 채팅방 목록을 조회합니다."
     )
     ResponseEntity<ApiResponse<List<MessageRoomResponse>>> getMyRooms(
+            @Parameter(name = "unreadOnly", required = false, description = "안 읽은 메시지가 있는 채팅방만 조회 (기본값: false)")
+            @RequestParam Boolean unreadOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
@@ -53,7 +55,7 @@ public interface MessageControllerDoc {
 
     @Operation(
             summary = "채팅방 메시지 조회",
-            description = "특정 채팅방의 메시지들을 조회합니다. (조회 후 읽음 처리 해야 함)"
+            description = "특정 채팅방의 메시지들을 조회합니다. (자동으로 읽음 처리됨)"
     )
     ResponseEntity<ApiResponse<Page<MessageResponse>>> getRoomMessages(
             @Parameter(description = "채팅방 ID", required = true)
@@ -82,16 +84,6 @@ public interface MessageControllerDoc {
             @PathVariable Long roomId,
             @RequestPart("file") MultipartFile file,
             @RequestPart(value = "message", required = false) String message,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
-    @Operation(
-            summary = "메시지 읽음 처리",
-            description = "채팅방의 안 읽은 메시지를 모두 읽음 처리합니다."
-    )
-    ResponseEntity<ApiResponse<Void>> markMessagesAsRead(
-            @Parameter(description = "채팅방 ID", required = true)
-            @PathVariable Long roomId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

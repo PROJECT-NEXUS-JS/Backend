@@ -1,5 +1,5 @@
 # 1단계: Gradle을 사용하여 애플리케이션 빌드
-FROM openjdk:21-jdk-slim AS builder
+FROM eclipse-temurin:21-jdk-jammy AS builder
 WORKDIR /app
 COPY gradlew .
 COPY gradle gradle

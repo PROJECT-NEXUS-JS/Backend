@@ -1,6 +1,7 @@
 package com.example.nexus.app.message.repository;
 
 import com.example.nexus.app.message.domain.MessageRoom;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,11 +11,13 @@ import java.util.Optional;
 
 public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> {
 
+    @EntityGraph(attributePaths = {"post", "postOwner", "participant"})
     @Query("SELECT mr FROM MessageRoom mr " +
             "WHERE (mr.postOwner.id = :userId OR mr.participant.id = :userId) " +
             "ORDER BY mr.lastMessageAt DESC NULLS LAST, mr.createdAt DESC")
     List<MessageRoom> findByUserIdOrderByLastMessageDesc(@Param("userId") Long userId);
 
+    @EntityGraph(attributePaths = {"post", "postOwner", "participant"})
     @Query("SELECT mr FROM MessageRoom mr " +
             "WHERE mr.post.id = :postId " +
             "AND ((mr.postOwner.id = :postOwnerId AND mr.participant.id = :participantId) " +
@@ -23,6 +26,7 @@ public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> 
                                              @Param("postOwnerId") Long postOwnerId,
                                              @Param("participantId") Long participantId);
 
+    @EntityGraph(attributePaths = {"post", "postOwner", "participant"})
     @Query("SELECT mr FROM MessageRoom mr " +
             "WHERE mr.id = :roomId " +
             "AND (mr.postOwner.id = :userId OR mr.participant.id = :userId)")
@@ -41,4 +45,12 @@ public interface MessageRoomRepository extends JpaRepository<MessageRoom, Long> 
             "WHERE mr.post.id = :postId " +
             "AND mr.postOwner.id = :userId")
     Integer getUnreadCountByPost(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"post", "postOwner", "participant"})
+    @Query("SELECT mr FROM MessageRoom mr " +
+            "WHERE (mr.postOwner.id = :userId OR mr.participant.id = :userId) " +
+            "AND ((mr.postOwner.id = :userId AND mr.unreadCountOwner > 0) " +
+            "OR (mr.participant.id = :userId AND mr.unreadCountParticipant > 0)) " +
+            "ORDER BY mr.lastMessageAt DESC NULLS LAST, mr.createdAt DESC")
+    List<MessageRoom> findUnreadRoomsByUserId(@Param("userId") Long userId);
 }

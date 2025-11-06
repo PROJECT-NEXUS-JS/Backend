@@ -1,7 +1,7 @@
 package com.example.nexus.app.post.controller.dto.response;
 
 import com.example.nexus.app.post.domain.Post;
-import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.reward.domain.RewardType;
 import com.example.nexus.app.user.domain.User;
 import lombok.Builder;
 
