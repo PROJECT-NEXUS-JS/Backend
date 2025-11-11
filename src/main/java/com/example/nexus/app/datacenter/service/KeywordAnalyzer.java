@@ -1,4 +1,4 @@
-package com.example.nexus.app.dashboard.service;
+package com.example.nexus.app.datacenter.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

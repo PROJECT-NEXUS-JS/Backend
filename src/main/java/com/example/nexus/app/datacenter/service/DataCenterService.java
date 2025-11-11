@@ -1,10 +1,10 @@
-package com.example.nexus.app.dashboard.service;
+package com.example.nexus.app.datacenter.service;
 
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.*;
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.InsightsResponse.FeedbackItemDto;
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.QualityFeedbackResponse.ProblemLocationDto;
-import com.example.nexus.app.dashboard.domain.ParticipantFeedback;
-import com.example.nexus.app.dashboard.repository.ParticipantFeedbackRepository;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.*;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.InsightsResponse.FeedbackItemDto;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.QualityFeedbackResponse.ProblemLocationDto;
+import com.example.nexus.app.datacenter.domain.ParticipantFeedback;
+import com.example.nexus.app.datacenter.repository.ParticipantFeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

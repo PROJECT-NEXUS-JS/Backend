@@ -1,9 +1,9 @@
-package com.example.nexus.app.dashboard.controller;
+package com.example.nexus.app.datacenter.controller;
 
-import com.example.nexus.app.dashboard.controller.doc.DataCenterControllerDoc;
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.*;
-import com.example.nexus.app.dashboard.service.DataCenterService;
-import com.example.nexus.app.dashboard.service.ReportService;
+import com.example.nexus.app.datacenter.controller.doc.DataCenterControllerDoc;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.*;
+import com.example.nexus.app.datacenter.service.DataCenterService;
+import com.example.nexus.app.datacenter.service.ReportService;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import lombok.RequiredArgsConstructor;

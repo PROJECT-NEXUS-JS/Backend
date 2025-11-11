@@ -1,6 +1,6 @@
-package com.example.nexus.app.dashboard.repository;
+package com.example.nexus.app.datacenter.repository;
 
-import com.example.nexus.app.dashboard.domain.ParticipantFeedback;
+import com.example.nexus.app.datacenter.domain.ParticipantFeedback;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,10 +1,10 @@
-package com.example.nexus.app.dashboard.domain.scheduler;
+package com.example.nexus.app.datacenter.domain.scheduler;
 
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.DataCenterResponse;
-import com.example.nexus.app.dashboard.domain.FeedbackStatisticsCache;
-import com.example.nexus.app.dashboard.repository.FeedbackStatisticsCacheRepository;
-import com.example.nexus.app.dashboard.repository.ParticipantFeedbackRepository;
-import com.example.nexus.app.dashboard.service.DataCenterService;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.DataCenterResponse;
+import com.example.nexus.app.datacenter.domain.FeedbackStatisticsCache;
+import com.example.nexus.app.datacenter.repository.FeedbackStatisticsCacheRepository;
+import com.example.nexus.app.datacenter.repository.ParticipantFeedbackRepository;
+import com.example.nexus.app.datacenter.service.DataCenterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

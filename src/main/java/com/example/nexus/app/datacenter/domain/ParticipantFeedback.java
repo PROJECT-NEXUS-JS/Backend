@@ -1,4 +1,4 @@
-package com.example.nexus.app.dashboard.domain;
+package com.example.nexus.app.datacenter.domain;
 
 import com.example.nexus.app.participation.domain.Participation;
 import jakarta.persistence.*;

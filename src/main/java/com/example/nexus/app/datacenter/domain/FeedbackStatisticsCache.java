@@ -1,4 +1,4 @@
-package com.example.nexus.app.dashboard.domain;
+package com.example.nexus.app.datacenter.domain;
 
 import jakarta.persistence.*;
 import lombok.Builder;

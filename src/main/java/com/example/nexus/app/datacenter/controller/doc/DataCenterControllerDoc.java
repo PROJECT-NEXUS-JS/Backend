@@ -1,6 +1,6 @@
-package com.example.nexus.app.dashboard.controller.doc;
+package com.example.nexus.app.datacenter.controller.doc;
 
-import com.example.nexus.app.dashboard.controller.dto.response.datacenter.*;
+import com.example.nexus.app.datacenter.controller.dto.response.datacenter.*;
 import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;

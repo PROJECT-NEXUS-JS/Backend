@@ -1,6 +1,6 @@
-package com.example.nexus.app.dashboard.repository;
+package com.example.nexus.app.datacenter.repository;
 
-import com.example.nexus.app.dashboard.domain.FeedbackStatisticsCache;
+import com.example.nexus.app.datacenter.domain.FeedbackStatisticsCache;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
