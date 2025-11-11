@@ -10,7 +10,7 @@ import com.example.nexus.app.badge.repository.BadgeRepository;
 import com.example.nexus.app.badge.repository.UserBadgeRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
-import com.example.nexus.app.post.repository.ParticipationRepository;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.review.repository.ReviewRepository;
 import com.example.nexus.app.user.domain.User;
