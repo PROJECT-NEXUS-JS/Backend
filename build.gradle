@@ -54,6 +54,9 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Thymeleaf - HTML 템플릿 엔진
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.22'
 }
 
 tasks.named('test') {
