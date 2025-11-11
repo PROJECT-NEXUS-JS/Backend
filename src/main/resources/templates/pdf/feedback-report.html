@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <title>피드백 데이터센터 리포트</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 20mm;
+            }
+
+            @font-face {
+                font-family: 'NotoSansKR';
+                src: url('classpath:static/fonts/NotoSansKR.ttf');
+                -fs-pdf-font-embed: embed;
+                -fs-pdf-font-encoding: Identity-H;
+            }
+
+            body {
+                font-family: 'NotoSansKR', sans-serif;
+                font-size: 10pt;
+                line-height: 1.6;
+                color: #333;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 3px solid #4285f4;
+            }
+
+            h1 {
+                color: #4285f4;
+                font-size: 24pt;
+                margin: 0 0 10px 0;
+            }
+
+            .meta-info {
+                color: #666;
+                font-size: 9pt;
+                margin-top: 10px;
+            }
+
+            h2 {
+                color: #333;
+                font-size: 14pt;
+                margin-top: 25px;
+                margin-bottom: 15px;
+                padding-bottom: 5px;
+                border-bottom: 2px solid #e0e0e0;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+
+            th {
+                background-color: #f5f5f5;
+                padding: 10px;
+                text-align: left;
+                border: 1px solid #ddd;
+                font-weight: bold;
+            }
+
+            td {
+                padding: 10px;
+                border: 1px solid #ddd;
+            }
+
+            tr:nth-child(even) {
+                background-color: #fafafa;
+            }
+
+            .summary-grid {
+                display: table;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            .summary-item {
+                display: table-cell;
+                width: 50%;
+                padding: 10px;
+            }
+
+            .metric-card {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                border-left: 4px solid #4285f4;
+            }
+
+            .metric-label {
+                font-size: 9pt;
+                color: #666;
+                margin-bottom: 5px;
+            }
+
+            .metric-value {
+                font-size: 18pt;
+                font-weight: bold;
+                color: #4285f4;
+            }
+
+            .keywords {
+                background: #fffbf0;
+                padding: 15px;
+                border-radius: 5px;
+                border-left: 4px solid #ffa726;
+                margin-top: 10px;
+            }
+
+            .keyword-tag {
+                display: inline-block;
+                background: #fff;
+                padding: 5px 10px;
+                margin: 5px 5px 5px 0;
+                border-radius: 3px;
+                border: 1px solid #e0e0e0;
+                font-size: 9pt;
+            }
+
+            .footer {
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 1px solid #e0e0e0;
+                text-align: center;
+                font-size: 8pt;
+                color: #999;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>피드백 데이터센터 리포트</h1>
+            <div class="meta-info">
+                <p>
+                    <strong>프로젝트:</strong>
+                    <span th:text="${postTitle}"
+                        >테스트 프로젝트</span
+                    >
+                </p>
+                <p>
+                    <strong>생성일시:</strong>
+                    <span th:text="${generatedAt}"
+                        >2025-11-12</span
+                    >
+                </p>
+                <p>
+                    <strong>조회기간:</strong> 최근
+                    <span th:text="${periodDays}">7</span>일
+                </p>
+            </div>
+        </div>
+
+        <h2>1. 요약 정보</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="metric-card">
+                    <div class="metric-label">
+                        총 참여자 수
+                    </div>
+                    <div class="metric-value">
+                        <span
+                            th:text="${summary.totalParticipants}"
+                            >0</span
+                        >명
+                    </div>
+                </div>
+            </div>
+            <div class="summary-item">
+                <div class="metric-card">
+                    <div class="metric-label">
+                        평균 만족도
+                    </div>
+                    <div class="metric-value">
+                        <span
+                            th:text="${summary.averageSatisfaction}"
+                            >0.0</span
+                        >점
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="metric-card">
+                    <div class="metric-label">
+                        버그 발생률
+                    </div>
+                    <div class="metric-value">
+                        <span
+                            th:text="${summary.bugOccurrenceRate}"
+                            >0.0</span
+                        >%
+                    </div>
+                </div>
+            </div>
+            <div class="summary-item">
+                <div class="metric-card">
+                    <div class="metric-label">
+                        긍정 피드백 비율
+                    </div>
+                    <div class="metric-value">
+                        <span
+                            th:text="${summary.positiveFeedbackRate}"
+                            >0.0</span
+                        >%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>2. 전반 평가</h2>
+        <table>
+            <tr>
+                <th>평가 항목</th>
+                <th>점수 (5점 만점)</th>
+            </tr>
+            <tr>
+                <td>평균 만족도</td>
+                <td>
+                    <span
+                        th:text="${evaluation.averageSatisfaction}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>평균 추천 의향</td>
+                <td>
+                    <span
+                        th:text="${evaluation.averageRecommendation}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>평균 재이용 의향</td>
+                <td>
+                    <span
+                        th:text="${evaluation.averageReuse}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+        </table>
+
+        <h2>3. 사용성 평가</h2>
+        <table>
+            <tr>
+                <th>평가 항목</th>
+                <th>점수 (5점 만점)</th>
+            </tr>
+            <tr>
+                <td>기능 작동성</td>
+                <td>
+                    <span
+                        th:text="${usability.functionalityScore}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>이해도</td>
+                <td>
+                    <span
+                        th:text="${usability.comprehensibilityScore}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>로딩 속도</td>
+                <td>
+                    <span
+                        th:text="${usability.loadingSpeedScore}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>반응 타이밍</td>
+                <td>
+                    <span
+                        th:text="${usability.responseTimingScore}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+            <tr>
+                <td>안정성</td>
+                <td>
+                    <span
+                        th:text="${usability.stabilityScore}"
+                        >0.0</span
+                    >
+                    점
+                </td>
+            </tr>
+        </table>
+
+        <div
+            th:if="${keywords != null and !keywords.isEmpty()}"
+        >
+            <h2>4. 주요 키워드</h2>
+            <div class="keywords">
+                <span
+                    th:each="entry : ${keywords}"
+                    class="keyword-tag"
+                >
+                    <strong th:text="${entry.key}"
+                        >키워드</strong
+                    >
+                    (<span th:text="${entry.value}">0</span
+                    >회)
+                </span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                본 리포트는 Nexus 베타랩 데이터센터에서 자동
+                생성되었습니다.
+            </p>
+        </div>
+    </body>
+</html>
