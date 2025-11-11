@@ -10,15 +10,10 @@ import com.example.nexus.app.review.dto.WritableReviewResponse;
 import com.example.nexus.app.review.dto.WrittenReviewResponse;
 import com.example.nexus.app.review.dto.ReviewStatusResponse;
 import com.example.nexus.app.review.repository.ReviewRepository;
-<<<<<<< HEAD
-import com.example.nexus.app.post.domain.ParticipationStatus;
-import com.example.nexus.app.post.domain.Post;
-import com.example.nexus.app.post.repository.ParticipationRepository;
-=======
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
->>>>>>> origin/main
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;

@@ -127,7 +127,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "WHERE p.id = :participationId")
     Optional<Participation> findByIdWithUserAndPost(@Param("participationId") Long participationId);
 
-<<<<<<< HEAD:src/main/java/com/example/nexus/app/post/repository/ParticipationRepository.java
     // 뱃지 시스템용 카운팅 메서드
     /**
      * 사용자의 승인된 참여 횟수 조회
@@ -149,7 +148,8 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     @Query("SELECT COUNT(p) FROM Participation p " +
            "WHERE p.post.createdBy = :creatorId AND p.status = 'APPROVED'")
     long countApprovedParticipantsByPostCreator(@Param("creatorId") Long creatorId);
-=======
+
+    // 결제 상태 관련 메서드
     @Query("SELECT p FROM Participation p " +
             "JOIN FETCH p.user " +
             "WHERE p.post.id = :postId AND p.status = :status AND p.isPaid = :isPaid " +
@@ -176,5 +176,4 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             @Param("postId") Long postId,
             @Param("status") ParticipationStatus status,
             @Param("isPaid") Boolean isPaid);
->>>>>>> origin/main:src/main/java/com/example/nexus/app/participation/repository/ParticipationRepository.java
 }
