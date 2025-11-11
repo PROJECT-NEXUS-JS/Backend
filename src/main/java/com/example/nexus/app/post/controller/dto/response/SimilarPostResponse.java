@@ -3,7 +3,7 @@ package com.example.nexus.app.post.controller.dto.response;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.post.domain.Post;
-import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.reward.domain.RewardType;
 import lombok.Builder;
 
 import java.util.stream.Collectors;

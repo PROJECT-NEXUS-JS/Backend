@@ -22,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -40,9 +42,10 @@ public class MessageService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
+    private final SseEmitterService sseEmitterService;
 
-    public List<MessageRoomResponse> findMyRooms(Long userId) {
-        List<MessageRoom> rooms = messageRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
+    public List<MessageRoomResponse> findMyRooms(Long userId, Boolean unreadOnly) {
+        List<MessageRoom> rooms = findRoomsByFilter(userId, unreadOnly);
 
         return rooms.stream()
                 .map(room -> MessageRoomResponse.from(room, userId))
@@ -61,9 +64,27 @@ public class MessageService {
         return MessageRoomResponse.from(room, userId);
     }
 
+    @Transactional
     public Page<MessageResponse> findRoomMessages(Long roomId, Long userId, Pageable pageable) {
         MessageRoom room = findRoomByIdAndUserId(roomId, userId);
         Page<Message> messages = messageRepository.findByRoomIdAndNotDeleted(roomId, pageable);
+
+        // 자동 읽음 처리
+        messageRepository.markMessagesAsReadByRoom(roomId, userId, LocalDateTime.now());
+        // 항상 리셋 (벌크 업데이트 후에는 카운트가 0이어야 함)
+        room.resetUnreadCount(userId);
+
+        // 읽음 상태 SSE 이벤트 전송 (상대방에게)
+        Long otherUserId = room.getOtherUser(userId).getId();
+        Integer unreadCount = room.getUnreadCountForUser(otherUserId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendReadStatus(otherUserId, roomId, unreadCount);
+            }
+        });
 
         return messages.map(message -> MessageResponse.from(message, userId));
     }
@@ -78,7 +99,24 @@ public class MessageService {
 
         updateRoomAfterMessage(room, savedMessage);
 
-        return MessageResponse.from(savedMessage, userId);
+        MessageResponse response = MessageResponse.from(savedMessage, userId);
+
+        // SSE 이벤트 전송 (수신자에게)
+        Long receiverId = room.getOtherUser(userId).getId();
+
+        // 채팅방 업데이트 전송 (수신자에게)
+        MessageRoomResponse roomResponse = MessageRoomResponse.from(room, receiverId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendMessage(receiverId, response);
+                sseEmitterService.sendRoomUpdate(receiverId, roomResponse);
+            }
+        });
+
+        return response;
     }
 
     @Transactional
@@ -93,12 +131,29 @@ public class MessageService {
 
         String content = message != null ? message : fileName;
 
-        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl,
-                fileName, fileSize, messageType);
+        Message fileMessage = Message.createFileMessage(room, sender, content, fileUrl, fileName, fileSize,
+                messageType);
         Message savedMessage = messageRepository.save(fileMessage);
         updateRoomAfterMessage(room, savedMessage);
 
-        return MessageResponse.from(savedMessage, userId);
+        MessageResponse response = MessageResponse.from(savedMessage, userId);
+
+        // SSE 이벤트 전송 (수신자에게)
+        Long receiverId = room.getOtherUser(userId).getId();
+
+        // 채팅방 업데이트 전송 (수신자에게)
+        MessageRoomResponse roomResponse = MessageRoomResponse.from(room, receiverId);
+
+        // 트랜잭션 커밋 후 SSE 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseEmitterService.sendMessage(receiverId, response);
+                sseEmitterService.sendRoomUpdate(receiverId, roomResponse);
+            }
+        });
+
+        return response;
     }
 
     @Transactional
@@ -107,7 +162,8 @@ public class MessageService {
         User participant = getUser(userId);
         User postOwner = getUser(post.getCreatedBy());
 
-        Optional<MessageRoom> existingRoom = messageRoomRepository.findByPostAndUsers(postId, postOwner.getId(), participant.getId());
+        Optional<MessageRoom> existingRoom = messageRoomRepository.findByPostAndUsers(postId, postOwner.getId(),
+                participant.getId());
 
         if (existingRoom.isPresent()) {
             throw new GeneralException(ErrorStatus.MESSAGE_ROOM_ALREADY_EXISTS);
@@ -117,18 +173,6 @@ public class MessageService {
         MessageRoom savedRoom = messageRoomRepository.save(newRoom);
 
         return MessageRoomResponse.from(savedRoom, userId);
-    }
-
-    @Transactional
-    public void markMessagesAsRead(Long roomId, Long userId) {
-        MessageRoom room = findRoomByIdAndUserId(roomId, userId);
-
-        messageRepository.markMessagesAsReadByRoom(roomId, userId, LocalDateTime.now());
-        
-        long unreadMessages = messageRepository.countUnreadMessagesByRoom(roomId, userId);
-        if (unreadMessages == 0) {
-            room.resetUnreadCount(userId);
-        }
     }
 
     public Integer getUnreadMessageCount(Long userId) {
@@ -203,5 +247,12 @@ public class MessageService {
 
         String content = message.getContent();
         return content.length() > 50 ? content.substring(0, 50) + "..." : content;
+    }
+
+    private List<MessageRoom> findRoomsByFilter(Long userId, Boolean unreadOnly) {
+        if (unreadOnly) {
+            return messageRoomRepository.findUnreadRoomsByUserId(userId);
+        }
+        return messageRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
     }
 }

@@ -21,6 +21,7 @@ import com.example.nexus.app.mypage.domain.UserProfile;
 import com.example.nexus.app.mypage.repository.UserProfileRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.domain.RoleType;
+import com.example.nexus.app.user.domain.Gender;
 import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +82,10 @@ public class AuthService {
             // UserProfile 조회 실패 시에도 기본 정보는 반환
         }
 
+        // *NEW* 성별 및 생년월일 정보 추가
+        Gender gender = user.getGender();
+        LocalDate birthDate = user.getBirthDate();
+
         return new UserInfoResponseDto(
                 user.getEmail(),
                 user.getNickname(),
@@ -87,7 +93,9 @@ public class AuthService {
                 lastLoginAtStr,
                 user.getRoleType(),
                 job,
-                interests
+                interests,
+                gender,
+                birthDate // *NEW* 필드 추가
         );
     }
 

@@ -3,6 +3,7 @@ package com.example.nexus.app.post.domain;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
+import com.example.nexus.app.reward.domain.PostReward;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

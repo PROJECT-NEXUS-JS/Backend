@@ -10,9 +10,15 @@ import com.example.nexus.app.review.dto.WritableReviewResponse;
 import com.example.nexus.app.review.dto.WrittenReviewResponse;
 import com.example.nexus.app.review.dto.ReviewStatusResponse;
 import com.example.nexus.app.review.repository.ReviewRepository;
+<<<<<<< HEAD
 import com.example.nexus.app.post.domain.ParticipationStatus;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.repository.ParticipationRepository;
+=======
+import com.example.nexus.app.participation.domain.Participation;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
+>>>>>>> origin/main
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
@@ -136,7 +142,7 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<WritableReviewResponse> getWritableReviews(Long userId, Pageable pageable) {
         // 사용자가 참여 승인된 게시글 목록 조회
-        Page<com.example.nexus.app.post.domain.Participation> participations = 
+        Page<Participation> participations =
             participationRepository.findByUserIdAndStatusWithPost(userId, ParticipationStatus.APPROVED, pageable);
 
         // 사용자가 이미 리뷰를 작성한 게시글 ID 목록 조회

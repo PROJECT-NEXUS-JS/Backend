@@ -5,7 +5,9 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import java.util.ArrayList;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -23,6 +25,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         String jwt = "Authorization";
+
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
         Components components = new Components().addSecuritySchemes(jwt, new SecurityScheme()
                 .name(jwt)
@@ -30,7 +33,14 @@ public class SwaggerConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT")
         );
+
+        List<Server> servers = List.of(
+                new Server().url("http://localhost:8080").description("Local-test Server"),
+                new Server().url("https://betalab.duckdns.org").description("Production Server")
+        );
+
         return new OpenAPI()
+                .servers(servers)
                 .components(components)
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement);

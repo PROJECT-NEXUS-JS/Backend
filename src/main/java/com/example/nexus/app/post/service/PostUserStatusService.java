@@ -1,7 +1,7 @@
 package com.example.nexus.app.post.service;
 
-import com.example.nexus.app.post.domain.ParticipationStatus;
-import com.example.nexus.app.post.repository.ParticipationRepository;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

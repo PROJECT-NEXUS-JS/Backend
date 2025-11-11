@@ -1,5 +1,6 @@
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   datasource:
@@ -36,3 +37,7 @@ jwt:
   refresh:
     expiration: ${JWT_REFRESH_EXPIRATION:3600000}
     header: ${JWT_REFRESH_HEADER:RefreshToken}
+
+sse:
+  timeout: 50000  # 50초
+  heartbeat: 25000  # 25초

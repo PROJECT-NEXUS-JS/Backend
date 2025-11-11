@@ -8,10 +8,10 @@ import com.example.nexus.app.mypage.dto.WatchlistDto;
 import com.example.nexus.app.mypage.dto.TestDeadlineDto;
 import com.example.nexus.app.mypage.domain.RecentViewedPost;
 import com.example.nexus.app.mypage.repository.RecentViewedPostRepository;
-import com.example.nexus.app.post.domain.ParticipationStatus;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostStatus;
-import com.example.nexus.app.post.repository.ParticipationRepository;
+import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.user.domain.User;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.example.nexus.app.post.domain.Participation;
+import com.example.nexus.app.participation.domain.Participation;
 
 @Service
 @RequiredArgsConstructor

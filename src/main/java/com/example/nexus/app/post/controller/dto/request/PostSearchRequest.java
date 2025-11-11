@@ -1,6 +1,6 @@
 package com.example.nexus.app.post.controller.dto.request;
 
-import com.example.nexus.app.post.domain.RewardType;
+import com.example.nexus.app.reward.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record PostSearchRequest(

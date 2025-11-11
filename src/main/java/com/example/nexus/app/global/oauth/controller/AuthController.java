@@ -61,7 +61,7 @@ public class AuthController {
         return ApiResponse.onSuccess(updatedUserInfo);
     }
 
-    @Operation(summary = "최초 회원가입 시 역할 변경", description = "최초 회원가입 시 직업과 관심사를 입력하면 GUEST 롤을 USER 롤로 변경합니다.")
+    @Operation(summary = "최초 회원가입 시 역할 변경", description = "최초 회원가입 시 직업과 관심사, 성별과 생년월일을 입력하면 GUEST 롤을 USER 롤로 변경합니다.")
     @PostMapping("/me/change-role")
     public ApiResponse<UserInfoResponseDto> changeRole(
             @AuthenticationPrincipal CustomUserDetails userDetails,
