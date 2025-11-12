@@ -3,6 +3,7 @@ package com.example.nexus.app.global.security;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,7 +72,15 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                                                   FilterChain filterChain) throws ServletException, IOException {
 
         Optional<String> accessTokenOpt = jwtService.extractAccessToken(request);
-        
+        if (accessTokenOpt.isEmpty() && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    accessTokenOpt = Optional.of(cookie.getValue());
+                    break;
+                }
+            }
+        }
+
         if (accessTokenOpt.isPresent()) {
             String accessToken = accessTokenOpt.get();
             

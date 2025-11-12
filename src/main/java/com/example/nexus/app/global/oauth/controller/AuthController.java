@@ -9,12 +9,14 @@ import com.example.nexus.app.global.code.dto.ApiResponse;
 import com.example.nexus.app.global.code.dto.LoginResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoResponseDto;
 import com.example.nexus.app.global.code.dto.UserInfoUpdateRequest;
-import com.example.nexus.app.global.code.dto.RegistrationInfoUpdateRequest; // 추가
+import com.example.nexus.app.global.code.dto.RegistrationInfoUpdateRequest;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import com.example.nexus.app.global.oauth.service.AuthService;
+import com.example.nexus.app.global.security.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -31,12 +33,17 @@ import org.springframework.web.multipart.MultipartFile;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService jwtService;
 
     @Operation(summary = "OIDC 로그인", description = "카카오에서 받은 id_token으로 로그인/회원가입 처리 후 우리 서비스의 토큰을 발급합니다.")
     @PostMapping("/login")
-    public ApiResponse<LoginResponseDto> login(@RequestHeader("id_token") String idToken) {
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(
+            @RequestHeader("id_token") String idToken,
+            HttpServletResponse response
+    ) {
         LoginResponseDto tokens = authService.login(idToken);
-        return ApiResponse.onSuccess(tokens);
+        jwtService.addTokenCookies(response, tokens.getAccessToken(), tokens.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.onSuccess(tokens));
     }
 
     @Operation(summary = "내 정보 조회", description = "로그인된 사용자의 정보를 조회합니다. (AccessToken 필요)")
