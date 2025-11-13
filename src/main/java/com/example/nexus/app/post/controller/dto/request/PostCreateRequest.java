@@ -7,6 +7,8 @@ import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.reward.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -90,15 +92,29 @@ public record PostCreateRequest(
         String storyGuide,
 
         @Schema(description = "미디어 URL (파일 업로드 시 무시됨)", example = "https://example.com/demo-video")
-        String mediaUrl
+        String mediaUrl,
+
+        @Schema(description = "테스트 제작 팀원 수 (제작자 본인 포함)", example = "4")
+        Integer teamMemberCount
 ) {
-    public Post toPostEntity() {
-        return toPostEntity(PostStatus.ACTIVE);
+    public Post toPostEntity(PostStatus status) {
+        return Post.builder()
+                .title(title)
+                .serviceSummary(serviceSummary)
+                .creatorIntroduction(creatorIntroduction)
+                .description(description)
+                .thumbnailUrl(null)
+                .mainCategory(mainCategory)
+                .platformCategory(platformCategory)
+                .genreCategories(genreCategories)
+                .status(status)
+                .qnaMethod(qnaMethod)
+                .teamMemberCount(teamMemberCount)
+                .build();
     }
 
-    public Post toPostEntity(PostStatus status) {
-        return new Post(title, serviceSummary, creatorIntroduction, description,
-                null, mainCategory, platformCategory, genreCategories, status, qnaMethod);
+    public Post toPostEntity() {
+        return toPostEntity(PostStatus.ACTIVE);
     }
 
     public PostSchedule toPostScheduleEntity(Post post) {
