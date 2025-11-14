@@ -50,4 +50,11 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             "LEFT JOIN FETCH p.postContent " +
             "WHERE p.id = :postId")
     Optional<Post> findByIdWithAllDetailsAndUser(@Param("postId") Long postId);
+
+    // 뱃지 시스템용 카운팅 메서드
+    /**
+     * 사용자가 작성한 활성 게시글 수 조회
+     */
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.createdBy = :userId AND p.status = 'ACTIVE'")
+    long countActivePostsByUserId(@Param("userId") Long userId);
 }

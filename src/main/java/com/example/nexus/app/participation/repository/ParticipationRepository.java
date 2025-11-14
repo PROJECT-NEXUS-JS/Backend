@@ -127,6 +127,29 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "WHERE p.id = :participationId")
     Optional<Participation> findByIdWithUserAndPost(@Param("participationId") Long participationId);
 
+    // 뱃지 시스템용 카운팅 메서드
+    /**
+     * 사용자의 승인된 참여 횟수 조회
+     */
+    @Query("SELECT COUNT(p) FROM Participation p WHERE p.user.id = :userId AND p.status = 'APPROVED'")
+    long countApprovedParticipationsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 사용자의 완료된 참여 횟수 조회 (리뷰 작성한 참여)
+     */
+    @Query("SELECT COUNT(DISTINCT p) FROM Participation p " +
+           "JOIN Review r ON r.postId = p.post.id AND r.createdBy.id = p.user.id " +
+           "WHERE p.user.id = :userId AND p.status = 'APPROVED'")
+    long countCompletedParticipationsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 기획자의 게시글에 승인된 총 테스터 수 조회
+     */
+    @Query("SELECT COUNT(p) FROM Participation p " +
+           "WHERE p.post.createdBy = :creatorId AND p.status = 'APPROVED'")
+    long countApprovedParticipantsByPostCreator(@Param("creatorId") Long creatorId);
+
+    // 결제 상태 관련 메서드
     @Query("SELECT p FROM Participation p " +
             "JOIN FETCH p.user " +
             "WHERE p.post.id = :postId AND p.status = :status AND p.isPaid = :isPaid " +
