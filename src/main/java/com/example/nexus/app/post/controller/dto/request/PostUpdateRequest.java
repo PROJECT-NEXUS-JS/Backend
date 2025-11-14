@@ -3,15 +3,11 @@ package com.example.nexus.app.post.controller.dto.request;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
-import com.example.nexus.app.post.domain.*;
+import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.post.domain.PrivacyItem;
 import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.reward.domain.RewardType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.ArrayList;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -90,32 +86,12 @@ public record PostUpdateRequest(
         String storyGuide,
 
         @Schema(description = "미디어 URL (파일 업로드 시 무시됨)", example = "https://example.com/updated-demo-video")
-        String mediaUrl
+        String mediaUrl,
+
+        @Schema(description = "테스트 제작 팀원 수 (제작자 본인 포함)", example = "4")
+        Integer teamMemberCount
 ) {
-
-    public PostSchedule toPostScheduleEntity(Post post) {
-        return PostSchedule.create(post, startDate, endDate, recruitmentDeadline, durationTime);
-    }
-
-    public PostRequirement toPostRequirementEntity(Post post) {
-        return PostRequirement.create(post, maxParticipants, genderRequirement, ageMin, ageMax, additionalRequirements);
-    }
-
     public PostReward toPostRewardEntity(Post post) {
         return PostReward.create(post, rewardType, rewardDescription);
-    }
-
-    public PostFeedback toPostFeedbackEntity(Post post) {
-        return PostFeedback.create(post, feedbackMethod, feedbackItems, privacyItems);
-    }
-
-    public PostContent toPostContentEntity(Post post) {
-        List<String> mediaUrls = mediaUrl != null ? List.of(mediaUrl) : new ArrayList<>();
-        return PostContent.create(post, participationMethod, storyGuide, mediaUrls);
-    }
-
-    public Post toPostEntity() {
-        return new Post(title, serviceSummary, creatorIntroduction, description,
-                null, mainCategory, platformCategory, genreCategories, qnaMethod);
     }
 }

@@ -5,6 +5,7 @@ import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.reward.domain.PostReward;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
@@ -79,6 +80,9 @@ public class Post {
     @Column(name = "current_participants", nullable = false)
     private Integer currentParticipants = 0;
 
+    @Column(name = "team_member_count")
+    private Integer teamMemberCount;
+
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostSchedule schedule;
 
@@ -110,9 +114,10 @@ public class Post {
     @Column(name = "updated_by", nullable = false)
     private Long updatedBy;
 
+    @Builder
     public Post(String title, String serviceSummary, String creatorIntroduction, String description,
                 String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
-                Set<GenreCategory> genreCategories, PostStatus status, String qnaMethod) {
+                Set<GenreCategory> genreCategories, PostStatus status, String qnaMethod, Integer teamMemberCount) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
@@ -120,6 +125,7 @@ public class Post {
         this.thumbnailUrl = thumbnailUrl;
         this.status = status;
         this.qnaMethod = qnaMethod;
+        this.teamMemberCount = teamMemberCount;
 
         if (mainCategory != null) {
             this.mainCategory = new HashSet<>(mainCategory);
@@ -130,13 +136,6 @@ public class Post {
         if (genreCategories != null) {
             this.genreCategories = new HashSet<>(genreCategories);
         }
-    }
-
-    public Post(String title, String serviceSummary, String creatorIntroduction, String description,
-                String thumbnailUrl, Set<MainCategory> mainCategory, Set<PlatformCategory> platformCategory,
-                Set<GenreCategory> genreCategories, String qnaMethod) {
-        this(title, serviceSummary, creatorIntroduction, description, thumbnailUrl, 
-             mainCategory, platformCategory, genreCategories, PostStatus.DRAFT, qnaMethod);
     }
 
     public void updateQnaMethod(String qnaMethod) {
@@ -227,13 +226,15 @@ public class Post {
 
     public void updateBasicInfo(String title, String serviceSummary,
                                 String creatorIntroduction, String description,
-                                String thumbnailUrl, String qnaMethod) {
+                                String thumbnailUrl, String qnaMethod,
+                                Integer teamMemberCount) {
         this.title = title;
         this.serviceSummary = serviceSummary;
         this.creatorIntroduction = creatorIntroduction;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.qnaMethod = qnaMethod;
+        this.teamMemberCount = teamMemberCount;
     }
 
     public void incrementViewCount() {

@@ -84,7 +84,7 @@ public class PostService {
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
         post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
-                request.description(), newThumbnailUrl, request.qnaMethod());
+                request.description(), newThumbnailUrl, request.qnaMethod(), request.teamMemberCount());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -169,7 +169,7 @@ public class PostService {
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
         post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
-                request.description(), newThumbnailUrl, request.qnaMethod());
+                request.description(), newThumbnailUrl, request.qnaMethod(),request.teamMemberCount());
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -334,7 +334,7 @@ public class PostService {
 
         if (thumbnailUrl != null) {
             post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
-                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod());
+                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod(), post.getTeamMemberCount());
         }
         return post;
     }

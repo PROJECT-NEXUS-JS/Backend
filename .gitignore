@@ -45,3 +45,7 @@ out/
 src/main/resources/application-secret.yml
 src/main/resources/application-local.yml
 /.github/
+
+### QClass ###
+/src/main/generated/
+/src/test/generated/
