@@ -35,6 +35,7 @@ public enum ErrorStatus implements BaseErrorCode {
     REVIEW_CONTENT_TOO_SHORT(HttpStatus.BAD_REQUEST, "REVIEW40021", "리뷰 내용은 최소 10자 이상이어야 합니다."),
     REVIEW_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "REVIEW40022", "리뷰 내용은 최대 1000자까지 입력 가능합니다."),
     NOT_PARTICIPATED(HttpStatus.BAD_REQUEST, "REVIEW40023", "해당 게시글에 참여하지 않은 사용자입니다."),
+    PARTICIPATION_NOT_APPROVED(HttpStatus.BAD_REQUEST, "FEEDBACK40024", "승인된 참여자만 피드백을 제출할 수 있습니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),
@@ -66,6 +67,8 @@ public enum ErrorStatus implements BaseErrorCode {
     MESSAGE_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "MESSAGE40413", "채팅방을 찾을 수 없습니다."),
     PARTICIPANT_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPANT_REWARD40414", "참여자 리워드 정보를 찾을 수 없습니다."),
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW40415", "리뷰를 찾을 수 없습니다."),
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK40416", "피드백을 찾을 수 없습니다."),
+    PARTICIPATION_NOT_FOUND_FEEDBACK(HttpStatus.NOT_FOUND, "PARTICIPATION40417", "참여 정보를 찾을 수 없습니다."),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "허용되지 않는 HTTP 메서드입니다."),
@@ -83,6 +86,7 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_ALREADY_WITHDRAWN(HttpStatus.CONFLICT, "USER4099", "이미 탈퇴된 계정입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "USER40910", "이미 사용 중인 닉네임입니다."),
     REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW40911", "이미 해당 게시글에 리뷰를 작성했습니다."),
+    FEEDBACK_ALREADY_EXISTS(HttpStatus.CONFLICT, "FEEDBACK40912", "이미 해당 프로젝트에 피드백을 제출했습니다."),
 
     // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
