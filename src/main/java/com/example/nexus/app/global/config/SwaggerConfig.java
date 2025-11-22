@@ -35,8 +35,8 @@ public class SwaggerConfig {
         );
 
         List<Server> servers = List.of(
-                new Server().url("http://localhost:8080").description("Local-test Server"),
-                new Server().url("https://betalab.duckdns.org").description("Production Server")
+                new Server().url("https://api.betalab.co.kr").description("Production Server"),
+                new Server().url("http://localhost:8080").description("Local-test Server")
         );
 
         return new OpenAPI()
@@ -49,6 +49,6 @@ public class SwaggerConfig {
         return new Info()
                 .title("BETALAB BACKEND SERVER")
                 .description("베타랩 API swagger page 입니다.")
-                .version("1.0.0");
+                .version("2.1.0");
     }
 }
