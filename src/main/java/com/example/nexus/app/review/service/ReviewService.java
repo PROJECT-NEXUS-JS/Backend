@@ -1,5 +1,7 @@
 package com.example.nexus.app.review.service;
 
+import com.example.nexus.app.badge.domain.BadgeConditionType;
+import com.example.nexus.app.badge.service.BadgeService;
 import com.example.nexus.app.review.domain.Review;
 import com.example.nexus.app.review.dto.ReviewCreateRequest;
 import com.example.nexus.app.review.dto.ReviewResponse;
@@ -11,6 +13,7 @@ import com.example.nexus.app.review.repository.ReviewRepository;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
+import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
@@ -39,6 +42,7 @@ public class ReviewService {
     private final ParticipationRepository participationRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final BadgeService badgeService;
 
     @Transactional
     public ReviewResponse createReview(ReviewCreateRequest request, Long authUserId) {
@@ -46,7 +50,7 @@ public class ReviewService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         // 게시글 존재 확인
-        postRepository.findById(request.getPostId())
+        Post post = postRepository.findById(request.getPostId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         // 참여 여부 확인
@@ -69,6 +73,19 @@ public class ReviewService {
                 .updatedBy(currentUser)
                 .build();
         Review savedReview = reviewRepository.save(review);
+
+        // 뱃지 부여 체크 - 리뷰어의 리뷰 작성 뱃지
+        badgeService.checkAndAwardBadge(authUserId, BadgeConditionType.REVIEW_CREATED);
+
+        // 뱃지 부여 체크 - 테스트 완료 뱃지 (리뷰 작성 = 테스트 완료)
+        badgeService.checkAndAwardBadge(authUserId, BadgeConditionType.PARTICIPATION_COMPLETED);
+
+        // 뱃지 부여 체크 - 특정 게시글의 첫 리뷰 작성 뱃지
+        badgeService.checkAndAwardFirstReviewBadge(authUserId, request.getPostId());
+
+        // 뱃지 부여 체크 - 기획자의 소통 뱃지 (리뷰 수신)
+        badgeService.checkAndAwardReviewReceivedBadge(post.getCreatedBy());
+
         return toReviewResponse(savedReview);
     }
 

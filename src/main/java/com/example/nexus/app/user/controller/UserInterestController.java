@@ -38,4 +38,4 @@ public class UserInterestController {
                 userDetails.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
-} 
+}
