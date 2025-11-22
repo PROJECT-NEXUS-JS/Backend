@@ -54,6 +54,8 @@ public class SecurityConfig {
         configuration.addAllowedOriginPattern("http://localhost:3000");
         configuration.addAllowedOriginPattern("https://betalab-frontend.vercel.app");
         configuration.addAllowedOriginPattern("https://betalab.duckdns.org");
+        configuration.addAllowedOriginPattern("https://betalab.co.kr");
+        configuration.addAllowedOriginPattern("https://www.betalab.co.kr");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
