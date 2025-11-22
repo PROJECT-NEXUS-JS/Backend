@@ -2,7 +2,6 @@ package com.example.nexus.app.badge.repository;
 
 import com.example.nexus.app.badge.domain.BadgeName;
 import com.example.nexus.app.badge.domain.UserBadge;
-import com.example.nexus.app.badge.dto.BadgeStatisticsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,10 +18,9 @@ import java.util.Optional;
 @Repository
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
 
-    // ==================== 조회 쿼리 ====================
-    
+
     /**
-     * 사용자의 모든 뱃지 조회
+     * 모든 뱃지 조회
      */
     @Query("SELECT ub FROM UserBadge ub " +
            "JOIN FETCH ub.badge " +
@@ -31,7 +29,7 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     List<UserBadge> findAllByUserIdWithBadge(@Param("userId") Long userId);
 
     /**
-     * 사용자의 뱃지 목록 조회
+     * 뱃지 목록 조회
      */
     @Query(value = "SELECT ub FROM UserBadge ub " +
            "JOIN FETCH ub.badge " +
@@ -98,14 +96,13 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     
     /**
      * 가장 많이 획득된 뱃지 Top N 조회
+     * Badge 엔티티와 카운트를 조회한 후 서비스 레이어에서 변환
      */
-    @Query("SELECT new com.example.nexus.app.badge.dto.BadgeStatisticsDto(" +
-           "ub.badge.id, ub.badge.badgeName.displayName, ub.badge.badgeName.description, " +
-           "ub.badge.badgeName.badgeType, COUNT(ub)) " +
+    @Query("SELECT ub.badge, COUNT(ub) " +
            "FROM UserBadge ub " +
            "GROUP BY ub.badge " +
            "ORDER BY COUNT(ub) DESC")
-    List<BadgeStatisticsDto> findMostAcquiredBadges(Pageable pageable);
+    List<Object[]> findMostAcquiredBadges(Pageable pageable);
 
     /**
      * 특정 뱃지를 최근에 획득한 사용자 조회
