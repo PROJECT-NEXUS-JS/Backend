@@ -11,4 +11,5 @@ public class ProfileDto {
     private String affiliation;
     private int testsUploaded;
     private int testsParticipating;
+    private int testsOngoing;
 }

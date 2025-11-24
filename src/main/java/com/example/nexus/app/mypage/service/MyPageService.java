@@ -118,6 +118,7 @@ public class MyPageService {
             return ProfileDto.builder()
                     .testsUploaded(0)
                     .testsParticipating(0)
+                    .testsOngoing(0)
                     .build();
         }
 
@@ -128,11 +129,14 @@ public class MyPageService {
             return ProfileDto.builder()
                     .testsUploaded(0)
                     .testsParticipating(0)
+                    .testsOngoing(0)
                     .build();
         }
 
         Long testsUploaded = postRepository.countByCreatedBy(userId);
         Long testsParticipating = participationRepository.countByUserIdAndStatus(userId, ParticipationStatus.APPROVED);
+
+        int testsOngoing = testsParticipating.intValue();
 
         String affiliation = postRepository.findFirstByCreatedByAndStatusOrderByCreatedAtDesc(userId, PostStatus.ACTIVE)
                 .map(Post::getCreatorIntroduction)
@@ -144,6 +148,7 @@ public class MyPageService {
                 .affiliation(affiliation)
                 .testsUploaded(testsUploaded.intValue())
                 .testsParticipating(testsParticipating.intValue())
+                .testsOngoing(testsOngoing)
                 .build();
     }
 }
