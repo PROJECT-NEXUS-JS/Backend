@@ -79,7 +79,7 @@ public class DashboardService {
         Page<Participation> waitingParticipants = participationRepository.findByPostIdAndStatus(postId, ParticipationStatus.PENDING, pageable);
 
         return waitingParticipants.map(participation -> WaitingParticipantResponse.of(
-                participation.getUser().getId(),
+                participation.getId(),
                 participation.getUser().getNickname(),
                 participation.getUser().getProfileUrl(),
                 participation.getAppliedAt()
