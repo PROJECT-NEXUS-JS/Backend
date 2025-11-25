@@ -17,7 +17,7 @@ public interface DashboardControllerDoc {
 
     @Operation(
             summary = "대시보드 통계 카드",
-            description = "특정 게시글의 좋아요, 찜하기, 참여 대기, 참여자, 리뷰, 조회수 통계, 안 읽은 메시지 (전일 대비 증감 포함)"
+            description = "특정 게시글의 좋아요, 찜하기, 참여 대기, 참여자, 리뷰, 조회수 통계, 리워드 지급대기 통계, 안 읽은 메시지 (전일 대비 증감 포함)"
     )
     ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats(
             @PathVariable @Schema(description = "게시글 ID") Long postId,

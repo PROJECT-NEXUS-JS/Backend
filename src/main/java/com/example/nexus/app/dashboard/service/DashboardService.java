@@ -64,6 +64,7 @@ public class DashboardService {
                 getTotalApprovedParticipants(postId), getYesterdayTotalApprovedParticipants(postId),
                 getTotalReviews(postId), getYesterdayTotalReviews(postId),
                 getTotalViews(postId), getYesterdayTotalViews(postId),
+                getTotalPendingRewards(postId), getYesterdayTotalPendingRewards(postId),
                 getTotalUnreadMessages(postId, userId)
         );
     }
@@ -288,5 +289,26 @@ public class DashboardService {
 
     private Long getYesterdayTotalViews(Long postId) {
         return viewCountService.getYesterdayViewCount(postId);
+    }
+
+    private Long getTotalPendingRewards(Long postId) {
+        Long count = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PENDING);
+        if (count == null) {
+            return 0L;
+        }
+
+        return count;
+    }
+
+    private Long getYesterdayTotalPendingRewards(Long postId) {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        Long count = participantRewardRepository.countByPostIdAndRewardStatusAndCreatedAtBefore(postId,
+                RewardStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
+
+        if (count == null) {
+            return 0L;
+        }
+
+        return count;
     }
 }
