@@ -28,6 +28,7 @@ import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
 import com.example.nexus.notification.service.NotificationService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Slf4j
 public class DashboardService {
+
+    private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     private final PostRepository postRepository;
     private final ParticipationRepository participationRepository;
@@ -182,7 +185,7 @@ public class DashboardService {
         List<Long> viewsData = viewCountService.getWeeklyViewCounts(postId);
 
         List<LocalDate> labels = new ArrayList<>();
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(KOREA_ZONE_ID);
         LocalDateTime startDate = today.minusDays(6).atStartOfDay();
         LocalDateTime endDate = today.plusDays(1).atStartOfDay();
 
@@ -268,22 +271,22 @@ public class DashboardService {
     }
 
     private Long getYesterdayTotalLikes(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
         return postLikeRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
     }
 
     private Long getYesterdayTotalPendingApplications(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
         return participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
     }
 
     private Long getYesterdayTotalApprovedParticipants(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
         return participationRepository.countByPostIdAndStatusAndApprovedAtBefore(postId, ParticipationStatus.APPROVED, yesterday.plusDays(1).atStartOfDay());
     }
 
     private Long getYesterdayTotalReviews(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
         return reviewRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
     }
 
@@ -301,7 +304,7 @@ public class DashboardService {
     }
 
     private Long getYesterdayTotalPendingRewards(Long postId) {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
         Long count = participantRewardRepository.countByPostIdAndRewardStatusAndCreatedAtBefore(postId,
                 RewardStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
 
