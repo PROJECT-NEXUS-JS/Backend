@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
 public record WaitingParticipantResponse(
-        @Schema(description = "참여자 ID")
-        Long participantId,
+        @Schema(description = "참가 신청 ID")
+        Long participationId,
 
         @Schema(description = "참여자 닉네임")
         String nickname,
@@ -18,8 +18,8 @@ public record WaitingParticipantResponse(
         LocalDateTime appliedAt
 
 ) {
-    public static WaitingParticipantResponse of(Long participantId, String nickname, String profileImageUrl,
+    public static WaitingParticipantResponse of(Long participationId, String nickname, String profileImageUrl,
                                                 LocalDateTime appliedAt) {
-        return new WaitingParticipantResponse(participantId, nickname, profileImageUrl, appliedAt);
+        return new WaitingParticipantResponse(participationId, nickname, profileImageUrl, appliedAt);
     }
 }
