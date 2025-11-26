@@ -8,6 +8,7 @@ import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostLike;
 import com.example.nexus.app.post.repository.PostLikeRepository;
 import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.post.service.dto.PostUserStatus;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -79,14 +80,15 @@ public class PostLikeService {
                 .map(like -> like.getPost().getId())
                 .toList();
 
-        Map<Long, PostUserStatusService.PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
+        Map<Long, PostUserStatus> statusMap = postUserStatusService.getPostUserStatuses(postIds, userId);
         Map<Long, Long> viewCountMap = viewCountService.getViewCountsForPosts(postIds);
 
         return likes.map(like -> {
             Long postId = like.getPost().getId();
-            PostUserStatusService.PostUserStatus status = statusMap.getOrDefault(postId, new PostUserStatusService.PostUserStatus(false, false));
+            PostUserStatus status = statusMap.getOrDefault(postId, PostUserStatus.empty());
             Long currentViewCount = viewCountMap.getOrDefault(postId, 0L);
-            return PostDetailResponse.from(like.getPost(), status.isLiked(), status.isParticipated(), currentViewCount);
+            return PostDetailResponse.from(like.getPost(), status.isLiked(), status.isParticipated(), currentViewCount,
+                    null, status.participationStatus());
         });
     }
 }

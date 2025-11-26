@@ -1,6 +1,7 @@
 package com.example.nexus.app.post.controller.dto.response;
 
 import com.example.nexus.app.category.dto.response.CategoryResponse;
+import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PostStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -79,13 +80,18 @@ public record PostDetailResponse(
         Boolean isLiked,
 
         @Schema(description = "사용자 참여 여부")
-        Boolean isParticipated
+        Boolean isParticipated,
+
+        @Schema(description = "사용자 참여 상태 (null: 미신청, PENDING: 승인대기, APPROVED: 진행중,"
+                + " TEST_COMPLETED: 테스트완료, COMPLETED: 지급대기, REJECTED: 거절)")
+        ParticipationStatus participationStatus
 ) {
     public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount) {
-        return from(post, isLiked, isParticipated, currentViewCount, null);
+        return from(post, isLiked, isParticipated, currentViewCount, null, null);
     }
 
-    public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount, String creatorProfileUrl) {
+    public static PostDetailResponse from(Post post, Boolean isLiked, Boolean isParticipated, Long currentViewCount,
+                                          String creatorProfileUrl, ParticipationStatus participationStatus) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -116,7 +122,8 @@ public record PostDetailResponse(
                 post.getCreatedAt(),
                 post.getCreatedBy(),
                 isLiked,
-                isParticipated
+                isParticipated,
+                participationStatus
         );
     }
 }

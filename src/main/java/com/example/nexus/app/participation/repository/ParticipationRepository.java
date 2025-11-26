@@ -176,4 +176,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             @Param("postId") Long postId,
             @Param("status") ParticipationStatus status,
             @Param("isPaid") Boolean isPaid);
+
+    Optional<Participation> findByUserIdAndPostId(Long userId, Long postId);
 }

@@ -110,9 +110,9 @@ public class FeedbackService {
             throw new GeneralException(ErrorStatus.FEEDBACK_ALREADY_EXISTS);
         }
 
-        // 승인 상태 체크 (APPROVED 또는 COMPLETED 모두 가능)
-        if (!participation.isApproved() && !participation.isCompleted()) {
-            throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_APPROVED);
+        // 승인 상태 체크 (TEST_COMPLETE)
+        if (!participation.isTestCompleted()) {
+            throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_TEST_COMPLETED);
         }
 
         Feedback feedback = Feedback.builder()
@@ -136,7 +136,6 @@ public class FeedbackService {
                 .build();
 
         Feedback savedFeedback = feedbackRepository.save(feedback);
-        participation.complete();
 
         feedbackDraftRepository.findByParticipationId(participation.getId())
                 .ifPresent(feedbackDraftRepository::delete);

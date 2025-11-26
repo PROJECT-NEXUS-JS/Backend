@@ -14,6 +14,9 @@ public enum ParticipationStatus {
     @Schema(description = "진행중")
     APPROVED("진행중"),
 
+    @Schema(description = "테스트 완료")
+    TEST_COMPLETED("테스트 완료"),
+
     @Schema(description = "지급 대기")
     COMPLETED("지급 대기"),
 

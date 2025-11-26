@@ -1,16 +1,17 @@
 package com.example.nexus.app.post.service;
 
+import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
 import com.example.nexus.app.post.repository.PostLikeRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.example.nexus.app.post.service.dto.PostUserStatus;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,17 +21,21 @@ public class PostUserStatusService {
     private final PostLikeRepository postLikeRepository;
     private final ParticipationRepository participationRepository;
 
-
     public PostUserStatus getPostUserStatus(Long postId, Long userId) {
-        if (userId == null){
-            return new PostUserStatus(false, false);
+        if (userId == null) {
+            return PostUserStatus.empty();
         }
 
         boolean isLiked = postLikeRepository.existsByUserIdAndPostId(userId, postId);
-        boolean isParticipate = participationRepository.existsByUserIdAndPostIdAndStatus(userId, postId,
-                ParticipationStatus.APPROVED);
 
-        return new PostUserStatus(isLiked, isParticipate);
+        ParticipationStatus participationStatus = participationRepository
+                .findByUserIdAndPostId(userId, postId)
+                .map(Participation::getStatus)
+                .orElse(null);
+
+        boolean isParticipated = participationStatus == ParticipationStatus.APPROVED;
+
+        return new PostUserStatus(isLiked, isParticipated, participationStatus);
     }
 
     public Map<Long, PostUserStatus> getPostUserStatuses(List<Long> postIds, Long userId) {
@@ -38,7 +43,7 @@ public class PostUserStatusService {
             return postIds.stream()
                     .collect(Collectors.toMap(
                             postId -> postId,
-                            postId -> new PostUserStatus(false, false)
+                            postId -> PostUserStatus.empty()
                     ));
         }
 
@@ -50,24 +55,9 @@ public class PostUserStatusService {
                         postId -> postId,
                         postId -> new PostUserStatus(
                                 likedPostIds.contains(postId),
-                                participatedPostIds.contains(postId)
+                                participatedPostIds.contains(postId),
+                                null
                         )
                 ));
-    }
-
-
-    public record PostUserStatus(Boolean isLiked, Boolean isParticipated) {
-
-        public static PostUserStatus empty() {
-            return new PostUserStatus(null, null);
-        }
-
-        public static PostUserStatus liked() {
-            return new PostUserStatus(true, null);
-        }
-
-        public static PostUserStatus participated() {
-            return new PostUserStatus(null, true);
-        }
     }
 }

@@ -20,6 +20,7 @@ import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.domain.*;
 import com.example.nexus.app.post.repository.*;
+import com.example.nexus.app.post.service.dto.PostUserStatus;
 import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.reward.domain.RewardType;
 import com.example.nexus.app.reward.repository.PostRewardRepository;
@@ -141,7 +142,7 @@ public class PostService {
             recentViewedPostService.saveRecentView(userId, postId);
         }
 
-        PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
+        PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
         Long currentViewCount = viewCountService.getTotalViewCount(postId);
 
         String creatorProfileUrl = userRepository.findById(post.getCreatedBy())
@@ -149,7 +150,7 @@ public class PostService {
                 .orElse(null);
 
         return PostDetailResponse.from(post, status.isLiked(), status.isParticipated(), currentViewCount,
-                creatorProfileUrl);
+                creatorProfileUrl, status.participationStatus());
     }
 
 

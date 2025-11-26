@@ -158,4 +158,13 @@ public class ParticipationController implements ParticipationControllerDoc {
                 participationId, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
+
+    @Override
+    @PatchMapping("/my/{participationId}/complete")
+    public ResponseEntity<ApiResponse<Void>> completeTestByParticipant(
+            @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        participationService.completeByParticipant(participationId, userDetails.getUserId());
+        return ResponseEntity.ok(ApiResponse.onSuccess(null));
+    }
 }
