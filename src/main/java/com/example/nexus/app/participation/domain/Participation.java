@@ -152,4 +152,15 @@ public class Participation {
     public boolean isPaid() {
         return this.isPaid;
     }
+
+    public void completeTest() {
+        if (!isApproved()) {
+            throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_APPROVED);
+        }
+        this.status = ParticipationStatus.TEST_COMPLETED;
+    }
+
+    public boolean isTestCompleted() {
+        return this.status == ParticipationStatus.TEST_COMPLETED;
+    }
 }

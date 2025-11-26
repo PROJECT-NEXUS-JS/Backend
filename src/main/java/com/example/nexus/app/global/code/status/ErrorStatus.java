@@ -36,6 +36,9 @@ public enum ErrorStatus implements BaseErrorCode {
     REVIEW_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "REVIEW40022", "리뷰 내용은 최대 1000자까지 입력 가능합니다."),
     NOT_PARTICIPATED(HttpStatus.BAD_REQUEST, "REVIEW40023", "해당 게시글에 참여하지 않은 사용자입니다."),
     PARTICIPATION_NOT_APPROVED(HttpStatus.BAD_REQUEST, "FEEDBACK40024", "승인된 참여자만 피드백을 제출할 수 있습니다."),
+    PARTICIPATION_NOT_TEST_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK40025", "테스트 완료 상태에서만 피드백을 제출할 수 있습니다."),
+    FEEDBACK_NOT_SUBMITTED(HttpStatus.BAD_REQUEST, "PARTICIPANT40026", "피드백이 제출되지 않았습니다."),
+    PARTICIPATION_ALREADY_TEST_COMPLETED(HttpStatus.BAD_REQUEST, "PARTICIPANT40027", "이미 테스트 완료 처리된 참여입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),

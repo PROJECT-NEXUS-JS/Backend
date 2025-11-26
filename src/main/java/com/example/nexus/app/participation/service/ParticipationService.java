@@ -1,5 +1,6 @@
 package com.example.nexus.app.participation.service;
 
+import com.example.nexus.app.feedback.repository.FeedbackRepository;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
@@ -19,6 +20,7 @@ import com.example.nexus.app.post.domain.PrivacyItem;
 import com.example.nexus.app.post.repository.PostRepository;
 import com.example.nexus.app.post.service.PostUserStatusService;
 import com.example.nexus.app.post.service.ViewCountService;
+import com.example.nexus.app.post.service.dto.PostUserStatus;
 import com.example.nexus.app.reward.domain.ParticipantReward;
 import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.reward.repository.ParticipantRewardRepository;
@@ -53,6 +55,7 @@ public class ParticipationService {
     private final ViewCountService viewCountService;
     private final NotificationService notificationService;
     private final ParticipantRewardRepository participantRewardRepository;
+    private final FeedbackRepository feedbackRepository;
 
     // 참가 신청
     @Transactional
@@ -70,7 +73,7 @@ public class ParticipationService {
         Participation participation = Participation.createApplication(post, user, applicationDto);
         Participation savedParticipation = participationRepository.save(participation);
 
-        PostUserStatusService.PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
+        PostUserStatus status = postUserStatusService.getPostUserStatus(postId, userId);
         Long currentViewCount = viewCountService.getTotalViewCount(postId);
 
         // 신청 알림 - 모집자에게
@@ -174,6 +177,16 @@ public class ParticipationService {
         return participationRepository.existsByUserIdAndPostId(userId, postId);
     }
 
+    @Transactional
+    public void completeByParticipant(Long participationId, Long userId) {
+        Participation participation = getParticipation(participationId);
+
+        validateParticipantOwnership(participation, userId);
+        validateNotAlreadyTestCompleted(participation);
+
+        participation.completeTest();
+    }
+
     // 참여자 완료 처리
     @Transactional
     public void completeParticipant(Long participationId, Long userId) {
@@ -181,6 +194,11 @@ public class ParticipationService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND));
 
         validatePostOwnership(participation.getPost(), userId);
+
+        if (feedbackRepository.findByParticipationId(participationId).isEmpty()) {
+            throw new GeneralException(ErrorStatus.FEEDBACK_NOT_SUBMITTED);
+        }
+
         participation.complete();
 
         PostReward postReward = participation.getPost().getReward();
@@ -355,6 +373,21 @@ public class ParticipationService {
 
         if (!participation.isPending()) {
             throw new GeneralException(ErrorStatus.ALREADY_PROCESSED_APPLICATION);
+        }
+    }
+
+    private void validateParticipantOwnership(Participation participation, Long userId) {
+        User user = participation.getUser();
+        Long participantUserId = user.getId();
+
+        if (!participantUserId.equals(userId)) {
+            throw new GeneralException(ErrorStatus.APPLICATION_ACCESS_DENIED);
+        }
+    }
+
+    private void validateNotAlreadyTestCompleted(Participation participation) {
+        if (participation.isTestCompleted()) {
+            throw new GeneralException(ErrorStatus.PARTICIPATION_ALREADY_TEST_COMPLETED);
         }
     }
 }

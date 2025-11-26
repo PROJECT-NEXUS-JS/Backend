@@ -175,4 +175,19 @@ public interface ParticipationControllerDoc {
             @PathVariable Long participationId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     );
+
+    @Operation(
+            summary = "참여자 테스트 완료 처리",
+            description = """
+                  참여자 본인이 테스트를 완료 처리합니다.
+                  - APPROVED(진행중) 상태에서만 호출 가능
+                  - TEST_COMPLETED(테스트 완료) 상태로 변경
+                  - 이후 피드백을 제출해야 함
+                  """
+    )
+    ResponseEntity<ApiResponse<Void>> completeTestByParticipant(
+            @Parameter(description = "참가 신청 ID", required = true)
+            @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    );
 }
