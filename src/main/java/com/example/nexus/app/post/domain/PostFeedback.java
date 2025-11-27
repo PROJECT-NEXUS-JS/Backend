@@ -23,7 +23,7 @@ public class PostFeedback {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(name = "feedback_method", nullable = false)
+    @Column(name = "feedback_method")
     private String feedbackMethod;
 
     @ElementCollection(fetch = FetchType.EAGER)

@@ -20,16 +20,16 @@ public class PostSchedule {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private LocalDateTime endDate;
 
     @Column(name = "recruitment_deadline")
     private LocalDateTime recruitmentDeadline;
 
-    @Column(name = "duration_time", nullable = false)
+    @Column(name = "duration_time")
     private String durationTime;
 
     public static PostSchedule create(Post post, LocalDateTime startDate, LocalDateTime endDate,

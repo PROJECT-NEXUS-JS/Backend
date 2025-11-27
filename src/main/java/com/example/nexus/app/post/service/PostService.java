@@ -26,6 +26,7 @@ import com.example.nexus.app.reward.domain.RewardType;
 import com.example.nexus.app.reward.repository.PostRewardRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -235,44 +236,86 @@ public class PostService {
     }
 
     private void updateRelatedEntitiesWithImage(PostUpdateRequest request, Post post, List<MultipartFile> imageFiles) {
-        PostSchedule schedule = post.getSchedule();
-        schedule.update(request.startDate(), request.endDate(),
-                request.recruitmentDeadline(), request.durationTime());
+        updateSchedule(request, post.getSchedule());
+        updateRequirement(request, post.getRequirement());
+        updateReward(request, post);
+        updateFeedback(request, post.getFeedback());
+        updateContent(request, post.getPostContent(), imageFiles);
+    }
 
-        PostRequirement requirement = post.getRequirement();
-        requirement.update(request.maxParticipants(), request.genderRequirement(),
-                request.ageMin(), request.ageMax(), request.additionalRequirements());
+    private void updateSchedule(PostUpdateRequest request, PostSchedule schedule) {
+        LocalDateTime startDate = getValueOrDefault(request.startDate(), schedule.getStartDate());
+        LocalDateTime endDate = getValueOrDefault(request.endDate(), schedule.getEndDate());
+        LocalDateTime recruitmentDeadline = getValueOrDefault(request.recruitmentDeadline(), schedule.getRecruitmentDeadline());
+        String durationTime = getValueOrDefault(request.durationTime(), schedule.getDurationTime());
 
+        schedule.update(startDate, endDate, recruitmentDeadline, durationTime);
+    }
+
+    private void updateRequirement(PostUpdateRequest request, PostRequirement requirement) {
+        Integer maxParticipants = getValueOrDefault(request.maxParticipants(), requirement.getMaxParticipants());
+        String genderRequirement = getValueOrDefault(request.genderRequirement(), requirement.getGenderRequirement());
+        Integer ageMin = getValueOrDefault(request.ageMin(), requirement.getAgeMin());
+        Integer ageMax = getValueOrDefault(request.ageMax(), requirement.getAgeMax());
+        String additionalRequirements = getValueOrDefault(request.additionalRequirements(), requirement.getAdditionalRequirements());
+
+        requirement.update(maxParticipants, genderRequirement, ageMin, ageMax, additionalRequirements);
+    }
+
+    private void updateReward(PostUpdateRequest request, Post post) {
         PostReward reward = post.getReward();
-        if (request.rewardType() != null) {
-            if (reward == null) {
-                reward = request.toPostRewardEntity(post);
-                postRewardRepository.save(reward);
-            } else {
-                reward.update(request.rewardType(), request.rewardDescription());
-            }
-        } else if (reward != null) {
+
+        if (reward == null && request.rewardType() == null) {
+            return;
+        }
+
+        if (reward == null) {
+            reward = request.toPostRewardEntity(post);
+            postRewardRepository.save(reward);
+            return;
+        }
+
+        if (request.rewardType() == null) {
             postRewardRepository.delete(reward);
+            return;
         }
 
-        PostFeedback feedback = post.getFeedback();
-        feedback.update(request.feedbackMethod(), request.feedbackItems(), request.privacyItems());
+        RewardType rewardType = getValueOrDefault(request.rewardType(), reward.getRewardType());
+        String rewardDescription = getValueOrDefault(request.rewardDescription(), reward.getRewardDescription());
 
-        PostContent content = post.getPostContent();
-        // 이미지 파일들 업로드 처리
+        reward.update(rewardType, rewardDescription);
+    }
+
+    private void updateFeedback(PostUpdateRequest request, PostFeedback feedback) {
+        String feedbackMethod = getValueOrDefault(request.feedbackMethod(), feedback.getFeedbackMethod());
+        List<String> feedbackItems = getValueOrDefault(request.feedbackItems(), feedback.getFeedbackItems());
+        Set<PrivacyItem> privacyItems = getValueOrDefault(request.privacyItems(), feedback.getPrivacyItems());
+
+        feedback.update(feedbackMethod, feedbackItems, privacyItems);
+    }
+
+    private void updateContent(PostUpdateRequest request, PostContent content, List<MultipartFile> imageFiles) {
         List<String> uploadedImageUrls = uploadImagesIfPresent(imageFiles);
-        List<String> finalMediaUrls = new ArrayList<>();
-        
-        if (!uploadedImageUrls.isEmpty()) {
-            finalMediaUrls = uploadedImageUrls;
-        } else if (request.mediaUrl() != null) {
-            finalMediaUrls.add(request.mediaUrl());
-        } else {
-            // 기존 이미지 유지
-            finalMediaUrls = content.getMediaUrls();
+        List<String> finalMediaUrls = determineMediaUrls(uploadedImageUrls, request.mediaUrl(), content.getMediaUrls());
+
+        String participationMethod = getValueOrDefault(request.participationMethod(), content.getParticipationMethod());
+        String storyGuide = getValueOrDefault(request.storyGuide(), content.getStoryGuide());
+
+        content.update(participationMethod, storyGuide, finalMediaUrls);
+    }
+
+    private List<String> determineMediaUrls(List<String> uploadedUrls, String requestUrl, List<String> existingUrls) {
+        if (!uploadedUrls.isEmpty()) {
+            return uploadedUrls;
         }
-        
-        content.update(request.participationMethod(), request.storyGuide(), finalMediaUrls);
+        if (requestUrl != null) {
+            return List.of(requestUrl);
+        }
+        return existingUrls;
+    }
+
+    private <T> T getValueOrDefault(T newValue, T defaultValue) {
+        return newValue != null ? newValue : defaultValue;
     }
 
     private void validatePostForPublishing(Post post) {
