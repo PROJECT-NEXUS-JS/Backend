@@ -31,16 +31,15 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String title;
 
-    @Column(name = "service_summary", nullable = false)
+    @Column(name = "service_summary")
     private String serviceSummary;
 
-    @Column(name = "creator_introduction", nullable = false)
+    @Column(name = "creator_introduction")
     private String creatorIntroduction;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "thumbnail_url")
@@ -65,7 +64,6 @@ public class Post {
     private Set<GenreCategory> genreCategories = new HashSet<>();
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PostStatus status;
 
     @Column(name = "qna_Method")

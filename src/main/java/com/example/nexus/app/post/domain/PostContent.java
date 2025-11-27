@@ -20,7 +20,7 @@ public class PostContent {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(name = "participation_method", nullable = false)
+    @Column(name = "participation_method")
     private String participationMethod;
 
     @Column(name = "story_guide", columnDefinition = "TEXT")
