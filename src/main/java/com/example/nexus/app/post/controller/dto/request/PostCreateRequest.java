@@ -56,6 +56,8 @@ public record PostCreateRequest(
         String durationTime,
 
         @Schema(description = "최대 참여자 수", example = "10")
+        @Min(value = 1, message = "참여자는 최소 1명 이상이어야 합니다.")
+        @Max(value = 1000000, message = "참여자는 최대 1,000,000명까지 가능합니다.")
         Integer maxParticipants,
 
         @Schema(description = "성별 요구사항", example = "무관")
@@ -95,6 +97,8 @@ public record PostCreateRequest(
         String mediaUrl,
 
         @Schema(description = "테스트 제작 팀원 수 (제작자 본인 포함)", example = "4")
+        @Min(value = 1, message = "팀원은 최소 1명 이상이어야 합니다.")
+        @Max(value = 1000000, message = "팀원은 최대 1,000,000명까지 입력 가능합니다.")
         Integer teamMemberCount
 ) {
     public Post toPostEntity(PostStatus status) {
