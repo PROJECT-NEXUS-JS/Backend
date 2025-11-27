@@ -94,8 +94,15 @@ public class PostService {
         boolean wasDraft = post.isDraft();
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
-                request.description(), newThumbnailUrl, request.qnaMethod(), request.teamMemberCount());
+        String title = getValueOrDefault(request.title(), post.getTitle());
+        String serviceSummary = getValueOrDefault(request.serviceSummary(), post.getServiceSummary());
+        String creatorIntroduction = getValueOrDefault(request.creatorIntroduction(), post.getCreatorIntroduction());
+        String description = getValueOrDefault(request.description(), post.getDescription());
+        String qnaMethod = getValueOrDefault(request.qnaMethod(), post.getQnaMethod());
+        Integer teamMemberCount = getValueOrDefault(request.teamMemberCount(), post.getTeamMemberCount());
+
+        post.updateBasicInfo(title, serviceSummary, creatorIntroduction, description,
+                newThumbnailUrl, qnaMethod, teamMemberCount);
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
@@ -187,8 +194,15 @@ public class PostService {
         validateOwnership(post, userDetails.getUserId());
 
         String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        post.updateBasicInfo(request.title(), request.serviceSummary(), request.creatorIntroduction(),
-                request.description(), newThumbnailUrl, request.qnaMethod(),request.teamMemberCount());
+        String title = getValueOrDefault(request.title(), post.getTitle());
+        String serviceSummary = getValueOrDefault(request.serviceSummary(), post.getServiceSummary());
+        String creatorIntroduction = getValueOrDefault(request.creatorIntroduction(), post.getCreatorIntroduction());
+        String description = getValueOrDefault(request.description(), post.getDescription());
+        String qnaMethod = getValueOrDefault(request.qnaMethod(), post.getQnaMethod());
+        Integer teamMemberCount = getValueOrDefault(request.teamMemberCount(), post.getTeamMemberCount());
+
+        post.updateBasicInfo(title, serviceSummary, creatorIntroduction, description,
+                newThumbnailUrl, qnaMethod, teamMemberCount);
         post.updateMainCategories(request.mainCategory());
         post.updatePlatformCategories(request.platformCategory());
         post.updateGenreCategories(request.genreCategories());
