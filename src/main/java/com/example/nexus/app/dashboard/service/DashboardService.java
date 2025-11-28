@@ -9,6 +9,9 @@ import com.example.nexus.app.dashboard.controller.dto.response.PostStatusRespons
 import com.example.nexus.app.dashboard.controller.dto.response.RecentMessageResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.RecentReviewResponse;
 import com.example.nexus.app.dashboard.controller.dto.response.WaitingParticipantResponse;
+import com.example.nexus.app.dashboard.service.dto.BarChartStatsDto;
+import com.example.nexus.app.dashboard.service.dto.DashboardStatsDto;
+import com.example.nexus.app.dashboard.service.dto.PieChartStatsDto;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.message.domain.Message;
@@ -47,6 +50,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class DashboardService {
 
     private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
+    private static final String PARTICIPATION_STATUS_PENDING = "대기";
+    private static final String PARTICIPATION_STATUS_APPROVED = "승인";
+    private static final String PARTICIPATION_STATUS_COMPLETED = "완료";
+    private static final String REWARD_STATUS_PENDING = "지급대기";
+    private static final String REWARD_STATUS_PAID = "지급완료";
+    private static final String CHART_TITLE_PARTICIPATION = "참여 상태";
+    private static final String CHART_TITLE_REWARD = "리워드 상태";
+    private static final int WEEKLY_CHART_DAYS = 7;
 
     private final PostRepository postRepository;
     private final ParticipationRepository participationRepository;
@@ -61,14 +72,21 @@ public class DashboardService {
     public DashboardStatsResponse getDashboardStats(Long userId, Long postId) {
         validatePostOwnership(userId, postId);
 
+        LocalDateTime yesterday = getYesterdayDateTime();
+        DashboardStatsDto stats = extractDashboardStats(postId, yesterday);
+
+        Long totalViews = viewCountService.getTotalViewCount(postId);
+        Long yesterdayViews = viewCountService.getYesterdayViewCount(postId);
+        Long unreadMessages = getUnreadMessagesCount(postId, userId);
+
         return DashboardStatsResponse.of(
-                getTotalLikes(postId), getYesterdayTotalLikes(postId),
-                getTotalPendingApplications(postId), getYesterdayTotalPendingApplications(postId),
-                getTotalApprovedParticipants(postId), getYesterdayTotalApprovedParticipants(postId),
-                getTotalReviews(postId), getYesterdayTotalReviews(postId),
-                getTotalViews(postId), getYesterdayTotalViews(postId),
-                getTotalPendingRewards(postId), getYesterdayTotalPendingRewards(postId),
-                getTotalUnreadMessages(postId, userId)
+                stats.totalLikes(), stats.yesterdayLikes(),
+                stats.totalPendingApplications(), stats.yesterdayPendingApplications(),
+                stats.totalApprovedParticipants(), stats.yesterdayApprovedParticipants(),
+                stats.totalReviews(), stats.yesterdayReviews(),
+                totalViews, yesterdayViews,
+                stats.totalPendingRewards(), stats.yesterdayPendingRewards(),
+                unreadMessages
         );
     }
 
@@ -138,84 +156,39 @@ public class DashboardService {
     public BarChartResponse getBarChartData(Long userId, Long postId) {
         validatePostOwnership(userId, postId);
 
+        BarChartStatsDto stats = extractBarChartStats(postId);
+        Long totalViews = viewCountService.getTotalViewCount(postId);
+
         return BarChartResponse.of(
-                getTotalViews(postId),
-                getTotalLikes(postId),
-                getTotalPendingApplications(postId),
-                getTotalApprovedParticipants(postId),
-                getTotalReviews(postId)
+                totalViews,
+                stats.totalLikes(),
+                stats.totalPendingApplications(),
+                stats.totalApprovedParticipants(),
+                stats.totalReviews()
         );
     }
 
     public PieChartResponse getPieChartData(Long userId, Long postId) {
         validatePostOwnership(userId, postId);
 
-        // 참여 상태별 통계
-        Long pendingCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
-        Long approvedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
-        Long completedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.COMPLETED);
+        PieChartStatsDto stats = extractPieChartStats(postId);
 
-        // 리워드 상태별 통계
-        Long pendingRewards = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PENDING);
-        Long paidRewards = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PAID);
-
-        // 상태별 차트 데이터
-        List<PieChartResponse.PieChartItem> statusItems = List.of(
-                new PieChartResponse.PieChartItem("대기", pendingCount),
-                new PieChartResponse.PieChartItem("승인", approvedCount),
-                new PieChartResponse.PieChartItem("완료", completedCount)
-        );
-
-        // 리워드별 차트 데이터
-        List<PieChartResponse.PieChartItem> rewardItems = List.of(
-                new PieChartResponse.PieChartItem("지급대기", pendingRewards != null ? pendingRewards : 0L),
-                new PieChartResponse.PieChartItem("지급완료", paidRewards != null ? paidRewards : 0L)
-        );
-
-        PieChartResponse.PieChartData statusChart = new PieChartResponse.PieChartData("참여 상태", statusItems);
-        PieChartResponse.PieChartData rewardChart = new PieChartResponse.PieChartData("리워드 상태", rewardItems);
+        PieChartResponse.PieChartData statusChart = createStatusChart(stats);
+        PieChartResponse.PieChartData rewardChart = createRewardChart(stats);
 
         return PieChartResponse.of(statusChart, rewardChart);
     }
 
     public LineChartResponse getLineChartData(Long userId, Long postId) {
         validatePostOwnership(userId, postId);
-        Post post = getPost(postId);
+
+        List<LocalDate> labels = generateWeeklyLabels();
+        LocalDateTime startDate = getWeekStartDate();
+        LocalDateTime endDate = getWeekEndDate();
 
         List<Long> viewsData = viewCountService.getWeeklyViewCounts(postId);
-
-        List<LocalDate> labels = new ArrayList<>();
-        LocalDate today = LocalDate.now(KOREA_ZONE_ID);
-        LocalDateTime startDate = today.minusDays(6).atStartOfDay();
-        LocalDateTime endDate = today.plusDays(1).atStartOfDay();
-
-        for (int i = 6; i >= 0 ; i--) {
-            labels.add(today.minusDays(i));
-        }
-
-        // 한 번의 쿼리로 7일치 데이터 조회
-        List<Object[]> likesRaw = postLikeRepository.countByPostIdGroupByDate(postId, startDate, endDate);
-        List<Object[]> applicationsRaw = participationRepository.countByPostIdAndStatusGroupByDate(postId, ParticipationStatus.PENDING, startDate, endDate);
-
-        Map<LocalDate, Long> likesMap = likesRaw.stream()
-                .collect(Collectors.toMap(
-                        arr -> ((java.sql.Date)arr[0]).toLocalDate(),
-                        arr -> (Long) arr[1]
-                ));
-        Map<LocalDate, Long> applicationsMap = applicationsRaw.stream()
-                .collect(Collectors.toMap(
-                        arr -> ((java.sql.Date) arr[0]).toLocalDate(),
-                        arr -> (Long) arr[1]
-                ));
-
-        // 7일치 데이터 생성 (없는 날은 0)
-        List<Long> likesData = labels.stream()
-                .map(date -> likesMap.getOrDefault(date, 0L))
-                .toList();
-
-        List<Long> applicationsData = labels.stream()
-                .map(date -> applicationsMap.getOrDefault(date, 0L))
-                .toList();
+        List<Long> likesData = getWeeklyLikesData(postId, labels, startDate, endDate);
+        List<Long> applicationsData = getWeeklyApplicationsData(postId, labels, startDate, endDate);
 
         return LineChartResponse.of(labels, likesData, applicationsData, viewsData);
     }
@@ -243,75 +216,144 @@ public class DashboardService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
     }
 
-    // 총계 메서드
-    private Long getTotalLikes(Long postId) {
-        return postLikeRepository.countByPostId(postId);
+    private LocalDateTime getYesterdayDateTime() {
+        return LocalDate.now(KOREA_ZONE_ID).atStartOfDay();
     }
 
-    private Long getTotalPendingApplications(Long postId) {
-        return participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
+    private DashboardStatsDto extractDashboardStats(Long postId, LocalDateTime yesterday) {
+        List<Object[]> resultList = postRepository.getDashboardStatsByPostId(postId, yesterday);
+
+        if (resultList.isEmpty()) {
+            return new DashboardStatsDto(0L, 0L, 0L, 0L,
+                    0L, 0L, 0L, 0L,
+                    0L, 0L);
+        }
+
+        Object[] result = resultList.get(0);
+
+        return new DashboardStatsDto(
+                extractLongValue(result[0]),
+                extractLongValue(result[1]),
+                extractLongValue(result[2]),
+                extractLongValue(result[3]),
+                extractLongValue(result[4]),
+                extractLongValue(result[5]),
+                extractLongValue(result[6]),
+                extractLongValue(result[7]),
+                extractLongValue(result[8]),
+                extractLongValue(result[9])
+        );
     }
 
-    private Long getTotalApprovedParticipants(Long postId) {
-        return participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
+    private Long extractLongValue(Object value) {
+        return value != null ? ((Number) value).longValue() : 0L;
     }
 
-    private Long getTotalReviews(Long postId) {
-        return reviewRepository.countByPostId(postId);
-    }
-
-    private Long getTotalViews(Long postId) {
-        Post post = getPost(postId);
-        return viewCountService.getTotalViewCount(postId);
-    }
-
-    private Long getTotalUnreadMessages(Long postId, Long userId) {
+    private Long getUnreadMessagesCount(Long postId, Long userId) {
         Long count = messageRepository.countUnreadMessagesByPostId(postId, userId);
         return count != null ? count : 0L;
     }
 
-    private Long getYesterdayTotalLikes(Long postId) {
-        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
-        return postLikeRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
-    }
+    private PieChartStatsDto extractPieChartStats(Long postId) {
+        List<Object[]> resultList = participationRepository.getPieChartStatsByPostId(postId);
 
-    private Long getYesterdayTotalPendingApplications(Long postId) {
-        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
-        return participationRepository.countByPostIdAndStatusAndAppliedAtBefore(postId, ParticipationStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
-    }
-
-    private Long getYesterdayTotalApprovedParticipants(Long postId) {
-        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
-        return participationRepository.countByPostIdAndStatusAndApprovedAtBefore(postId, ParticipationStatus.APPROVED, yesterday.plusDays(1).atStartOfDay());
-    }
-
-    private Long getYesterdayTotalReviews(Long postId) {
-        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
-        return reviewRepository.countByPostIdAndCreatedAtBefore(postId, yesterday.plusDays(1).atStartOfDay());
-    }
-
-    private Long getYesterdayTotalViews(Long postId) {
-        return viewCountService.getYesterdayViewCount(postId);
-    }
-
-    private Long getTotalPendingRewards(Long postId) {
-        Long count = participantRewardRepository.countByPostIdAndRewardStatus(postId, RewardStatus.PENDING);
-        if (count == null) {
-            return 0L;
+        if (resultList.isEmpty()) {
+            return new PieChartStatsDto(0L, 0L, 0L, 0L, 0L);
         }
 
-        return count;
+        Object[] result = resultList.get(0);  // 첫 번째 행 가져오기
+
+        return new PieChartStatsDto(
+                extractLongValue(result[0]),
+                extractLongValue(result[1]),
+                extractLongValue(result[2]),
+                extractLongValue(result[3]),
+                extractLongValue(result[4])
+        );
     }
 
-    private Long getYesterdayTotalPendingRewards(Long postId) {
-        LocalDate yesterday = LocalDate.now(KOREA_ZONE_ID).minusDays(1);
-        Long count = participantRewardRepository.countByPostIdAndRewardStatusAndCreatedAtBefore(postId,
-                RewardStatus.PENDING, yesterday.plusDays(1).atStartOfDay());
+    private PieChartResponse.PieChartData createStatusChart(PieChartStatsDto stats) {
+        List<PieChartResponse.PieChartItem> items = List.of(
+                new PieChartResponse.PieChartItem(PARTICIPATION_STATUS_PENDING, stats.pendingCount()),
+                new PieChartResponse.PieChartItem(PARTICIPATION_STATUS_APPROVED, stats.approvedCount()),
+                new PieChartResponse.PieChartItem(PARTICIPATION_STATUS_COMPLETED, stats.completedCount())
+        );
+        return new PieChartResponse.PieChartData(CHART_TITLE_PARTICIPATION, items);
+    }
 
-        if (count == null) {
-            return 0L;
+    private PieChartResponse.PieChartData createRewardChart(PieChartStatsDto stats) {
+        List<PieChartResponse.PieChartItem> items = List.of(
+                new PieChartResponse.PieChartItem(REWARD_STATUS_PENDING, stats.pendingRewards()),
+                new PieChartResponse.PieChartItem(REWARD_STATUS_PAID, stats.paidRewards())
+        );
+        return new PieChartResponse.PieChartData(CHART_TITLE_REWARD, items);
+    }
+
+    private BarChartStatsDto extractBarChartStats(Long postId) {
+        List<Object[]> resultList = postRepository.getBarChartStatsByPostId(postId);
+
+        if (resultList.isEmpty()) {
+            return new BarChartStatsDto(0L, 0L, 0L, 0L);
         }
 
-        return count;
+        Object[] result = resultList.get(0);
+
+        return new BarChartStatsDto(
+                extractLongValue(result[0]),
+                extractLongValue(result[1]),
+                extractLongValue(result[2]),
+                extractLongValue(result[3])
+        );
+    }
+
+    private List<LocalDate> generateWeeklyLabels() {
+        LocalDate today = LocalDate.now(KOREA_ZONE_ID);
+        List<LocalDate> labels = new ArrayList<>();
+        for (int i = WEEKLY_CHART_DAYS - 1; i >= 0; i--) {
+            labels.add(today.minusDays(i));
+        }
+        return labels;
+    }
+
+    private LocalDateTime getWeekStartDate() {
+        return LocalDate.now(KOREA_ZONE_ID)
+                .minusDays(WEEKLY_CHART_DAYS - 1)
+                .atStartOfDay();
+    }
+
+    private LocalDateTime getWeekEndDate() {
+        return LocalDate.now(KOREA_ZONE_ID)
+                .plusDays(1)
+                .atStartOfDay();
+    }
+
+    private List<Long> getWeeklyLikesData(Long postId, List<LocalDate> labels,
+                                          LocalDateTime startDate, LocalDateTime endDate) {
+        List<Object[]> likesRaw = postLikeRepository
+                .countByPostIdGroupByDate(postId, startDate, endDate);
+        Map<LocalDate, Long> likesMap = convertToDateMap(likesRaw);
+        return mapToDataList(labels, likesMap);
+    }
+
+    private List<Long> getWeeklyApplicationsData(Long postId, List<LocalDate> labels,
+                                                 LocalDateTime startDate, LocalDateTime endDate) {
+        List<Object[]> applicationsRaw = participationRepository
+                .countByPostIdAndStatusGroupByDate(postId, ParticipationStatus.PENDING, startDate, endDate);
+        Map<LocalDate, Long> applicationsMap = convertToDateMap(applicationsRaw);
+        return mapToDataList(labels, applicationsMap);
+    }
+
+    private Map<LocalDate, Long> convertToDateMap(List<Object[]> rawData) {
+        return rawData.stream()
+                .collect(Collectors.toMap(
+                        arr -> ((java.sql.Date) arr[0]).toLocalDate(),
+                        arr -> (Long) arr[1]
+                ));
+    }
+
+    private List<Long> mapToDataList(List<LocalDate> labels, Map<LocalDate, Long> dataMap) {
+        return labels.stream()
+                .map(date -> dataMap.getOrDefault(date, 0L))
+                .toList();
     }
 }
