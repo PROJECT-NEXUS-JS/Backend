@@ -180,13 +180,19 @@ public class FeedbackService {
     public MyFeedbackStatusResponse getMyFeedbackStatus(Long postId, Long userId) {
         log.info("[상태조회] postId={}, userId={}", postId, userId);
         
+        // participationId 조회
+        Participation participation = participationRepository.findByUserIdAndPostId(userId, postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PARTICIPATION_NOT_FOUND_FEEDBACK));
+        Long participationId = participation.getId();
+        log.info("[상태조회] participationId={} 조회 완료", participationId);
+        
         var feedback = feedbackRepository.findByPostIdAndUserId(postId, userId);
         if (feedback.isPresent()) {
             log.info("[상태조회] 제출된 피드백 존재: feedbackId={}", feedback.get().getId());
             Feedback feedbackEntity = feedback.get();
             feedbackEntity.getBugTypes().size();
             feedbackEntity.getScreenshotUrls().size();
-            return MyFeedbackStatusResponse.submitted(FeedbackResponse.from(feedbackEntity));
+            return MyFeedbackStatusResponse.submitted(participationId, FeedbackResponse.from(feedbackEntity));
         }
 
         var draft = feedbackDraftRepository.findByPostIdAndUserId(postId, userId);
@@ -196,11 +202,11 @@ public class FeedbackService {
             // ElementCollection Lazy loading 강제 초기화
             draftEntity.getBugTypes().size();
             draftEntity.getScreenshotUrls().size();
-            return MyFeedbackStatusResponse.draft(FeedbackDraftResponse.from(draftEntity));
+            return MyFeedbackStatusResponse.draft(participationId, FeedbackDraftResponse.from(draftEntity));
         }
 
-        log.info("[상태조회] 피드백 없음");
-        return MyFeedbackStatusResponse.notStarted();
+        log.info("[상태조회] 피드백 없음, participationId={}", participationId);
+        return MyFeedbackStatusResponse.notStarted(participationId);
     }
 
     @Transactional(readOnly = true)
