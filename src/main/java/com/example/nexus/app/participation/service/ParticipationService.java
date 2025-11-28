@@ -15,6 +15,7 @@ import com.example.nexus.app.participation.controller.dto.response.Participation
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
+import com.example.nexus.app.participation.service.dto.ParticipationStatsDto;
 import com.example.nexus.app.post.domain.Post;
 import com.example.nexus.app.post.domain.PrivacyItem;
 import com.example.nexus.app.post.repository.PostRepository;
@@ -232,20 +233,14 @@ public class ParticipationService {
         Post post = getPost(postId);
         validatePostOwnership(post, userId);
 
-        Long pendingCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.PENDING);
-        Long approvedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.APPROVED);
-        Long completedCount = participationRepository.countByPostIdAndStatusAndIsPaid(
-                postId, ParticipationStatus.COMPLETED, false);
-        Long paidCount = participationRepository.countByPostIdAndStatusAndIsPaid(
-                postId, ParticipationStatus.COMPLETED, true);
-        Long rejectedCount = participationRepository.countByPostIdAndStatus(postId, ParticipationStatus.REJECTED);
+        ParticipationStatsDto stats = extractParticipationStats(postId);
 
         return ParticipationStatisticsResponse.of(
-                pendingCount,
-                approvedCount,
-                completedCount,
-                paidCount,
-                rejectedCount
+                stats.pendingCount(),
+                stats.approvedCount(),
+                stats.completedCount(),
+                stats.paidCount(),
+                stats.rejectedCount()
         );
     }
 
@@ -295,27 +290,8 @@ public class ParticipationService {
     }
 
     private Page<ParticipantListResponse> mapToParticipantListResponse(Page<Participation> participations) {
-        List<Long> participationIds = extractParticipationIds(participations);
-        Map<Long, ParticipantReward> rewardMap = createRewardMap(participationIds);
-
         return participations.map(participation ->
-                ParticipantListResponse.from(participation, rewardMap.get(participation.getId())));
-    }
-
-    private List<Long> extractParticipationIds(Page<Participation> participations) {
-        return participations.getContent()
-                .stream()
-                .map(Participation::getId)
-                .toList();
-    }
-
-    private Map<Long, ParticipantReward> createRewardMap(List<Long> participationIds) {
-        return participantRewardRepository.findByParticipationIds(participationIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        reward -> reward.getParticipation().getId(),
-                        reward -> reward
-                ));
+                ParticipantListResponse.from(participation, participation.getParticipantReward()));
     }
 
     private User getUser(Long userId) {
@@ -389,5 +365,27 @@ public class ParticipationService {
         if (participation.isTestCompleted()) {
             throw new GeneralException(ErrorStatus.PARTICIPATION_ALREADY_TEST_COMPLETED);
         }
+    }
+
+    private ParticipationStatsDto extractParticipationStats(Long postId) {
+        List<Object[]> resultList = participationRepository.getParticipationStatsByPostId(postId);
+
+        if (resultList.isEmpty()) {
+            return new ParticipationStatsDto(0L, 0L, 0L, 0L, 0L);
+        }
+
+        Object[] result = resultList.get(0);
+
+        return new ParticipationStatsDto(
+                extractLongValue(result[0]),
+                extractLongValue(result[1]),
+                extractLongValue(result[2]),
+                extractLongValue(result[3]),
+                extractLongValue(result[4])
+        );
+    }
+
+    private Long extractLongValue(Object value) {
+        return value != null ? ((Number) value).longValue() : 0L;
     }
 }

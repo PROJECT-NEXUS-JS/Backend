@@ -158,4 +158,17 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
                     "WHERE p.post_id = :postId",
             nativeQuery = true)
     List<Object[]> getPieChartStatsByPostId(@Param("postId") Long postId);
+
+    @Query(value =
+            "SELECT " +
+                    "COALESCE(COUNT(CASE WHEN status = 'PENDING' THEN 1 END), 0) as pendingCount, " +
+                    "COALESCE(COUNT(CASE WHEN status = 'APPROVED' THEN 1 END), 0) as approvedCount, " +
+                    "COALESCE(COUNT(CASE WHEN status = 'COMPLETED' AND is_paid = false THEN 1 END), 0) as completedCount, "
+                    +
+                    "COALESCE(COUNT(CASE WHEN status = 'COMPLETED' AND is_paid = true THEN 1 END), 0) as paidCount, " +
+                    "COALESCE(COUNT(CASE WHEN status = 'REJECTED' THEN 1 END), 0) as rejectedCount " +
+                    "FROM participations " +
+                    "WHERE post_id = :postId",
+            nativeQuery = true)
+    List<Object[]> getParticipationStatsByPostId(@Param("postId") Long postId);
 }

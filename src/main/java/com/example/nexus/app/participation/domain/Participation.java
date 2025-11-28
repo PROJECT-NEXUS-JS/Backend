@@ -4,6 +4,7 @@ import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.participation.controller.dto.ParticipationApplicationDto;
 import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.reward.domain.ParticipantReward;
 import com.example.nexus.app.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -56,6 +58,9 @@ public class Participation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToOne(mappedBy = "participation", fetch = FetchType.LAZY)
+    private ParticipantReward participantReward;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

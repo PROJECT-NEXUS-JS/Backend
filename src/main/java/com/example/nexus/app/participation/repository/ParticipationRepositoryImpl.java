@@ -1,6 +1,7 @@
 package com.example.nexus.app.participation.repository;
 
 import static com.example.nexus.app.participation.domain.QParticipation.participation;
+import static com.example.nexus.app.reward.domain.QParticipantReward.participantReward;
 import static com.example.nexus.app.user.domain.QUser.user;
 
 import com.example.nexus.app.participation.domain.Participation;
@@ -34,6 +35,7 @@ public class ParticipationRepositoryImpl implements ParticipationRepositoryCusto
         List<Participation> participations = queryFactory
                 .selectFrom(participation)
                 .leftJoin(participation.user, user).fetchJoin()
+                .leftJoin(participation.participantReward, participantReward).fetchJoin()
                 .where(
                         participation.post.id.eq(postId),
                         statusCondition(status),
