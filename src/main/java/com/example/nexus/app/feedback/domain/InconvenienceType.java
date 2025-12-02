@@ -13,7 +13,7 @@ public enum InconvenienceType {
     SPEED("속도"),
     FUNCTION("기능 오류"),
     TEXT_GUIDE("텍스트/가이드"),
-    LOADING("로딩"),
+    GUIDE("가이드"),
     OTHER("기타");
 
     private final String description;
