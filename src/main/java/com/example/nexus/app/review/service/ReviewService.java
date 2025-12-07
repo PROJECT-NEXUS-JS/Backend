@@ -278,10 +278,6 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public List<ReviewReplyResponse> getReviewReplies(Long reviewId) {
-        // 리뷰 존재 확인
-        reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
-
         return reviewReplyRepository
                 .findByReviewIdOrderByCreatedAtAsc(reviewId)
                 .stream()
