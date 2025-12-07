@@ -47,4 +47,5 @@ volumes:
 
 networks:
   monitoring:
-    driver: bridge
+    external: true
+    name: betalab-network
