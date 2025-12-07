@@ -57,6 +57,9 @@ dependencies {
     // Thymeleaf - HTML 템플릿 엔진
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.22'
+    // Prometheus & Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
