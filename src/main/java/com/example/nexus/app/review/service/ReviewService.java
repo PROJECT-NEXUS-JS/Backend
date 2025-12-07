@@ -301,10 +301,8 @@ public class ReviewService {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
 
-        User currentUser = userRepository.findById(authUserId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
-
-        reply.update(request.getContent(), currentUser);
+        // 권한 체크를 통과했으므로 reply.getCreatedBy()를 재사용 (이미 로드됨)
+        reply.update(request.getContent(), reply.getCreatedBy());
         return toReviewReplyResponse(reply);
     }
 
