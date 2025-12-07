@@ -3,13 +3,18 @@ package com.example.nexus.app.review.service;
 import com.example.nexus.app.badge.domain.BadgeConditionType;
 import com.example.nexus.app.badge.service.BadgeService;
 import com.example.nexus.app.review.domain.Review;
+import com.example.nexus.app.review.domain.ReviewReply;
 import com.example.nexus.app.review.dto.ReviewCreateRequest;
 import com.example.nexus.app.review.dto.ReviewResponse;
 import com.example.nexus.app.review.dto.ReviewUpdateRequest;
+import com.example.nexus.app.review.dto.ReviewReplyCreateRequest;
+import com.example.nexus.app.review.dto.ReviewReplyResponse;
+import com.example.nexus.app.review.dto.ReviewReplyUpdateRequest;
 import com.example.nexus.app.review.dto.WritableReviewResponse;
 import com.example.nexus.app.review.dto.WrittenReviewResponse;
 import com.example.nexus.app.review.dto.ReviewStatusResponse;
 import com.example.nexus.app.review.repository.ReviewRepository;
+import com.example.nexus.app.review.repository.ReviewReplyRepository;
 import com.example.nexus.app.participation.domain.Participation;
 import com.example.nexus.app.participation.domain.ParticipationStatus;
 import com.example.nexus.app.participation.repository.ParticipationRepository;
@@ -39,6 +44,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final ReviewReplyRepository reviewReplyRepository;
     private final ParticipationRepository participationRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -243,6 +249,91 @@ public class ReviewService {
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .writer(ReviewResponse.WriterInfo.builder()
+                        .id(createdBy.getId())
+                        .nickname(createdBy.getNickname() != null ? createdBy.getNickname() : "")
+                        .profileUrl(createdBy.getProfileUrl() != null ? createdBy.getProfileUrl() : "")
+                        .build())
+                .build();
+    }
+
+    @Transactional
+    public ReviewReplyResponse createReviewReply(ReviewReplyCreateRequest request, Long authUserId) {
+        User currentUser = userRepository.findById(authUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        // 리뷰 존재 확인
+        Review review = reviewRepository.findById(request.getReviewId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
+
+        ReviewReply reply = ReviewReply.builder()
+                .content(request.getContent())
+                .review(review)
+                .createdBy(currentUser)
+                .updatedBy(currentUser)
+                .build();
+        
+        ReviewReply savedReply = reviewReplyRepository.save(reply);
+        return toReviewReplyResponse(savedReply);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewReplyResponse> getReviewReplies(Long reviewId) {
+        // 리뷰 존재 확인
+        reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
+
+        return reviewReplyRepository
+                .findByReviewIdOrderByCreatedAtAsc(reviewId)
+                .stream()
+                .map(this::toReviewReplyResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewReplyResponse getReviewReply(Long replyId) {
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+        return toReviewReplyResponse(reply);
+    }
+
+    @Transactional
+    public ReviewReplyResponse updateReviewReply(Long replyId, ReviewReplyUpdateRequest request, Long authUserId) {
+        ReviewReply reply = reviewReplyRepository.findById(replyId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+
+        if (!reply.getCreatedBy().getId().equals(authUserId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
+        User currentUser = userRepository.findById(authUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        reply.update(request.getContent(), currentUser);
+        return toReviewReplyResponse(reply);
+    }
+
+    @Transactional
+    public void deleteReviewReply(Long replyId, Long authUserId) {
+        ReviewReply reply = reviewReplyRepository.findById(replyId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+
+        if (!reply.getCreatedBy().getId().equals(authUserId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
+        reviewReplyRepository.deleteById(replyId);
+    }
+
+    private ReviewReplyResponse toReviewReplyResponse(ReviewReply reply) {
+        User createdBy = reply.getCreatedBy();
+        
+        return ReviewReplyResponse.builder()
+                .id(reply.getId())
+                .reviewId(reply.getReview().getId())
+                .content(reply.getContent())
+                .createdAt(reply.getCreatedAt())
+                .updatedAt(reply.getUpdatedAt())
+                .writer(ReviewReplyResponse.WriterInfo.builder()
                         .id(createdBy.getId())
                         .nickname(createdBy.getNickname() != null ? createdBy.getNickname() : "")
                         .profileUrl(createdBy.getProfileUrl() != null ? createdBy.getProfileUrl() : "")
