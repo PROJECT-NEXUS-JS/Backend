@@ -257,12 +257,12 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewReplyResponse createReviewReply(ReviewReplyCreateRequest request, Long authUserId) {
+    public ReviewReplyResponse createReviewReply(Long reviewId, ReviewReplyCreateRequest request, Long authUserId) {
         User currentUser = userRepository.findById(authUserId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         // 리뷰 존재 확인
-        Review review = reviewRepository.findById(request.getReviewId())
+        Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
 
         ReviewReply reply = ReviewReply.builder()

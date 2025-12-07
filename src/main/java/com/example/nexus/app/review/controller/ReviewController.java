@@ -147,9 +147,7 @@ public class ReviewController {
         if (userDetails == null) {
             throw new GeneralException(ErrorStatus.UNAUTHORIZED);
         }
-        // request에 reviewId 설정
-        request.setReviewId(reviewId);
-        ReviewReplyResponse reply = reviewService.createReviewReply(request, userDetails.getUserId());
+        ReviewReplyResponse reply = reviewService.createReviewReply(reviewId, request, userDetails.getUserId());
         return ResponseEntity.status(201)
                 .body(ApiResponse.onSuccess(reply));
     }
