@@ -4,21 +4,11 @@ global:
   scrape_timeout: 10s       # 타임아웃 10초
 
 scrape_configs:
-  # 로컬 환경 모니터링
-  - job_name: 'betalab-local'
+  # AWS EC2 자기 자신 모니터링
+  - job_name: 'betalab-prod-self'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['host.docker.internal:8080']
-        labels:
-          environment: 'local'
-          instance: 'local-dev'
-          region: 'local'
-
-  # AWS EC2 운영 환경 모니터링
-  - job_name: 'betalab-prod'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['16.184.63.52:9091']  # 8080 → 9091로 변경
+      - targets: ['host.docker.internal:9091']
         labels:
           environment: 'production'
           instance: 'ec2-prod'
