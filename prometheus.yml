@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s      # 15초마다 메트릭 수집
+  evaluation_interval: 15s  # 15초마다 규칙 평가
+  scrape_timeout: 10s       # 타임아웃 10초
+
+scrape_configs:
+  # AWS EC2 자기 자신 모니터링
+  - job_name: 'betalab-prod-self'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['my-app:9091']
+        labels:
+          environment: 'production'
+          instance: 'ec2-prod'
+          region: 'ap-northeast-2'

@@ -41,3 +41,17 @@ jwt:
 sse:
   timeout: 50000  # 50초
   heartbeat: 25000  # 25초
+
+management:
+  server:
+    port: 9091
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      instance: 'ec2-prod'
