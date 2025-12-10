@@ -93,19 +93,38 @@ public class PostService {
         // Draft를 Active로 변경 전에 상태 확인
         boolean wasDraft = post.isDraft();
 
-        String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        String title = getValueOrDefault(request.title(), post.getTitle());
-        String serviceSummary = getValueOrDefault(request.serviceSummary(), post.getServiceSummary());
-        String creatorIntroduction = getValueOrDefault(request.creatorIntroduction(), post.getCreatorIntroduction());
-        String description = getValueOrDefault(request.description(), post.getDescription());
-        String qnaMethod = getValueOrDefault(request.qnaMethod(), post.getQnaMethod());
-        Integer teamMemberCount = getValueOrDefault(request.teamMemberCount(), post.getTeamMemberCount());
+        if (request.title() != null) {
+            post.updateTitle(request.title());
+        }
+        if (request.serviceSummary() != null) {
+            post.updateServiceSummary(request.serviceSummary());
+        }
+        if (request.creatorIntroduction() != null) {
+            post.updateCreatorIntroduction(request.creatorIntroduction());
+        }
+        if (request.description() != null) {
+            post.updateDescription(request.description());
+        }
+        if (request.qnaMethod() != null) {
+            post.updateQnaMethod(request.qnaMethod());
+        }
+        if (request.teamMemberCount() != null) {
+            post.updateTeamMemberCount(request.teamMemberCount());
+        }
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            String thumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
+            post.updateThumbnailUrl(thumbnailUrl);
+        }
 
-        post.updateBasicInfo(title, serviceSummary, creatorIntroduction, description,
-                newThumbnailUrl, qnaMethod, teamMemberCount);
-        post.updateMainCategories(request.mainCategory());
-        post.updatePlatformCategories(request.platformCategory());
-        post.updateGenreCategories(request.genreCategories());
+        if (request.mainCategory() != null) {
+            post.updateMainCategories(request.mainCategory());
+        }
+        if (request.platformCategory() != null) {
+            post.updatePlatformCategories(request.platformCategory());
+        }
+        if (request.genreCategories() != null) {
+            post.updateGenreCategories(request.genreCategories());
+        }
 
         updateRelatedEntitiesWithImage(request, post, imageFiles);
 
@@ -193,19 +212,38 @@ public class PostService {
         Post post = getPostWithDetail(postId);
         validateOwnership(post, userDetails.getUserId());
 
-        String newThumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, post.getThumbnailUrl());
-        String title = getValueOrDefault(request.title(), post.getTitle());
-        String serviceSummary = getValueOrDefault(request.serviceSummary(), post.getServiceSummary());
-        String creatorIntroduction = getValueOrDefault(request.creatorIntroduction(), post.getCreatorIntroduction());
-        String description = getValueOrDefault(request.description(), post.getDescription());
-        String qnaMethod = getValueOrDefault(request.qnaMethod(), post.getQnaMethod());
-        Integer teamMemberCount = getValueOrDefault(request.teamMemberCount(), post.getTeamMemberCount());
+        if (request.title() != null) {
+            post.updateTitle(request.title());
+        }
+        if (request.serviceSummary() != null) {
+            post.updateServiceSummary(request.serviceSummary());
+        }
+        if (request.creatorIntroduction() != null) {
+            post.updateCreatorIntroduction(request.creatorIntroduction());
+        }
+        if (request.description() != null) {
+            post.updateDescription(request.description());
+        }
+        if (request.qnaMethod() != null) {
+            post.updateQnaMethod(request.qnaMethod());
+        }
+        if (request.teamMemberCount() != null) {
+            post.updateTeamMemberCount(request.teamMemberCount());
+        }
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            String thumbnailUrl = s3UploadService.uploadFile(thumbnailFile);
+            post.updateThumbnailUrl(thumbnailUrl);
+        }
 
-        post.updateBasicInfo(title, serviceSummary, creatorIntroduction, description,
-                newThumbnailUrl, qnaMethod, teamMemberCount);
-        post.updateMainCategories(request.mainCategory());
-        post.updatePlatformCategories(request.platformCategory());
-        post.updateGenreCategories(request.genreCategories());
+        if (request.mainCategory() != null) {
+            post.updateMainCategories(request.mainCategory());
+        }
+        if (request.platformCategory() != null) {
+            post.updatePlatformCategories(request.platformCategory());
+        }
+        if (request.genreCategories() != null) {
+            post.updateGenreCategories(request.genreCategories());
+        }
 
         updateRelatedEntitiesWithImage(request, post, imageFiles);
     }
@@ -220,32 +258,59 @@ public class PostService {
     }
 
     private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, List<MultipartFile> imageFiles) {
-        PostSchedule schedule = request.toPostScheduleEntity(post);
+        PostSchedule schedule = PostSchedule.builder()
+                .post(post)
+                .startDate(request.startDate())
+                .endDate(request.endDate())
+                .recruitmentDeadline(request.recruitmentDeadline())
+                .durationTime(request.durationTime())
+                .build();
         postScheduleRepository.save(schedule);
 
-        PostRequirement requirement = request.toPostRequirementEntity(post);
+        PostRequirement requirement = PostRequirement.builder()
+                .post(post)
+                .maxParticipants(request.maxParticipants())
+                .genderRequirement(request.genderRequirement())
+                .ageMin(request.ageMin())
+                .ageMax(request.ageMax())
+                .additionalRequirements(request.additionalRequirements())
+                .build();
         postRequirementRepository.save(requirement);
 
         if (request.rewardType() != null) {
-            PostReward reward = request.toPostRewardEntity(post);
+            PostReward reward = PostReward.builder()
+                    .post(post)
+                    .rewardType(request.rewardType())
+                    .rewardDescription(request.rewardDescription())
+                    .build();
             postRewardRepository.save(reward);
         }
 
-        PostFeedback feedback = request.toPostFeedbackEntity(post);
+        PostFeedback feedback = PostFeedback.builder()
+                .post(post)
+                .feedbackMethod(request.feedbackMethod())
+                .feedbackItems(request.feedbackItems())
+                .privacyItems(request.privacyItems())
+                .privacyPurpose(request.privacyPurpose())
+                .build();
         postFeedbackRepository.save(feedback);
 
         // 이미지 파일들 업로드 처리
         List<String> uploadedImageUrls = uploadImagesIfPresent(imageFiles);
         List<String> finalMediaUrls = new ArrayList<>();
-        
+
         if (!uploadedImageUrls.isEmpty()) {
             finalMediaUrls = uploadedImageUrls;
         } else if (request.mediaUrl() != null) {
             finalMediaUrls.add(request.mediaUrl());
         }
-        
-        PostContent content = PostContent.create(post, request.participationMethod(), 
-                request.storyGuide(), finalMediaUrls);
+
+        PostContent content = PostContent.builder()
+                .post(post)
+                .participationMethod(request.participationMethod())
+                .storyGuide(request.storyGuide())
+                .mediaUrls(finalMediaUrls)
+                .build();
         postContentRepository.save(content);
     }
 
@@ -258,22 +323,44 @@ public class PostService {
     }
 
     private void updateSchedule(PostUpdateRequest request, PostSchedule schedule) {
-        LocalDateTime startDate = getValueOrDefault(request.startDate(), schedule.getStartDate());
-        LocalDateTime endDate = getValueOrDefault(request.endDate(), schedule.getEndDate());
-        LocalDateTime recruitmentDeadline = getValueOrDefault(request.recruitmentDeadline(), schedule.getRecruitmentDeadline());
-        String durationTime = getValueOrDefault(request.durationTime(), schedule.getDurationTime());
+        if (schedule == null) {
+            return;
+        }
 
-        schedule.update(startDate, endDate, recruitmentDeadline, durationTime);
+        if (request.startDate() != null) {
+            schedule.updateStartDate(request.startDate());
+        }
+        if (request.endDate() != null) {
+            schedule.updateEndDate(request.endDate());
+        }
+        if (request.recruitmentDeadline() != null) {
+            schedule.updateRecruitmentDeadline(request.recruitmentDeadline());
+        }
+        if (request.durationTime() != null) {
+            schedule.updateDurationTime(request.durationTime());
+        }
     }
 
     private void updateRequirement(PostUpdateRequest request, PostRequirement requirement) {
-        Integer maxParticipants = getValueOrDefault(request.maxParticipants(), requirement.getMaxParticipants());
-        String genderRequirement = getValueOrDefault(request.genderRequirement(), requirement.getGenderRequirement());
-        Integer ageMin = getValueOrDefault(request.ageMin(), requirement.getAgeMin());
-        Integer ageMax = getValueOrDefault(request.ageMax(), requirement.getAgeMax());
-        String additionalRequirements = getValueOrDefault(request.additionalRequirements(), requirement.getAdditionalRequirements());
+        if (requirement == null) {
+            return;
+        }
 
-        requirement.update(maxParticipants, genderRequirement, ageMin, ageMax, additionalRequirements);
+        if (request.maxParticipants() != null) {
+            requirement.updateMaxParticipants(request.maxParticipants());
+        }
+        if (request.genderRequirement() != null) {
+            requirement.updateGenderRequirement(request.genderRequirement());
+        }
+        if (request.ageMin() != null) {
+            requirement.updateAgeMin(request.ageMin());
+        }
+        if (request.ageMax() != null) {
+            requirement.updateAgeMax(request.ageMax());
+        }
+        if (request.additionalRequirements() != null) {
+            requirement.updateAdditionalRequirements(request.additionalRequirements());
+        }
     }
 
     private void updateReward(PostUpdateRequest request, Post post) {
@@ -284,7 +371,11 @@ public class PostService {
         }
 
         if (reward == null) {
-            reward = request.toPostRewardEntity(post);
+            reward = PostReward.builder()
+                    .post(post)
+                    .rewardType(request.rewardType())
+                    .rewardDescription(request.rewardDescription())
+                    .build();
             postRewardRepository.save(reward);
             return;
         }
@@ -294,44 +385,53 @@ public class PostService {
             return;
         }
 
-        RewardType rewardType = getValueOrDefault(request.rewardType(), reward.getRewardType());
-        String rewardDescription = getValueOrDefault(request.rewardDescription(), reward.getRewardDescription());
-
-        reward.update(rewardType, rewardDescription);
+        if (request.rewardType() != null) {
+            reward.updateRewardType(request.rewardType());
+        }
+        if (request.rewardDescription() != null) {
+            reward.updateRewardDescription(request.rewardDescription());
+        }
     }
 
     private void updateFeedback(PostUpdateRequest request, PostFeedback feedback) {
-        String feedbackMethod = getValueOrDefault(request.feedbackMethod(), feedback.getFeedbackMethod());
-        List<String> feedbackItems = getValueOrDefault(request.feedbackItems(), feedback.getFeedbackItems());
-        Set<PrivacyItem> privacyItems = getValueOrDefault(request.privacyItems(), feedback.getPrivacyItems());
-        String privacyPurpose = getValueOrDefault(request.privacyPurpose(), feedback.getPrivacyPurpose());
+        if (feedback == null) {
+            return;
+        }
 
-        feedback.update(feedbackMethod, feedbackItems, privacyItems, privacyPurpose);
+        if (request.feedbackMethod() != null) {
+            feedback.updateFeedbackMethod(request.feedbackMethod());
+        }
+        if (request.feedbackItems() != null) {
+            feedback.updateFeedbackItems(request.feedbackItems());
+        }
+        if (request.privacyItems() != null) {
+            feedback.updatePrivacyItems(request.privacyItems());
+        }
+        if (request.privacyPurpose() != null) {
+            feedback.updatePrivacyPurpose(request.privacyPurpose());
+        }
     }
 
     private void updateContent(PostUpdateRequest request, PostContent content, List<MultipartFile> imageFiles) {
+        if (content == null) {
+            return;
+        }
+
+        if (request.participationMethod() != null) {
+            content.updateParticipationMethod(request.participationMethod());
+        }
+        if (request.storyGuide() != null) {
+            content.updateStoryGuide(request.storyGuide());
+        }
+
         List<String> uploadedImageUrls = uploadImagesIfPresent(imageFiles);
-        List<String> finalMediaUrls = determineMediaUrls(uploadedImageUrls, request.mediaUrl(), content.getMediaUrls());
-
-        String participationMethod = getValueOrDefault(request.participationMethod(), content.getParticipationMethod());
-        String storyGuide = getValueOrDefault(request.storyGuide(), content.getStoryGuide());
-
-        content.update(participationMethod, storyGuide, finalMediaUrls);
-    }
-
-    private List<String> determineMediaUrls(List<String> uploadedUrls, String requestUrl, List<String> existingUrls) {
-        if (!uploadedUrls.isEmpty()) {
-            return uploadedUrls;
+        if (!uploadedImageUrls.isEmpty()) {
+            content.updateMediaUrls(uploadedImageUrls);
+        } else if (request.mediaUrl() != null) {
+            content.updateMediaUrls(List.of(request.mediaUrl()));
         }
-        if (requestUrl != null) {
-            return List.of(requestUrl);
-        }
-        return existingUrls;
     }
 
-    private <T> T getValueOrDefault(T newValue, T defaultValue) {
-        return newValue != null ? newValue : defaultValue;
-    }
 
     private void validatePostForPublishing(Post post) {
         if (post.getSchedule() == null) {
@@ -403,14 +503,13 @@ public class PostService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
     }
 
-    private Post createPostWithThumbnailAndImage(PostCreateRequest request, MultipartFile thumbnailFile, 
+    private Post createPostWithThumbnailAndImage(PostCreateRequest request, MultipartFile thumbnailFile,
                                                  List<MultipartFile> imageFiles, PostStatus status) {
         String thumbnailUrl = uploadThumbnailIfPresent(thumbnailFile, null);
         Post post = (status == PostStatus.DRAFT) ? request.toPostEntity(PostStatus.DRAFT) : request.toPostEntity();
 
         if (thumbnailUrl != null) {
-            post.updateBasicInfo(post.getTitle(), post.getServiceSummary(),
-                    post.getCreatorIntroduction(), post.getDescription(), thumbnailUrl, post.getQnaMethod(), post.getTeamMemberCount());
+            post.updateThumbnailUrl(thumbnailUrl);
         }
         return post;
     }

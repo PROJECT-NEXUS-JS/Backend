@@ -95,6 +95,10 @@ public record PostUpdateRequest(
         Integer teamMemberCount
 ) {
     public PostReward toPostRewardEntity(Post post) {
-        return PostReward.create(post, rewardType, rewardDescription);
+        return PostReward.builder()
+                .post(post)
+                .rewardType(rewardType)
+                .rewardDescription(rewardDescription)
+                .build();
     }
 }

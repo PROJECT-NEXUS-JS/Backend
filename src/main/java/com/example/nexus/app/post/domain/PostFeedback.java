@@ -1,6 +1,7 @@
 package com.example.nexus.app.post.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -39,31 +40,39 @@ public class PostFeedback {
 
     private String privacyPurpose;
 
-    public static PostFeedback create(Post post, String feedbackMethod,
-                                      List<String> feedbackItems, Set<PrivacyItem> privacyItems, String privacyPurpose) {
-        PostFeedback feedback = new PostFeedback();
-        feedback.post = post;
-        feedback.feedbackMethod = feedbackMethod;
+    @Builder
+    public PostFeedback(Post post, String feedbackMethod, List<String> feedbackItems,
+                       Set<PrivacyItem> privacyItems, String privacyPurpose) {
+        this.post = post;
+        this.feedbackMethod = feedbackMethod;
         if (feedbackItems != null) {
-            feedback.feedbackItems.addAll(feedbackItems);
+            this.feedbackItems.addAll(feedbackItems);
         }
         if (privacyItems != null) {
-            feedback.privacyItems.addAll(privacyItems);
+            this.privacyItems.addAll(privacyItems);
         }
-        feedback.privacyPurpose = privacyPurpose;
-        return feedback;
+        this.privacyPurpose = privacyPurpose;
     }
 
-    public void update(String feedbackMethod, List<String> feedbackItems, Set<PrivacyItem> privacyItems, String privacyPurpose) {
+    public void updateFeedbackMethod(String feedbackMethod) {
         this.feedbackMethod = feedbackMethod;
+    }
+
+    public void updateFeedbackItems(List<String> feedbackItems) {
         this.feedbackItems.clear();
         if (feedbackItems != null) {
             this.feedbackItems.addAll(feedbackItems);
         }
+    }
+
+    public void updatePrivacyItems(Set<PrivacyItem> privacyItems) {
         this.privacyItems.clear();
         if (privacyItems != null) {
             this.privacyItems.addAll(privacyItems);
         }
+    }
+
+    public void updatePrivacyPurpose(String privacyPurpose) {
         this.privacyPurpose = privacyPurpose;
     }
 

@@ -1,6 +1,7 @@
 package com.example.nexus.app.post.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.List;
@@ -31,19 +32,23 @@ public class PostContent {
     @Column(name = "media_url")
     private List<String> mediaUrls = new ArrayList<>();
 
-    public static PostContent create(Post post, String participationMethod,
-                                     String storyGuide, List<String> mediaUrls) {
-        PostContent content = new PostContent();
-        content.post = post;
-        content.participationMethod = participationMethod;
-        content.storyGuide = storyGuide;
-        content.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
-        return content;
-    }
-
-    public void update(String participationMethod, String storyGuide, List<String> mediaUrls) {
+    @Builder
+    public PostContent(Post post, String participationMethod, String storyGuide, List<String> mediaUrls) {
+        this.post = post;
         this.participationMethod = participationMethod;
         this.storyGuide = storyGuide;
+        this.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
+    }
+
+    public void updateParticipationMethod(String participationMethod) {
+        this.participationMethod = participationMethod;
+    }
+
+    public void updateStoryGuide(String storyGuide) {
+        this.storyGuide = storyGuide;
+    }
+
+    public void updateMediaUrls(List<String> mediaUrls) {
         this.mediaUrls = mediaUrls != null ? new ArrayList<>(mediaUrls) : new ArrayList<>();
     }
 
