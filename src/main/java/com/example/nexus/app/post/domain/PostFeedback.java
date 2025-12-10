@@ -37,8 +37,10 @@ public class PostFeedback {
     @Column(name = "privacy_item")
     private Set<PrivacyItem> privacyItems = new HashSet<>();
 
+    private String privacyPurpose;
+
     public static PostFeedback create(Post post, String feedbackMethod,
-                                      List<String> feedbackItems, Set<PrivacyItem> privacyItems) {
+                                      List<String> feedbackItems, Set<PrivacyItem> privacyItems, String privacyPurpose) {
         PostFeedback feedback = new PostFeedback();
         feedback.post = post;
         feedback.feedbackMethod = feedbackMethod;
@@ -48,10 +50,11 @@ public class PostFeedback {
         if (privacyItems != null) {
             feedback.privacyItems.addAll(privacyItems);
         }
+        feedback.privacyPurpose = privacyPurpose;
         return feedback;
     }
 
-    public void update(String feedbackMethod, List<String> feedbackItems, Set<PrivacyItem> privacyItems) {
+    public void update(String feedbackMethod, List<String> feedbackItems, Set<PrivacyItem> privacyItems, String privacyPurpose) {
         this.feedbackMethod = feedbackMethod;
         this.feedbackItems.clear();
         if (feedbackItems != null) {
@@ -61,6 +64,7 @@ public class PostFeedback {
         if (privacyItems != null) {
             this.privacyItems.addAll(privacyItems);
         }
+        this.privacyPurpose = privacyPurpose;
     }
 
     public void addFeedbackItem(String item) {
