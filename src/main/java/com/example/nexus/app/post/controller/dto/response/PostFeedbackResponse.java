@@ -15,14 +15,18 @@ public record PostFeedbackResponse(
         List<String> feedbackItems,
 
         @Schema(description = "개인정보 수집 항목")
-        Set<PrivacyItem> privacyItems
+        Set<PrivacyItem> privacyItems,
+
+        @Schema(description = "개인정보 수집 목적")
+        String privacyPurpose
 ) {
 
     public static PostFeedbackResponse from(PostFeedback feedback) {
         return new PostFeedbackResponse(
                 feedback.getFeedbackMethod(),
                 feedback.getFeedbackItems(),
-                feedback.getPrivacyItems()
+                feedback.getPrivacyItems(),
+                feedback.getPrivacyPurpose()
         );
     }
 }

@@ -79,6 +79,9 @@ public record PostUpdateRequest(
         @Schema(description = "개인정보 수집 항목", example = "[\"NAME\", \"EMAIL\", \"CONTACT\", \"OTHER\"]")
         Set<PrivacyItem> privacyItems,
 
+        @Schema(description = "개인정보 수집 목적", example = "테스트 선정 및 안내에 필요한 개인정보 수집")
+        String privacyPurpose,
+
         @Schema(description = "참여 방법", example = "하이브리드 (온라인/오프라인)")
         String participationMethod,
 

@@ -304,8 +304,9 @@ public class PostService {
         String feedbackMethod = getValueOrDefault(request.feedbackMethod(), feedback.getFeedbackMethod());
         List<String> feedbackItems = getValueOrDefault(request.feedbackItems(), feedback.getFeedbackItems());
         Set<PrivacyItem> privacyItems = getValueOrDefault(request.privacyItems(), feedback.getPrivacyItems());
+        String privacyPurpose = getValueOrDefault(request.privacyPurpose(), feedback.getPrivacyPurpose());
 
-        feedback.update(feedbackMethod, feedbackItems, privacyItems);
+        feedback.update(feedbackMethod, feedbackItems, privacyItems, privacyPurpose);
     }
 
     private void updateContent(PostUpdateRequest request, PostContent content, List<MultipartFile> imageFiles) {
