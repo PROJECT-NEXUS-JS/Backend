@@ -296,14 +296,14 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewReplyResponse getReviewReply(Long replyId) {
-        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedByAndReview(replyId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
         return toReviewReplyResponse(reply);
     }
 
     @Transactional
     public ReviewReplyResponse updateReviewReply(Long replyId, ReviewReplyUpdateRequest request, Long authUserId) {
-        ReviewReply reply = reviewReplyRepository.findById(replyId)
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
@@ -317,14 +317,14 @@ public class ReviewService {
 
     @Transactional
     public void deleteReviewReply(Long replyId, Long authUserId) {
-        ReviewReply reply = reviewReplyRepository.findById(replyId)
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
         }
 
-        reviewReplyRepository.deleteById(replyId);
+        reviewReplyRepository.delete(reply);
     }
 
     private ReviewReplyResponse toReviewReplyResponse(ReviewReply reply) {
