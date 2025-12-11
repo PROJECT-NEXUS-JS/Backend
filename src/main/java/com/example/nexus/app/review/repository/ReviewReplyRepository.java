@@ -16,9 +16,6 @@ import java.util.Optional;
  */
 public interface ReviewReplyRepository extends JpaRepository<ReviewReply, Long> {
 
-    @Query("SELECT rr FROM ReviewReply rr JOIN FETCH rr.createdBy WHERE rr.id = :id")
-    Optional<ReviewReply> findByIdWithCreatedBy(@Param("id") Long id);
-
     @EntityGraph(attributePaths = {"createdBy", "review"})
     @Query("SELECT rr FROM ReviewReply rr WHERE rr.id = :id")
     Optional<ReviewReply> findByIdWithCreatedByAndReview(@Param("id") Long id);
@@ -27,7 +24,7 @@ public interface ReviewReplyRepository extends JpaRepository<ReviewReply, Long> 
     @Query("SELECT rr FROM ReviewReply rr WHERE rr.review.id = :reviewId ORDER BY rr.createdAt ASC")
     List<ReviewReply> findByReviewIdOrderByCreatedAtAsc(@Param("reviewId") Long reviewId);
 
-    @EntityGraph(attributePaths = {"createdBy", "updatedBy"})
+    @EntityGraph(attributePaths = {"createdBy", "updatedBy", "review"})
     @Query("SELECT rr FROM ReviewReply rr WHERE rr.review.id = :reviewId ORDER BY rr.createdAt ASC")
     Page<ReviewReply> findByReviewIdOrderByCreatedAtAsc(@Param("reviewId") Long reviewId, Pageable pageable);
 

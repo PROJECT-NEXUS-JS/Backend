@@ -303,7 +303,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewReplyResponse updateReviewReply(Long replyId, ReviewReplyUpdateRequest request, Long authUserId) {
-        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedByAndReview(replyId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
@@ -317,7 +317,7 @@ public class ReviewService {
 
     @Transactional
     public void deleteReviewReply(Long replyId, Long authUserId) {
-        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
+        ReviewReply reply = reviewReplyRepository.findByIdWithCreatedByAndReview(replyId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
