@@ -265,6 +265,15 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_NOT_FOUND));
 
+        // 게시글 존재 확인 및 작성자 권한 검증
+        Post post = postRepository.findById(review.getPostId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+
+        // 게시글 작성자만 답글을 작성할 수 있음
+        if (!post.getCreatedBy().equals(authUserId)) {
+            throw new GeneralException(ErrorStatus.FORBIDDEN);
+        }
+
         ReviewReply reply = ReviewReply.builder()
                 .content(request.getContent())
                 .review(review)
@@ -288,14 +297,14 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public ReviewReplyResponse getReviewReply(Long replyId) {
         ReviewReply reply = reviewReplyRepository.findByIdWithCreatedBy(replyId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
         return toReviewReplyResponse(reply);
     }
 
     @Transactional
     public ReviewReplyResponse updateReviewReply(Long replyId, ReviewReplyUpdateRequest request, Long authUserId) {
         ReviewReply reply = reviewReplyRepository.findById(replyId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
@@ -309,7 +318,7 @@ public class ReviewService {
     @Transactional
     public void deleteReviewReply(Long replyId, Long authUserId) {
         ReviewReply reply = reviewReplyRepository.findById(replyId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REVIEW_REPLY_NOT_FOUND));
 
         if (!reply.getCreatedBy().getId().equals(authUserId)) {
             throw new GeneralException(ErrorStatus.FORBIDDEN);
