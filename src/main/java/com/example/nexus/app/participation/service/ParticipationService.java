@@ -38,6 +38,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,6 +125,11 @@ public class ParticipationService {
         return participations.map(participation -> ParticipantPrivacyResponse.from(participation, collectedItems));
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
     @Transactional
     public void approveApplication(Long participationId, Long userId) {
         Participation participation = getParticipation(participationId);
@@ -155,6 +163,11 @@ public class ParticipationService {
         );
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
     @Transactional
     public void cancelApplication(Long participationId, Long userId) {
         Participation participation = getParticipation(participationId);

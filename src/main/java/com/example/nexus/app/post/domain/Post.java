@@ -3,6 +3,8 @@ package com.example.nexus.app.post.domain;
 import com.example.nexus.app.category.domain.GenreCategory;
 import com.example.nexus.app.category.domain.MainCategory;
 import com.example.nexus.app.category.domain.PlatformCategory;
+import com.example.nexus.app.global.code.status.ErrorStatus;
+import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.reward.domain.PostReward;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -30,6 +32,9 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     private String title;
 
@@ -175,6 +180,15 @@ public class Post {
     }
 
     public void incrementParticipants() {
+        if (requirement == null) {
+            this.currentParticipants++;
+            return;
+        }
+
+        Integer maxParticipants = requirement.getMaxParticipants();
+        if (maxParticipants != null && this.currentParticipants >= maxParticipants) {
+            throw new GeneralException(ErrorStatus.POST_PARTICIPANTS_FULL);
+        }
         this.currentParticipants++;
     }
 

@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -102,4 +103,25 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
                     "WHERE po.id = :postId",
             nativeQuery = true)
     List<Object[]> getBarChartStatsByPostId(@Param("postId") Long postId);
+
+    /**
+     * 조회수 증가 (벌크 업데이트)
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
+    void incrementViewCount(@Param("postId") Long postId);
+
+    /**
+     * 좋아요 수 증가 (벌크 업데이트)
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.id = :postId")
+    void incrementLikeCount(@Param("postId") Long postId);
+
+    /**
+     * 좋아요 수 감소 (벌크 업데이트)
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount - 1 WHERE p.id = :postId AND p.likeCount > 0")
+    void decrementLikeCount(@Param("postId") Long postId);
 }

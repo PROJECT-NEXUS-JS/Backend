@@ -37,20 +37,23 @@ public class PostLikeService {
         User user = getUser(userId);
 
         boolean isLiked = postLikeRepository.existsByUserIdAndPostId(userId, postId);
+        Long currentCount = post.getLikeCount().longValue();
 
         if (isLiked) {
             postLikeRepository.deleteByUserIdAndPostId(userId, postId);
-            post.decrementLikeCount();
+            postRepository.decrementLikeCount(postId);
+
+            return PostLikeToggleResponse.of(false, currentCount - 1);
         } else {
             PostLike postLike = PostLike.builder()
                     .user(user)
                     .post(post)
                     .build();
             postLikeRepository.save(postLike);
-            post.incrementLikeCount();
-        }
+            postRepository.incrementLikeCount(postId);
 
-        return PostLikeToggleResponse.of(!isLiked, post.getLikeCount().longValue());
+            return PostLikeToggleResponse.of(true, currentCount + 1);
+        }
     }
 
     public Page<PostDetailResponse> findUserLike(Long userId, Pageable pageable) {

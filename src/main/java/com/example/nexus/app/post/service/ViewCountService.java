@@ -29,7 +29,7 @@ public class ViewCountService {
     @Transactional
     public void incrementViewCount(Long postId) {
         try {
-            postRepository.findById(postId).ifPresent(Post::incrementViewCount);
+            postRepository.incrementViewCount(postId);
         } catch (Exception e) {
             log.error("DB 조회수 증가 실패: postId={}", postId, e);
         }
