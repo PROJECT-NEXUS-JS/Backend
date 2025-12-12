@@ -125,24 +125,51 @@ public record PostCreateRequest(
     }
 
     public PostSchedule toPostScheduleEntity(Post post) {
-        return PostSchedule.create(post, startDate, endDate, recruitmentDeadline, durationTime);
+        return PostSchedule.builder()
+                .post(post)
+                .startDate(startDate)
+                .endDate(endDate)
+                .recruitmentDeadline(recruitmentDeadline)
+                .durationTime(durationTime)
+                .build();
     }
 
     public PostRequirement toPostRequirementEntity(Post post) {
-        return PostRequirement.create(post, maxParticipants, genderRequirement,
-                ageMin, ageMax, additionalRequirements);
+        return PostRequirement.builder()
+                .post(post)
+                .maxParticipants(maxParticipants)
+                .genderRequirement(genderRequirement)
+                .ageMin(ageMin)
+                .ageMax(ageMax)
+                .additionalRequirements(additionalRequirements)
+                .build();
     }
 
     public PostReward toPostRewardEntity(Post post) {
-        return PostReward.create(post, rewardType, rewardDescription);
+        return PostReward.builder()
+                .post(post)
+                .rewardType(rewardType)
+                .rewardDescription(rewardDescription)
+                .build();
     }
 
     public PostFeedback toPostFeedbackEntity(Post post) {
-        return PostFeedback.create(post, feedbackMethod, feedbackItems, privacyItems, privacyPurpose);
+        return PostFeedback.builder()
+                .post(post)
+                .feedbackMethod(feedbackMethod)
+                .feedbackItems(feedbackItems)
+                .privacyItems(privacyItems)
+                .privacyPurpose(privacyPurpose)
+                .build();
     }
 
     public PostContent toPostContentEntity(Post post) {
         List<String> mediaUrls = mediaUrl != null ? List.of(mediaUrl) : new ArrayList<>();
-        return PostContent.create(post, participationMethod, storyGuide, mediaUrls);
+        return PostContent.builder()
+                .post(post)
+                .participationMethod(participationMethod)
+                .storyGuide(storyGuide)
+                .mediaUrls(mediaUrls)
+                .build();
     }
 }

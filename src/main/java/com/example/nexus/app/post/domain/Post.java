@@ -136,8 +136,32 @@ public class Post {
         }
     }
 
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateServiceSummary(String serviceSummary) {
+        this.serviceSummary = serviceSummary;
+    }
+
+    public void updateCreatorIntroduction(String creatorIntroduction) {
+        this.creatorIntroduction = creatorIntroduction;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     public void updateQnaMethod(String qnaMethod) {
         this.qnaMethod = qnaMethod;
+    }
+
+    public void updateTeamMemberCount(Integer teamMemberCount) {
+        this.teamMemberCount = teamMemberCount;
     }
 
     public void incrementLikeCount() {
@@ -220,19 +244,6 @@ public class Post {
         if (genreCategories != null) {
             this.genreCategories.addAll(genreCategories);
         }
-    }
-
-    public void updateBasicInfo(String title, String serviceSummary,
-                                String creatorIntroduction, String description,
-                                String thumbnailUrl, String qnaMethod,
-                                Integer teamMemberCount) {
-        this.title = title;
-        this.serviceSummary = serviceSummary;
-        this.creatorIntroduction = creatorIntroduction;
-        this.description = description;
-        this.thumbnailUrl = thumbnailUrl;
-        this.qnaMethod = qnaMethod;
-        this.teamMemberCount = teamMemberCount;
     }
 
     public void incrementViewCount() {

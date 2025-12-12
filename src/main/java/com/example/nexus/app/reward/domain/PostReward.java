@@ -2,6 +2,7 @@ package com.example.nexus.app.reward.domain;
 
 import com.example.nexus.app.post.domain.Post;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,16 +27,18 @@ public class PostReward {
     @Column(name = "reward_description", columnDefinition = "TEXT")
     private String rewardDescription;
 
-    public static PostReward create(Post post, RewardType rewardType, String rewardDescription) {
-        PostReward reward = new PostReward();
-        reward.post = post;
-        reward.rewardType = rewardType;
-        reward.rewardDescription = rewardDescription;
-        return reward;
+    @Builder
+    public PostReward(Post post, RewardType rewardType, String rewardDescription) {
+        this.post = post;
+        this.rewardType = rewardType;
+        this.rewardDescription = rewardDescription;
     }
 
-    public void update(RewardType rewardType, String rewardDescription) {
+    public void updateRewardType(RewardType rewardType) {
         this.rewardType = rewardType;
+    }
+
+    public void updateRewardDescription(String rewardDescription) {
         this.rewardDescription = rewardDescription;
     }
 }

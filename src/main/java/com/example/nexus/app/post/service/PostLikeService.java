@@ -42,7 +42,10 @@ public class PostLikeService {
             postLikeRepository.deleteByUserIdAndPostId(userId, postId);
             post.decrementLikeCount();
         } else {
-            PostLike postLike = PostLike.createPostLike(user, post);
+            PostLike postLike = PostLike.builder()
+                    .user(user)
+                    .post(post)
+                    .build();
             postLikeRepository.save(postLike);
             post.incrementLikeCount();
         }
