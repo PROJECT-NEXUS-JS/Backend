@@ -10,7 +10,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Table(name = "post_likes", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "post_id"})})
+@Table(name = "post_likes",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "post_id"})},
+        indexes = {
+                @Index(name = "idx_post_likes_user_id", columnList = "user_id"),
+                @Index(name = "idx_post_likes_post_id", columnList = "post_id"),
+                @Index(name = "idx_post_likes_created_at", columnList = "created_at")
+        }
+)
 @Entity
 @Getter
 @NoArgsConstructor
