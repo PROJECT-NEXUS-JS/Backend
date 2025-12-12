@@ -90,6 +90,7 @@ public enum ErrorStatus implements BaseErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "USER40910", "이미 사용 중인 닉네임입니다."),
     REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW40911", "이미 해당 게시글에 리뷰를 작성했습니다."),
     FEEDBACK_ALREADY_EXISTS(HttpStatus.CONFLICT, "FEEDBACK40912", "이미 해당 프로젝트에 피드백을 제출했습니다."),
+    POST_PARTICIPANTS_FULL(HttpStatus.CONFLICT, "POST40913", "참가 인원이 모두 찼습니다."),
 
     // 415 UNSUPPORTED_MEDIA_TYPE, 422 UNPROCESSABLE_ENTITY
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415", "지원하지 않는 미디어 타입입니다."),
