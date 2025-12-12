@@ -15,6 +15,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
@@ -27,7 +28,15 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Table(name = "participations", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_id"}))
+@Table(
+        name = "participations",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_id"}),
+        indexes = {
+                @Index(name = "idx_post_status", columnList = "post_id,status"),
+                @Index(name = "idx_user_status", columnList = "user_id,status"),
+                @Index(name = "idx_applied_at", columnList = "applied_at")
+        }
+)
 @Entity
 @Getter
 @NoArgsConstructor

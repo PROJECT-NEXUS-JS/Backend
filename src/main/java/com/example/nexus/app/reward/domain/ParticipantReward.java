@@ -13,7 +13,14 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "participant_rewards",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"participation_id", "post_reward_id"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"participation_id", "post_reward_id"}),
+        indexes = {
+                @Index(name = "idx_participant_rewards_participation_id", columnList = "participation_id"),
+                @Index(name = "idx_participant_rewards_post_reward_id", columnList = "post_reward_id"),
+                @Index(name = "idx_participant_rewards_status", columnList = "reward_status"),
+                @Index(name = "idx_participant_rewards_created_at", columnList = "created_at")
+        }
+)
 @Getter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
