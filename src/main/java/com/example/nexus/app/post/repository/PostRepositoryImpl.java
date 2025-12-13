@@ -7,6 +7,8 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,8 @@ import static com.example.nexus.app.post.domain.QPost.post;
 @RequiredArgsConstructor
 public class PostRepositoryImpl implements PostRepositoryCustom {
 
+    private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
+
     private final JPAQueryFactory queryFactory;
 
     @Override
@@ -27,6 +31,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
         // 기본 조건: ACTIVE
         builder.and(post.status.eq(condition.getStatus()));
+
+        // 모집 마감일이 현재 시간 이후인 게시글만 조회
+        LocalDateTime now = LocalDateTime.now(KOREA_ZONE_ID);
+        builder.and(post.schedule.recruitmentDeadline.goe(now));
 
         // 메인 카테고리 조건
         if (condition.getMainCategory() != null) {
