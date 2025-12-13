@@ -70,7 +70,8 @@ public enum ErrorStatus implements BaseErrorCode {
     MESSAGE_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "MESSAGE40413", "채팅방을 찾을 수 없습니다."),
     PARTICIPANT_REWARD_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPANT_REWARD40414", "참여자 리워드 정보를 찾을 수 없습니다."),
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW40415", "리뷰를 찾을 수 없습니다."),
-    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK40416", "피드백을 찾을 수 없습니다."),
+    REVIEW_REPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW40416", "리뷰 답글을 찾을 수 없습니다."),
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK40418", "피드백을 찾을 수 없습니다."),
     PARTICIPATION_NOT_FOUND_FEEDBACK(HttpStatus.NOT_FOUND, "PARTICIPATION40417", "참여 정보를 찾을 수 없습니다."),
 
     // 405 Method Not Allowed
