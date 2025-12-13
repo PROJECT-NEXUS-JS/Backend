@@ -81,12 +81,11 @@ public class ViewCountService {
         return weeklyViews;
     }
 
-    // Redis에서 일괄 조회
     public Map<Long, Long> getViewCountsForPosts(List<Long> postIds) {
-        return postIds.stream()
+        return postRepository.findViewCountsByPostsIds(postIds).stream()
                 .collect(Collectors.toMap(
-                        postId -> postId,
-                        this::getTotalViewCount
+                        row -> (Long) row[0],
+                        row -> ((Number) row[1]).longValue()
                 ));
     }
 }
