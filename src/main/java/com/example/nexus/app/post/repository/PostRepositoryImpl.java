@@ -36,6 +36,12 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         LocalDateTime now = LocalDateTime.now(KOREA_ZONE_ID);
         builder.and(post.schedule.recruitmentDeadline.goe(now));
 
+        // 남은 일수 필터
+        if (condition.getDaysRemaining() != null && condition.getDaysRemaining() > 0) {
+            LocalDateTime deadLine = now.plusDays(condition.getDaysRemaining());
+            builder.and(post.schedule.recruitmentDeadline.loe(deadLine));
+        }
+
         // 메인 카테고리 조건
         if (condition.getMainCategory() != null) {
             builder.and(post.mainCategory.contains(condition.getMainCategory()));
