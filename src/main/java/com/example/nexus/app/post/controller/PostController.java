@@ -112,9 +112,10 @@ public class PostController implements PostControllerDoc {
             @RequestParam(required = false) String genreCategory,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "latest") String sortBy,
+            @RequestParam(required = false) Integer daysRemaining,
             @PageableDefault(size = 20) Pageable pageable) {
         Page<PostSummaryResponse> posts = postService.findPosts(mainCategory, platformCategory, genreCategory, keyword,
-                sortBy, pageable);
+                sortBy, daysRemaining, pageable);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(posts));
     }

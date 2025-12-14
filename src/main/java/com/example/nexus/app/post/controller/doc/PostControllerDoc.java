@@ -133,26 +133,30 @@ public interface PostControllerDoc {
     @Operation(
             summary = "게시글 목록 조회 (필터 검색 가능)",
             description = """
-                    조건에 따라 게시글을 조회합니다.
-                    
-                    **MainCategory (메인 카테고리):**
-                    - `WEB`: 웹
-                    - `APP`: 앱
-                    - `GAME`: 게임
-                    - `ETC`: 기타
-                    
-                    **PlatformCategory (플랫폼 카테고리):**
-                    - `ANDROID`, `IOS`, `PC`, `MOBILE`, `CONSOLE`, `VR` 등
-                    
-                    **GenreCategory (장르 카테고리):**
-                    - `LIFESTYLE`, `EDUCATION`, `SOCIAL`, `PRODUCTIVITY`, `MARKETING_PROMOTION` 등
-                    
-                    **정렬 기준 (sortBy):**
-                    - `latest`: 최신순
-                    - `popular`: 인기순
-                    - `deadline`: 마감임박순
-                    - `viewCount`: 조회수순
-                    """
+                  조건에 따라 게시글을 조회합니다.
+
+                  **MainCategory (메인 카테고리):**
+                  - `WEB`: 웹
+                  - `APP`: 앱
+                  - `GAME`: 게임
+                  - `ETC`: 기타
+
+                  **PlatformCategory (플랫폼 카테고리):**
+                  - `ANDROID`, `IOS`, `PC`, `MOBILE`, `CONSOLE`, `VR` 등
+
+                  **GenreCategory (장르 카테고리):**
+                  - `LIFESTYLE`, `EDUCATION`, `SOCIAL`, `PRODUCTIVITY`, `MARKETING_PROMOTION` 등
+
+                  **정렬 기준 (sortBy):**
+                  - `latest`: 최신순
+                  - `popular`: 인기순
+                  - `deadline`: 마감임박순
+                  - `viewCount`: 조회수순
+
+                  **남은 일수 필터 (daysRemaining):**
+                  - 해당 일수 이내에 마감되는 게시글만 조회
+                  - 예: `daysRemaining=7`이면 7일 이내 마감 게시글만 조회
+                  """
     )
     ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
             @Parameter(description = "메인 카테고리 (WEB, APP, GAME, ETC)")
@@ -165,6 +169,8 @@ public interface PostControllerDoc {
             @RequestParam(required = false) String keyword,
             @Parameter(description = "정렬 기준 (latest, popular, deadline, viewCount)")
             @RequestParam(defaultValue = "latest") String sortBy,
+            @Parameter(description = "남은 일수 (해당 일수 이내 마감 게시글만 조회)", example = "7")
+            @RequestParam(required = false) Integer daysRemaining,
             Pageable pageable
     );
 

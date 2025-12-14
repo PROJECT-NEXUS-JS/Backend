@@ -18,28 +18,35 @@ import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResp
 import com.example.nexus.app.post.controller.dto.response.PostRightSidebarResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
-import com.example.nexus.app.post.domain.*;
-import com.example.nexus.app.post.repository.*;
+import com.example.nexus.app.post.domain.Post;
+import com.example.nexus.app.post.domain.PostContent;
+import com.example.nexus.app.post.domain.PostFeedback;
+import com.example.nexus.app.post.domain.PostRequirement;
+import com.example.nexus.app.post.domain.PostSchedule;
+import com.example.nexus.app.post.domain.PostStatus;
+import com.example.nexus.app.post.repository.PostContentRepository;
+import com.example.nexus.app.post.repository.PostFeedbackRepository;
+import com.example.nexus.app.post.repository.PostRepository;
+import com.example.nexus.app.post.repository.PostRequirementRepository;
+import com.example.nexus.app.post.repository.PostScheduleRepository;
 import com.example.nexus.app.post.service.dto.PostUserStatus;
 import com.example.nexus.app.reward.domain.PostReward;
 import com.example.nexus.app.reward.domain.RewardType;
 import com.example.nexus.app.reward.repository.PostRewardRepository;
 import com.example.nexus.app.user.domain.User;
 import com.example.nexus.app.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -192,7 +199,8 @@ public class PostService {
     }
 
     public Page<PostSummaryResponse> findPosts(String mainCategory, String platformCategory,
-                                               String genreCategory, String keyword, String sortBy, Pageable pageable) {
+                                               String genreCategory, String keyword, String sortBy,
+                                               Integer daysRemaining, Pageable pageable) {
         PostSearchCondition condition = PostSearchCondition.builder()
                 .mainCategory(parseMainCategory(mainCategory))
                 .platformCategory(parsePlatformCategory(platformCategory))
@@ -200,6 +208,7 @@ public class PostService {
                 .keyword(keyword)
                 .sortBy(sortBy)
                 .status(PostStatus.ACTIVE)
+                .daysRemaining(daysRemaining)
                 .build();
 
         Page<Post> posts = postRepository.findPostWithCondition(condition, pageable);
@@ -251,9 +260,9 @@ public class PostService {
     @Transactional
     public void deletePost(Long postId, Long userId) {
         Post post = getPostWithValidation(postId, userId);
-        
+
         recentViewedPostService.deleteByPostId(postId);
-        
+
         postRepository.delete(post);
     }
 

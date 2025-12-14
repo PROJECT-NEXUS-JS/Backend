@@ -16,4 +16,5 @@ public class PostSearchCondition {
     private String keyword;
     private String sortBy;
     private PostStatus status;
+    private Integer daysRemaining;
 }
