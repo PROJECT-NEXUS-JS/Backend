@@ -34,7 +34,7 @@ public class Post {
     private Long id;
 
     @Version
-    private Long version;
+    private Long version = 0L;
 
     private String title;
 
