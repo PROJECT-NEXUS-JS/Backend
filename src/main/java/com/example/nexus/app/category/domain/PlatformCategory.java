@@ -26,17 +26,29 @@ public enum PlatformCategory {
     APP_ALL("전체", MainCategory.APP),
 
     // 게임 플랫폼
-    @Schema(description = "PC")
-    PC("PC", MainCategory.GAME),
+    @Schema(description = "Android")
+    ANDROID_GAME("Android", MainCategory.GAME),
 
-    @Schema(description = "모바일")
-    MOBILE("모바일", MainCategory.GAME),
+    @Schema(description = "iOS")
+    IOS_GAME("iOS", MainCategory.GAME),
 
-    @Schema(description = "콘솔")
-    CONSOLE("콘솔", MainCategory.GAME),
+    @Schema(description = "PC 플라이언트")
+    PC("PC 플라이언트", MainCategory.GAME),
 
-    @Schema(description = "VR")
-    VR("VR", MainCategory.GAME),
+    @Schema(description = "Steam VR")
+    STEAM_VR("Steam VR", MainCategory.GAME),
+
+    @Schema(description = "Play Station")
+    PLAY_STATION("Play Station", MainCategory.GAME),
+
+    @Schema(description = "Xbox")
+    XBOX("Xbox", MainCategory.GAME),
+
+    @Schema(description = "Meta Quest")
+    META_QUEST("Meta Quest", MainCategory.GAME),
+
+    @Schema(description = "기타 (게임)")
+    GAME_ETC("기타", MainCategory.GAME),
 
     @Schema(description = "전체 (게임)")
     GAME_ALL("전체", MainCategory.GAME),
