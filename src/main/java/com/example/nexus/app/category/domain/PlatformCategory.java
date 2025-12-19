@@ -29,17 +29,17 @@ public enum PlatformCategory {
     @Schema(description = "Android")
     ANDROID_GAME("Android", MainCategory.GAME),
 
-    @Schema(description = "iOS")
-    IOS_GAME("iOS", MainCategory.GAME),
+    @Schema(description = "ios")
+    IOS_GAME("ios", MainCategory.GAME),
 
-    @Schema(description = "PC 플라이언트")
-    PC("PC 플라이언트", MainCategory.GAME),
+    @Schema(description = "PC 클라이언트")
+    PC("PC 클라이언트", MainCategory.GAME),
 
     @Schema(description = "Steam VR")
     STEAM_VR("Steam VR", MainCategory.GAME),
 
     @Schema(description = "Play Station")
-    PLAY_STATION("Play Station", MainCategory.GAME),
+    PLAYSTATION("Play Station", MainCategory.GAME),
 
     @Schema(description = "Xbox")
     XBOX("Xbox", MainCategory.GAME),
