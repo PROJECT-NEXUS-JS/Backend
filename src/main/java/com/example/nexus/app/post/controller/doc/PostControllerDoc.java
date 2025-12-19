@@ -40,7 +40,7 @@ public interface PostControllerDoc {
                    **PlatformCategory (플랫폼 카테고리):**
                     - 웹: `WEB_ALL`
                     - 앱: `ANDROID`, `IOS`, `APP_ALL`
-                    - 게임: `PC`, `MOBILE`, `CONSOLE`, `VR`, `GAME_ALL`
+                    - 게임: `ANDROID_GAME`, `IOS_GAME`, `PC`, `STEAM_VR`, `PLAY_STATION`, `XBOX`, `META_QUEST`, `GAME_ETC`, `GAME_ALL`
                     - 기타: `ETC_ALL`
                    
                    **GenreCategory (장르 카테고리):**
