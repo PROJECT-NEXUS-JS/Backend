@@ -2,6 +2,7 @@ package com.example.nexus.app.participation.controller.dto.response;
 
 import com.example.nexus.app.participation.domain.Participation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 
 @Schema(description = "참여자 상세 정보 응답")
 public record ParticipantDetailResponse(
@@ -14,12 +15,6 @@ public record ParticipantDetailResponse(
         @Schema(description = "사용자 ID")
         Long userId,
 
-        @Schema(description = "닉네임")
-        String nickname,
-
-        @Schema(description = "프로필 이미지 URL")
-        String profileUrl,
-
         @Schema(description = "신청자 이름")
         String applicantName,
 
@@ -30,19 +25,29 @@ public record ParticipantDetailResponse(
         String applicantEmail,
 
         @Schema(description = "신청 사유")
-        String applicationReason
+        String applicationReason,
+
+        @Schema(description = "신청 일시")
+        LocalDateTime appliedAt,
+
+        @Schema(description = "개인정보 수집 및 이용 동의")
+        Boolean privacyAgreement,
+
+        @Schema(description = "참여 조건 및 규칙 동의")
+        Boolean termsAgreement
 ) {
     public static ParticipantDetailResponse from(Participation participation) {
         return new ParticipantDetailResponse(
                 participation.getId(),
                 participation.getPost().getId(),
                 participation.getUser().getId(),
-                participation.getUser().getNickname(),
-                participation.getUser().getProfileUrl(),
                 participation.getApplicantName(),
                 participation.getContactNumber(),
                 participation.getApplicantEmail(),
-                participation.getApplicationReason()
+                participation.getApplicationReason(),
+                participation.getAppliedAt(),
+                participation.getPrivacyAgreement(),
+                participation.getTermsAgreement()
         );
     }
 }
