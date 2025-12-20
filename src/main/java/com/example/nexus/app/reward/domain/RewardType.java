@@ -17,6 +17,9 @@ public enum RewardType {
     @Schema(description = "제품 지급")
     PRODUCT("제품 지급"),
 
+    @Schema(description = "기타")
+    ETC("기타"),
+
     @Schema(description = "보상 없음")
     NONE("보상 없음");
 
