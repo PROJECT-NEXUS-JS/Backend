@@ -14,8 +14,11 @@ public enum RewardType {
     @Schema(description = "기프티콘")
     GIFT_CARD("기프티콘"),
 
-    @Schema(description = "제품 지급")
-    PRODUCT("제품 지급"),
+    @Schema(description = "상품 지급")
+    PRODUCT("상품 지급"),
+
+    @Schema(description = "기타")
+    ETC("기타"),
 
     @Schema(description = "보상 없음")
     NONE("보상 없음");
