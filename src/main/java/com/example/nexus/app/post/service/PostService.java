@@ -16,6 +16,7 @@ import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostRightSidebarResponse;
+import com.example.nexus.app.post.controller.dto.response.PostScreenerQuestionResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.domain.Post;
@@ -42,12 +43,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -266,6 +269,19 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    public PostScreenerQuestionResponse findQuestions(Long postId) {
+        PostRequirement postRequirement = getPostRequirement(postId);
+        List<String> questions = postRequirement.getScreenerQuestions();
+        PostScreenerQuestionResponse response = PostScreenerQuestionResponse.of(questions);
+        return response;
+    }
+
+    private PostRequirement getPostRequirement(Long postId) {
+        PostRequirement postRequirement = postRequirementRepository.findByPostId(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+        return postRequirement;
+    }
+
     private void createAndSaveRelatedEntitiesWithImage(PostCreateRequest request, Post post, List<MultipartFile> imageFiles) {
         PostSchedule schedule = PostSchedule.builder()
                 .post(post)
@@ -282,7 +298,7 @@ public class PostService {
                 .genderRequirement(request.genderRequirement())
                 .ageMin(request.ageMin())
                 .ageMax(request.ageMax())
-                .additionalRequirements(request.additionalRequirements())
+                .screenerQuestions(request.screenerQuestions())
                 .build();
         postRequirementRepository.save(requirement);
 
@@ -367,8 +383,8 @@ public class PostService {
         if (request.ageMax() != null) {
             requirement.updateAgeMax(request.ageMax());
         }
-        if (request.additionalRequirements() != null) {
-            requirement.updateAdditionalRequirements(request.additionalRequirements());
+        if (request.screenerQuestions() != null) {
+            requirement.updateScreenerQuestions(request.screenerQuestions());
         }
     }
 

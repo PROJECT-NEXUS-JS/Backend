@@ -61,8 +61,8 @@ public record PostUpdateRequest(
         @Schema(description = "최대 나이", example = "40")
         Integer ageMax,
 
-        @Schema(description = "추가 요구사항", example = "마케팅 업무 경험자 우대")
-        String additionalRequirements,
+        @Schema(description = "추가 조건", example = "[\"모바일 앱 사용 경험이 있으신 분\", \"ios\"]")
+        List<String> screenerQuestions,
 
         @Schema(description = "리워드 타입", example = "CASH")
         RewardType rewardType,

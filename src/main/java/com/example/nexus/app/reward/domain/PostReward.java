@@ -1,6 +1,7 @@
 package com.example.nexus.app.reward.domain;
 
 import com.example.nexus.app.post.domain.Post;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class PostReward {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonIgnore
     private Post post;
 
     @Enumerated(EnumType.STRING)

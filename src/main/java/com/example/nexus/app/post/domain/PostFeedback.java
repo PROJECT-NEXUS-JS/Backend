@@ -1,14 +1,27 @@
 package com.example.nexus.app.post.domain;
 
-import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "post_feedbacks", uniqueConstraints = @UniqueConstraint(columnNames = "post_id"))
@@ -30,12 +43,14 @@ public class PostFeedback {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "post_feedback_items", joinColumns = @JoinColumn(name = "post_feedback_id"))
     @Column(name = "feedback_item")
+    @BatchSize(size = 100)
     private List<String> feedbackItems = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_privacy_item", joinColumns = @JoinColumn(name = "post_feedback_id"))
     @Column(name = "privacy_item")
+    @BatchSize(size = 100)
     private Set<PrivacyItem> privacyItems = new HashSet<>();
 
     private String privacyPurpose;

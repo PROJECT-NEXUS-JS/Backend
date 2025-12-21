@@ -251,4 +251,13 @@ public interface PostControllerDoc {
             @Parameter(description = "게시글 ID", required = true)
             @PathVariable Long postId
     );
+
+    @Operation(
+            summary = "게시글 추가 조건 조회",
+            description = "게시글의 추가 요구사항을 조회합니다."
+    )
+    ResponseEntity<ApiResponse<PostScreenerQuestionResponse>> getPostScreenerQuestion(
+            @Parameter(description = "게시글 ID", required = true)
+            @PathVariable Long postId
+    );
 }

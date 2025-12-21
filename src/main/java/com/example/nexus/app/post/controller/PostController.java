@@ -9,6 +9,7 @@ import com.example.nexus.app.post.controller.dto.request.PostUpdateRequest;
 import com.example.nexus.app.post.controller.dto.response.PostDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostMainViewDetailResponse;
 import com.example.nexus.app.post.controller.dto.response.PostRightSidebarResponse;
+import com.example.nexus.app.post.controller.dto.response.PostScreenerQuestionResponse;
 import com.example.nexus.app.post.controller.dto.response.PostSummaryResponse;
 import com.example.nexus.app.post.controller.dto.response.SimilarPostResponse;
 import com.example.nexus.app.post.service.PostService;
@@ -190,6 +191,16 @@ public class PostController implements PostControllerDoc {
             @PathVariable Long postId) {
 
         PostRightSidebarResponse response = postService.findPostRightSidebarDetails(postId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Override
+    @GetMapping("/{postId}/questions")
+    public ResponseEntity<ApiResponse<PostScreenerQuestionResponse>> getPostScreenerQuestion(
+            @PathVariable Long postId) {
+
+        PostScreenerQuestionResponse response = postService.findQuestions(postId);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
