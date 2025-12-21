@@ -56,9 +56,9 @@ public record PostRightSidebarResponse(
                 if (!targetBuilder.isEmpty()) targetBuilder.append(", ");
                 targetBuilder.append(post.getRequirement().getAgeMax()).append("세 이하");
             }
-            if (post.getRequirement().getAdditionalRequirements() != null && !post.getRequirement().getAdditionalRequirements().isBlank()) {
+            if (post.getRequirement().getScreenerQuestions() != null && !post.getRequirement().getScreenerQuestions().isEmpty()) {
                 if (!targetBuilder.isEmpty()) targetBuilder.append(", ");
-                targetBuilder.append(post.getRequirement().getAdditionalRequirements());
+                targetBuilder.append(post.getRequirement().getScreenerQuestions());
             }
             if (!targetBuilder.isEmpty()) {
                 participationTarget = targetBuilder.toString();

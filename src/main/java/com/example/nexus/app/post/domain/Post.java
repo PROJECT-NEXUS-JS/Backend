@@ -6,10 +6,12 @@ import com.example.nexus.app.category.domain.PlatformCategory;
 import com.example.nexus.app.global.code.status.ErrorStatus;
 import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.reward.domain.PostReward;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -54,18 +56,21 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_main_category", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "main_category", nullable = false)
+    @BatchSize(size = 100)
     private Set<MainCategory> mainCategory;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_platform_category", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "platform_category")
+    @BatchSize(size = 100)
     private Set<PlatformCategory> platformCategory;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_genres", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "genre")
+    @BatchSize(size = 100)
     private Set<GenreCategory> genreCategories = new HashSet<>();
     
     @Enumerated(EnumType.STRING)
@@ -86,18 +91,23 @@ public class Post {
     @Column(name = "team_member_count")
     private Integer teamMemberCount;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostSchedule schedule;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostRequirement requirement;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostReward reward;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostFeedback feedback;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PostContent postContent;
 

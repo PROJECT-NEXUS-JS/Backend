@@ -69,8 +69,8 @@ public record PostCreateRequest(
         @Schema(description = "최대 나이", example = "35")
         Integer ageMax,
 
-        @Schema(description = "추가 요구사항", example = "모바일 앱 사용 경험이 있으신 분")
-        String additionalRequirements,
+        @Schema(description = "추가 조건", example = "[\"모바일 앱 사용 경험이 있으신 분\", \"ios\"]")
+        List<String> screenerQuestions,
 
         @Schema(description = "리워드 타입", example = "GIFT_CARD")
         RewardType rewardType,
@@ -141,7 +141,7 @@ public record PostCreateRequest(
                 .genderRequirement(genderRequirement)
                 .ageMin(ageMin)
                 .ageMax(ageMax)
-                .additionalRequirements(additionalRequirements)
+                .screenerQuestions(screenerQuestions)
                 .build();
     }
 
