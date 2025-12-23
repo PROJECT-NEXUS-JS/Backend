@@ -152,6 +152,13 @@ public class DashboardService {
         return PostStatusResponse.of(postId, newStatus);
     }
 
+    public PostStatusResponse getRecruitmentStatus(Long postId) {
+        Post post = getPost(postId);
+        PostStatus postStatus = post.getStatus();
+
+        return PostStatusResponse.of(postId, postStatus);
+    }
+
     // 분석 그래프
     public BarChartResponse getBarChartData(Long userId, Long postId) {
         validatePostOwnership(userId, postId);

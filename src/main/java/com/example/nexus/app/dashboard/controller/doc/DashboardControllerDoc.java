@@ -55,10 +55,24 @@ public interface DashboardControllerDoc {
     );
 
     @Operation(
+            summary = "모집 상태 조회",
+            description = """
+                    현재 게시글의 모집 상태 조회
+
+                    **PostStatus (게시글 상태):**
+                    - `ACTIVE`: 활성 (모집중)
+                    - `COMPLETED`: 완료 (모집 완료)
+                    """
+    )
+    ResponseEntity<ApiResponse<PostStatusResponse>> getRecruitmentStatus(
+            @PathVariable @Schema(description = "게시글 ID") Long postId
+    );
+
+    @Operation(
             summary = "모집 상태 변경",
             description = """
                     모집중 <-> 모집 완료 상태 토글
-                    
+
                     **PostStatus (게시글 상태):**
                     - `ACTIVE`: 활성 (모집중)
                     - `COMPLETED`: 완료 (모집 완료)

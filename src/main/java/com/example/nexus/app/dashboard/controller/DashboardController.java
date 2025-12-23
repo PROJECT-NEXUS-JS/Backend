@@ -70,6 +70,14 @@ public class DashboardController implements DashboardControllerDoc {
     }
 
     @Override
+    @GetMapping("/{postId}/recruitment-status")
+    public ResponseEntity<ApiResponse<PostStatusResponse>> getRecruitmentStatus(
+            @PathVariable Long postId) {
+        PostStatusResponse response = dashboardService.getRecruitmentStatus(postId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Override
     @GetMapping("/{postId}/analytics/bar-chart")
     public ResponseEntity<ApiResponse<BarChartResponse>> getBarChartData(
             @PathVariable Long postId,
