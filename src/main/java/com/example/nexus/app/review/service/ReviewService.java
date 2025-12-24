@@ -104,10 +104,31 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public List<ReviewResponse> getReviewsByPostId(Long postId) {
-        return reviewRepository
-                .findByPostId(postId)
-                .stream()
-                .map(this::toReviewResponse)
+        List<Review> reviews = reviewRepository.findByPostId(postId);
+        
+        List<Long> reviewIds = reviews.stream()
+                .map(Review::getId)
+                .collect(Collectors.toList());
+        
+        // 리뷰 ID별 답글 개수 Map 생성
+        java.util.Map<Long, Long> replyCountMap = java.util.Collections.emptyMap();
+        if (!reviewIds.isEmpty()) {
+            replyCountMap = reviewReplyRepository.countByReviewIds(reviewIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            result -> ((Number) result[0]).longValue(),
+                            result -> ((Number) result[1]).longValue()
+                    ));
+        }
+        
+        final java.util.Map<Long, Long> finalReplyCountMap = replyCountMap;
+        
+        return reviews.stream()
+                .map(review -> {
+                    boolean hasReply = finalReplyCountMap.containsKey(review.getId()) 
+                            && finalReplyCountMap.get(review.getId()) > 0;
+                    return toReviewResponse(review, hasReply);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -239,6 +260,10 @@ public class ReviewService {
     }
 
     private ReviewResponse toReviewResponse(Review review) {
+        return toReviewResponse(review, false);
+    }
+
+    private ReviewResponse toReviewResponse(Review review, boolean hasReply) {
         User createdBy = review.getCreatedBy();
         
         return ReviewResponse.builder()
@@ -248,6 +273,7 @@ public class ReviewService {
                 .content(review.getContent())
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
+                .hasReply(hasReply)
                 .writer(ReviewResponse.WriterInfo.builder()
                         .id(createdBy.getId())
                         .nickname(createdBy.getNickname() != null ? createdBy.getNickname() : "")

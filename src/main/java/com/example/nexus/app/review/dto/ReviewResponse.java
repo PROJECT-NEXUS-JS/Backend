@@ -17,6 +17,8 @@ public class ReviewResponse {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // 답변 완료 여부
+    private Boolean hasReply;
     // 작성자 정보 (내부 클래스로 구성)
     private WriterInfo writer;
 

@@ -32,5 +32,8 @@ public interface ReviewReplyRepository extends JpaRepository<ReviewReply, Long> 
     Page<ReviewReply> findByCreatedByOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     Long countByReviewId(Long reviewId);
+
+    @Query("SELECT rr.review.id, COUNT(rr) FROM ReviewReply rr WHERE rr.review.id IN :reviewIds GROUP BY rr.review.id")
+    List<Object[]> countByReviewIds(@Param("reviewIds") List<Long> reviewIds);
 }
 
