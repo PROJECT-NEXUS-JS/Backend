@@ -12,6 +12,7 @@ public class RecentlyViewedTestDto {
     private String category;
     private String title;
     private String oneLineIntro;
+    private String thumbnailUrl;
     private List<String> tags;
     private LocalDateTime viewedAt;
 }
