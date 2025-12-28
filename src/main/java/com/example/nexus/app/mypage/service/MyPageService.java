@@ -55,6 +55,7 @@ public class MyPageService {
                             .category(post.getMainCategory().stream().map(Enum::toString).collect(Collectors.joining(", ")))
                             .title(post.getTitle())
                             .oneLineIntro(post.getServiceSummary())
+                            .thumbnailUrl(post.getThumbnailUrl())
                             .tags(post.getGenreCategories().stream().map(Enum::toString).collect(Collectors.toList()))
                             .viewedAt(recentView.getViewedAt())
                             .build();
@@ -100,7 +101,7 @@ public class MyPageService {
 
         List<Participation> participated = participationRepository.findByUserIdAndStatusWithPost(userId, ParticipationStatus.APPROVED, Pageable.unpaged()).getContent();
 
-        List<Post> participatedPosts = participated.stream().map(Participation::getPost).collect(Collectors.toList());
+        List<Post> participatedPosts = participated.stream().map(Participation::getPost).toList();
         int totalCount = participatedPosts.size();
 
         Map<String, Integer> countByCategory = participatedPosts.stream()
@@ -133,10 +134,10 @@ public class MyPageService {
                     .build();
         }
 
-        Long testsUploaded = postRepository.countByCreatedBy(userId);
-        Long testsParticipating = participationRepository.countByUserIdAndStatus(userId, ParticipationStatus.APPROVED);
+        long testsUploaded = postRepository.countByCreatedBy(userId);
+        long testsParticipating = participationRepository.countByUserIdAndStatus(userId, ParticipationStatus.APPROVED);
 
-        int testsOngoing = testsParticipating.intValue();
+        int testsOngoing = (int) testsParticipating;
 
         String affiliation = postRepository.findFirstByCreatedByAndStatusOrderByCreatedAtDesc(userId, PostStatus.ACTIVE)
                 .map(Post::getCreatorIntroduction)
@@ -146,8 +147,8 @@ public class MyPageService {
                 .profileImageUrl(user.getProfileUrl())
                 .name(user.getNickname())
                 .affiliation(affiliation)
-                .testsUploaded(testsUploaded.intValue())
-                .testsParticipating(testsParticipating.intValue())
+                .testsUploaded((int) testsUploaded)
+                .testsParticipating((int) testsParticipating)
                 .testsOngoing(testsOngoing)
                 .build();
     }
