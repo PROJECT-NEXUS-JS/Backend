@@ -3,8 +3,9 @@ package com.example.nexus.app.datacenter.service;
 import com.example.nexus.app.datacenter.controller.dto.response.datacenter.*;
 import com.example.nexus.app.datacenter.controller.dto.response.datacenter.InsightsResponse.FeedbackItemDto;
 import com.example.nexus.app.datacenter.controller.dto.response.datacenter.QualityFeedbackResponse.ProblemLocationDto;
-import com.example.nexus.app.datacenter.domain.ParticipantFeedback;
-import com.example.nexus.app.datacenter.repository.ParticipantFeedbackRepository;
+import com.example.nexus.app.feedback.domain.Feedback;
+import com.example.nexus.app.feedback.domain.BugType;
+import com.example.nexus.app.feedback.repository.FeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataCenterService {
 
-    private final ParticipantFeedbackRepository feedbackRepository;
+    private final FeedbackRepository feedbackRepository;
     private final KeywordAnalyzer keywordAnalyzer;
 
     /**
@@ -39,12 +40,12 @@ public class DataCenterService {
         LocalDateTime startDate = endDate.minusDays(days);
 
         // 기간 내 피드백 조회
-        List<ParticipantFeedback> feedbacks = feedbackRepository.findByPostIdAndDateRange(
+        List<Feedback> feedbacks = feedbackRepository.findByPostIdAndDateRange(
                 postId, startDate, endDate);
 
         // 전주 데이터 (비교용)
         LocalDateTime lastWeekStart = startDate.minusDays(7);
-        List<ParticipantFeedback> lastWeekFeedbacks = feedbackRepository.findByPostIdAndDateRange(
+        List<Feedback> lastWeekFeedbacks = feedbackRepository.findByPostIdAndDateRange(
                 postId, lastWeekStart, startDate);
 
         return DataCenterResponse.builder()
@@ -60,8 +61,8 @@ public class DataCenterService {
      * 요약 카드 데이터 생성
      */
     private DataCenterSummaryResponse buildSummary(Long postId, 
-                                                   List<ParticipantFeedback> feedbacks,
-                                                   List<ParticipantFeedback> lastWeekFeedbacks,
+                                                   List<Feedback> feedbacks,
+                                                   List<Feedback> lastWeekFeedbacks,
                                                    int days) {
         long totalParticipants = feedbacks.size();
         long lastWeekParticipants = lastWeekFeedbacks.size();
@@ -73,13 +74,13 @@ public class DataCenterService {
         // 평균 만족도
         double avgSatisfaction = feedbacks.stream()
                 .filter(f -> f.getOverallSatisfaction() != null)
-                .mapToInt(ParticipantFeedback::getOverallSatisfaction)
+                .mapToInt(Feedback::getOverallSatisfaction)
                 .average()
                 .orElse(0.0);
 
         double lastWeekAvgSatisfaction = lastWeekFeedbacks.stream()
                 .filter(f -> f.getOverallSatisfaction() != null)
-                .mapToInt(ParticipantFeedback::getOverallSatisfaction)
+                .mapToInt(Feedback::getOverallSatisfaction)
                 .average()
                 .orElse(0.0);
 
@@ -131,19 +132,19 @@ public class DataCenterService {
     /**
      * 전반 평가 데이터 생성
      */
-    private OverallEvaluationResponse buildOverallEvaluation(List<ParticipantFeedback> feedbacks) {
+    private OverallEvaluationResponse buildOverallEvaluation(List<Feedback> feedbacks) {
         // 평균 점수 계산
-        double avgSatisfaction = calculateAverage(feedbacks, ParticipantFeedback::getOverallSatisfaction);
-        double avgRecommendation = calculateAverage(feedbacks, ParticipantFeedback::getRecommendationIntent);
-        double avgReuse = calculateAverage(feedbacks, ParticipantFeedback::getReuseIntent);
+        double avgSatisfaction = calculateAverage(feedbacks, Feedback::getOverallSatisfaction);
+        double avgRecommendation = calculateAverage(feedbacks, Feedback::getRecommendationIntent);
+        double avgReuse = calculateAverage(feedbacks, Feedback::getReuseIntent);
 
         // 분포 계산
         Map<Integer, Long> satisfactionDist = calculateDistribution(feedbacks, 
-                ParticipantFeedback::getOverallSatisfaction);
+                Feedback::getOverallSatisfaction);
         Map<Integer, Long> recommendationDist = calculateDistribution(feedbacks, 
-                ParticipantFeedback::getRecommendationIntent);
+                Feedback::getRecommendationIntent);
         Map<Integer, Long> reuseDist = calculateDistribution(feedbacks, 
-                ParticipantFeedback::getReuseIntent);
+                Feedback::getReuseIntent);
 
         return OverallEvaluationResponse.builder()
                 .averageSatisfaction(Math.round(avgSatisfaction * 10) / 10.0)
@@ -158,10 +159,11 @@ public class DataCenterService {
     /**
      * 품질 피드백 데이터 생성
      */
-    private QualityFeedbackResponse buildQualityFeedback(List<ParticipantFeedback> feedbacks) {
-        // 불편 요소 Top 3
+    private QualityFeedbackResponse buildQualityFeedback(List<Feedback> feedbacks) {
+        // 불편 요소 Top 3 (Feedback.mostInconvenient를 문자열로 변환)
         Map<String, Long> inconvenientElements = feedbacks.stream()
-                .flatMap(f -> f.getInconvenientElements().stream())
+                .filter(f -> f.getMostInconvenient() != null)
+                .map(f -> f.getMostInconvenient().getDescription())
                 .collect(Collectors.groupingBy(e -> e, Collectors.counting()))
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
@@ -182,11 +184,12 @@ public class DataCenterService {
 
         // 만족도 점수 분포 (비율)
         Map<Integer, Double> satisfactionScoreDist = calculatePercentageDistribution(feedbacks,
-                ParticipantFeedback::getOverallSatisfaction);
+                Feedback::getOverallSatisfaction);
 
-        // 문제 유형 비중
+        // 문제 유형 비중 (Feedback.bugTypes를 문자열로 변환)
         Map<String, Double> problemTypeProportions = feedbacks.stream()
-                .flatMap(f -> f.getProblemTypes().stream())
+                .flatMap(f -> f.getBugTypes().stream())
+                .map(BugType::getDescription)
                 .collect(Collectors.groupingBy(t -> t, Collectors.counting()))
                 .entrySet().stream()
                 .collect(Collectors.toMap(
@@ -198,9 +201,9 @@ public class DataCenterService {
 
         // 주요 문제 발생 위치 (Top 5)
         List<ProblemLocationDto> topProblemLocations = feedbacks.stream()
-                .filter(f -> f.getProblemLocation() != null && !f.getProblemLocation().isEmpty())
+                .filter(f -> f.getBugLocation() != null && !f.getBugLocation().isEmpty())
                 .collect(Collectors.groupingBy(
-                        ParticipantFeedback::getProblemLocation,
+                        Feedback::getBugLocation,
                         Collectors.counting()
                 ))
                 .entrySet().stream()
@@ -209,8 +212,9 @@ public class DataCenterService {
                 .map(e -> {
                     // 해당 위치의 주요 문제 유형 찾기
                     String mainProblemType = feedbacks.stream()
-                            .filter(f -> e.getKey().equals(f.getProblemLocation()))
-                            .flatMap(f -> f.getProblemTypes().stream())
+                            .filter(f -> e.getKey().equals(f.getBugLocation()))
+                            .flatMap(f -> f.getBugTypes().stream())
+                            .map(BugType::getDescription)
                             .findFirst()
                             .orElse("오류");
 
@@ -243,12 +247,13 @@ public class DataCenterService {
     /**
      * 기능별 사용성 평가 데이터 생성
      */
-    private UsabilityEvaluationResponse buildUsabilityEvaluation(List<ParticipantFeedback> feedbacks) {
-        double functionalityScore = calculateAverage(feedbacks, ParticipantFeedback::getFunctionalityScore);
-        double comprehensibilityScore = calculateAverage(feedbacks, ParticipantFeedback::getComprehensibilityScore);
-        double loadingSpeedScore = calculateAverage(feedbacks, ParticipantFeedback::getLoadingSpeedScore);
-        double responseTimingScore = calculateAverage(feedbacks, ParticipantFeedback::getResponseTimingScore);
-        double stabilityScore = calculateAverage(feedbacks, ParticipantFeedback::getStabilityScore);
+    private UsabilityEvaluationResponse buildUsabilityEvaluation(List<Feedback> feedbacks) {
+        double functionalityScore = calculateAverage(feedbacks, Feedback::getFunctionalityScore);
+        double comprehensibilityScore = calculateAverage(feedbacks, Feedback::getComprehensibilityScore);
+        double loadingSpeedScore = calculateAverage(feedbacks, Feedback::getSpeedScore);
+        double responseTimingScore = calculateAverage(feedbacks, Feedback::getResponseTimingScore);
+        // Feedback에는 stabilityScore가 없으므로 0.0으로 설정
+        double stabilityScore = 0.0;
 
         return UsabilityEvaluationResponse.builder()
                 .functionalityScore(Math.round(functionalityScore * 10) / 10.0)
@@ -262,37 +267,37 @@ public class DataCenterService {
     /**
      * 인사이트 데이터 생성 (키워드 분석 포함)
      */
-    private InsightsResponse buildInsights(List<ParticipantFeedback> feedbacks) {
-        // 좋았던 점 피드백
+    private InsightsResponse buildInsights(List<Feedback> feedbacks) {
+        // 좋았던 점 피드백 (Feedback.goodPoints)
         List<FeedbackItemDto> positiveFeedbacks = feedbacks.stream()
-                .filter(f -> f.getPositiveFeedback() != null && !f.getPositiveFeedback().isEmpty())
+                .filter(f -> f.getGoodPoints() != null && !f.getGoodPoints().isEmpty())
                 .map(f -> FeedbackItemDto.builder()
                         .feedbackId(f.getId())
-                        .summary(keywordAnalyzer.summarize(f.getPositiveFeedback()))
-                        .fullContent(f.getPositiveFeedback())
-                        .emoji(keywordAnalyzer.selectEmoji(f.getPositiveFeedback(), true))
+                        .summary(keywordAnalyzer.summarize(f.getGoodPoints()))
+                        .fullContent(f.getGoodPoints())
+                        .emoji(keywordAnalyzer.selectEmoji(f.getGoodPoints(), true))
                         .build())
                 .collect(Collectors.toList());
 
-        // 개선 제안 피드백
+        // 개선 제안 피드백 (Feedback.improvementSuggestions)
         List<FeedbackItemDto> improvementSuggestions = feedbacks.stream()
-                .filter(f -> f.getImprovementSuggestion() != null && !f.getImprovementSuggestion().isEmpty())
+                .filter(f -> f.getImprovementSuggestions() != null && !f.getImprovementSuggestions().isEmpty())
                 .map(f -> FeedbackItemDto.builder()
                         .feedbackId(f.getId())
-                        .summary(keywordAnalyzer.summarize(f.getImprovementSuggestion()))
-                        .fullContent(f.getImprovementSuggestion())
-                        .emoji(keywordAnalyzer.selectEmoji(f.getImprovementSuggestion(), false))
+                        .summary(keywordAnalyzer.summarize(f.getImprovementSuggestions()))
+                        .fullContent(f.getImprovementSuggestions())
+                        .emoji(keywordAnalyzer.selectEmoji(f.getImprovementSuggestions(), false))
                         .build())
                 .collect(Collectors.toList());
 
         // 키워드 분석 (긍정 피드백 + 개선 제안 모두 분석)
         List<String> allTexts = new ArrayList<>();
         feedbacks.forEach(f -> {
-            if (f.getPositiveFeedback() != null) {
-                allTexts.add(f.getPositiveFeedback());
+            if (f.getGoodPoints() != null && !f.getGoodPoints().isEmpty()) {
+                allTexts.add(f.getGoodPoints());
             }
-            if (f.getImprovementSuggestion() != null) {
-                allTexts.add(f.getImprovementSuggestion());
+            if (f.getImprovementSuggestions() != null && !f.getImprovementSuggestions().isEmpty()) {
+                allTexts.add(f.getImprovementSuggestions());
             }
         });
 
@@ -320,8 +325,8 @@ public class DataCenterService {
     /**
      * 평균 계산
      */
-    private double calculateAverage(List<ParticipantFeedback> feedbacks,
-                                    java.util.function.Function<ParticipantFeedback, Integer> getter) {
+    private double calculateAverage(List<Feedback> feedbacks,
+                                    java.util.function.Function<Feedback, Integer> getter) {
         return feedbacks.stream()
                 .map(getter)
                 .filter(Objects::nonNull)
@@ -333,8 +338,8 @@ public class DataCenterService {
     /**
      * 분포 계산 (1~5점별 개수)
      */
-    private Map<Integer, Long> calculateDistribution(List<ParticipantFeedback> feedbacks,
-                                                     java.util.function.Function<ParticipantFeedback, Integer> getter) {
+    private Map<Integer, Long> calculateDistribution(List<Feedback> feedbacks,
+                                                     java.util.function.Function<Feedback, Integer> getter) {
         Map<Integer, Long> distribution = feedbacks.stream()
                 .map(getter)
                 .filter(Objects::nonNull)
@@ -351,8 +356,8 @@ public class DataCenterService {
     /**
      * 비율 분포 계산 (%)
      */
-    private Map<Integer, Double> calculatePercentageDistribution(List<ParticipantFeedback> feedbacks,
-                                                                 java.util.function.Function<ParticipantFeedback, Integer> getter) {
+    private Map<Integer, Double> calculatePercentageDistribution(List<Feedback> feedbacks,
+                                                                 java.util.function.Function<Feedback, Integer> getter) {
         Map<Integer, Long> countDist = calculateDistribution(feedbacks, getter);
         long total = feedbacks.size();
 

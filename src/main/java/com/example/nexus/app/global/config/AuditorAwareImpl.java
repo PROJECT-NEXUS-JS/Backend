@@ -1,10 +1,9 @@
 package com.example.nexus.app.global.config;
 
-import com.example.nexus.app.global.code.status.ErrorStatus;
-import com.example.nexus.app.global.exception.GeneralException;
 import com.example.nexus.app.global.oauth.domain.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import java.util.Optional;
 public class AuditorAwareImpl implements AuditorAware<Long> {
 
     @Override
+    @NonNull
     public Optional<Long> getCurrentAuditor() {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
@@ -23,7 +23,7 @@ public class AuditorAwareImpl implements AuditorAware<Long> {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             log.warn("인증되지 않은 사용자 - Optional.empty() 반환");
-//            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+            return Optional.empty();
         }
 
         // CustomUserDetails에서 직접 userId 가져오기

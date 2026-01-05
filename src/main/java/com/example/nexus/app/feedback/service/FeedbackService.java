@@ -135,10 +135,10 @@ public class FeedbackService {
         feedbackDraftRepository.findByParticipationId(participation.getId())
                 .ifPresent(feedbackDraftRepository::delete);
 
-        // 리워드가 있는 게시글의 경우, 피드백 제출 시 테스트 완료 상태로 변경
-        if (participation.getPost().getReward() != null && participation.isApproved()) {
-            participation.completeTest();
-            log.info("리워드 게시글 피드백 제출로 인한 테스트 완료 처리: participationId={}, status={}", 
+        if (participation.isApproved()) {
+            participation.complete();
+            participationRepository.save(participation);
+            log.info("피드백 제출로 인한 참여 완료 처리: participationId={}, status={}", 
                     participation.getId(), participation.getStatus());
         }
 
