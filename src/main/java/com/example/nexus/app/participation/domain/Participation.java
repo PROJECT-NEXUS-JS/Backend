@@ -131,6 +131,7 @@ public class Participation {
         this.approvedAt = LocalDateTime.now();
     }
 
+    // 모집자가 테스터 피드백까지 받은 후 최종 완료 처리 상태
     public void complete() {
         this.status = ParticipationStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
@@ -167,6 +168,7 @@ public class Participation {
         return this.isPaid;
     }
 
+    // 참여자의 테스트 참여 완료 처리 (피드백 제출)
     public void completeTest() {
         if (!isApproved()) {
             throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_APPROVED);

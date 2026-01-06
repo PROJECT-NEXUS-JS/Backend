@@ -136,7 +136,7 @@ public class FeedbackService {
                 .ifPresent(feedbackDraftRepository::delete);
 
         if (participation.isApproved()) {
-            participation.complete();
+            participation.completeTest();
             participationRepository.save(participation);
             log.info("피드백 제출로 인한 참여 완료 처리: participationId={}, status={}", 
                     participation.getId(), participation.getStatus());
