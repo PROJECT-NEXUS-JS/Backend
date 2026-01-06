@@ -135,6 +135,13 @@ public class FeedbackService {
         feedbackDraftRepository.findByParticipationId(participation.getId())
                 .ifPresent(feedbackDraftRepository::delete);
 
+        if (participation.isApproved()) {
+            participation.complete();
+            participationRepository.save(participation);
+            log.info("피드백 제출로 인한 참여 완료 처리: participationId={}, status={}", 
+                    participation.getId(), participation.getStatus());
+        }
+
         log.info("피드백 제출 완료: feedbackId={}, participationId={}, userId={}", 
                 savedFeedback.getId(), participation.getId(), userId);
 
