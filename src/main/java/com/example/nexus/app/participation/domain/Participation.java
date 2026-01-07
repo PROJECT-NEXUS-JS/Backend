@@ -131,14 +131,23 @@ public class Participation {
         this.approvedAt = LocalDateTime.now();
     }
 
-    // 모집자가 테스터 피드백까지 받은 후 최종 완료 처리 상태
+    public void completeTest() {
+        if (!isApproved()) {
+            throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_APPROVED);
+        }
+        this.status = ParticipationStatus.FEEDBACK_COMPLETED;
+    }
+
     public void complete() {
-        this.status = ParticipationStatus.COMPLETED;
+        if (!isFeedbackCompleted()) {
+            throw new GeneralException(ErrorStatus.FEEDBACK_NOT_COMPLETED);
+        }
+        this.status = ParticipationStatus.TEST_COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
 
     public void updatePaidStatus(LocalDateTime paidAt) {
-        if (!isCompleted()) {
+        if (!isTestCompleted()) {
             throw new GeneralException(ErrorStatus.NOT_COMPLETED_YET);
         }
         if (isPaid()) {
@@ -160,23 +169,15 @@ public class Participation {
         return this.status == ParticipationStatus.REJECTED;
     }
 
-    public boolean isCompleted() {
-        return this.status == ParticipationStatus.COMPLETED;
-    }
-
-    public boolean isPaid() {
-        return this.isPaid;
-    }
-
-    // 참여자의 테스트 참여 완료 처리 (피드백 제출)
-    public void completeTest() {
-        if (!isApproved()) {
-            throw new GeneralException(ErrorStatus.PARTICIPATION_NOT_APPROVED);
-        }
-        this.status = ParticipationStatus.TEST_COMPLETED;
+    public boolean isFeedbackCompleted() {
+        return this.status == ParticipationStatus.FEEDBACK_COMPLETED;
     }
 
     public boolean isTestCompleted() {
         return this.status == ParticipationStatus.TEST_COMPLETED;
+    }
+
+    public boolean isPaid() {
+        return this.isPaid;
     }
 }

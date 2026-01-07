@@ -39,6 +39,8 @@ public enum ErrorStatus implements BaseErrorCode {
     PARTICIPATION_NOT_TEST_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK40025", "테스트 완료 상태에서만 피드백을 제출할 수 있습니다."),
     FEEDBACK_NOT_SUBMITTED(HttpStatus.BAD_REQUEST, "PARTICIPANT40026", "피드백이 제출되지 않았습니다."),
     PARTICIPATION_ALREADY_TEST_COMPLETED(HttpStatus.BAD_REQUEST, "PARTICIPANT40027", "이미 테스트 완료 처리된 참여입니다."),
+    FEEDBACK_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "PARTICIPANT40028", "피드백 완료 상태가 아닙니다."),
+    PARTICIPATION_ALREADY_FEEDBACK_COMPLETED(HttpStatus.BAD_REQUEST, "PARTICIPANT40029", "이미 피드백 완료 처리된 참여입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401", "인증이 필요합니다."),
