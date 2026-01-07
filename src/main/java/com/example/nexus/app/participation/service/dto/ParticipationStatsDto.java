@@ -5,6 +5,7 @@ public record ParticipationStatsDto(
         Long approvedCount,
         Long feedbackCompletedCount,
         Long testCompletedCount,
+        Long paidCount,
         Long rejectedCount
 ) {
 }

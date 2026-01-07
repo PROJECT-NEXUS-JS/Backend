@@ -133,6 +133,7 @@ public interface ParticipationControllerDoc {
                 - approvedCount: 진행중 인원
                 - feedbackCompletedCount: 피드백 완료 인원
                 - testCompletedCount: 테스트 완료 인원
+                - paidCount: 리워드 지급 완료 인원
                 - rejectedCount: 거절됨 인원
                 - totalCount: 전체 신청 인원
                 """
