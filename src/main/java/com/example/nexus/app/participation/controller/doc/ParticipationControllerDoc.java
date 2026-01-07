@@ -40,17 +40,17 @@ public interface ParticipationControllerDoc {
     @Operation(
             summary = "내 신청 내역 조회",
             description = """
-                    내 참가 신청 내역을 조회합니다. status 파라미터로 필터링 가능
-                    
-                    **ParticipationStatus (참가 신청 상태):**
-                    - `PENDING`: 승인 대기
-                    - `APPROVED`: 진행중
-                    - `COMPLETED`: 지급 대기
-                    - `REJECTED`: 거절됨
-                    - `PAID`: 완료 (지급완료)
-                    
-                    status를 입력하지 않으면 전체 조회
-                    """
+                  내 참가 신청 내역을 조회합니다. status 파라미터로 필터링 가능
+
+                  **ParticipationStatus (참가 신청 상태):**
+                  - `PENDING`: 승인 대기
+                  - `APPROVED`: 진행중
+                  - `FEEDBACK_COMPLETED`: 피드백 완료
+                  - `TEST_COMPLETED`: 테스트 완료
+                  - `REJECTED`: 거절됨
+
+                  status를 입력하지 않으면 전체 조회
+                  """
     )
     ResponseEntity<ApiResponse<Page<ParticipationSummaryResponse>>> getMyApplications(
             @Parameter(description = "참가 상태 (선택사항)", required = false)
@@ -110,8 +110,13 @@ public interface ParticipationControllerDoc {
     );
 
     @Operation(
-            summary = "참여자 완료 처리",
-            description = "특정 참여자의 테스트를 완료 처리합니다 (게시글 작성자만 가능)"
+            summary = "참여자 테스트 완료 처리",
+            description = """
+                  모집자가 참여자의 피드백을 확인 후 최종 완료 처리합니다.
+                  - FEEDBACK_COMPLETED(피드백 완료) 상태에서만 호출 가능
+                  - TEST_COMPLETED(테스트 완료) 상태로 변경
+                  - 리워드 지급 준비 완료
+                  """
     )
     ResponseEntity<ApiResponse<Void>> completeParticipant(
             @Parameter(description = "참여 ID", required = true)
@@ -122,15 +127,15 @@ public interface ParticipationControllerDoc {
     @Operation(
             summary = "게시글 참가 신청 통계",
             description = """
-                  게시글의 상태별 참가 신청자 인원 통계를 조회합니다. (작성자만 가능)
+                게시글의 상태별 참가 신청자 인원 통계를 조회합니다. (작성자만 가능)
 
-                  - pendingCount: 승인 대기 인원
-                  - approvedCount: 진행중 인원
-                  - completedCount: 완료 (지급 대기) 인원
-                  - paidCount: 지급 완료 인원
-                  - rejectedCount: 거절됨 인원
-                  - totalCount: 전체 신청 인원
-                  """
+                - pendingCount: 승인 대기 인원
+                - approvedCount: 진행중 인원
+                - feedbackCompletedCount: 피드백 완료 인원
+                - testCompletedCount: 테스트 완료 인원
+                - rejectedCount: 거절됨 인원
+                - totalCount: 전체 신청 인원
+                """
     )
     ResponseEntity<ApiResponse<ParticipationStatisticsResponse>> getPostApplicationStatistics(
             @Parameter(description = "게시글 ID", required = true)
@@ -141,22 +146,22 @@ public interface ParticipationControllerDoc {
     @Operation(
             summary = "게시글 참여자 목록 조회",
             description = """
-                  특정 게시글의 참여자 목록 조회 (페이징, 필터링, 정렬, 검색 지원)
+                특정 게시글의 참여자 목록 조회 (페이징, 필터링, 정렬, 검색 지원)
 
-                  **필터링 가능 항목:**
-                  - status (참여자 상태)
-                    - `PENDING`: 승인 대기
-                    - `APPROVED`: 진행중
-                    - `COMPLETED`: 테스트 완료
-                    - `PAID`: 지급 완료
-                    - `REJECTED`: 거절됨
-                    - null: 전체
-                  - searchKeyword: 닉네임 또는 이메일 검색
+                **필터링 가능 항목:**
+                - status (참여자 상태)
+                  - `PENDING`: 승인 대기
+                  - `APPROVED`: 진행중
+                  - `FEEDBACK_COMPLETED`: 피드백 완료
+                  - `TEST_COMPLETED`: 테스트 완료
+                  - `REJECTED`: 거절됨
+                  - null: 전체
+                - searchKeyword: 닉네임 또는 이메일 검색
 
-                  **정렬:**
-                  - sortDirection: `ASC` (오래된순), `DESC` (최신순, 기본값)
-                  - 항상 신청일시(appliedAt) 기준으로 정렬
-                  """
+                **정렬:**
+                - sortDirection: `ASC` (오래된순), `DESC` (최신순, 기본값)
+                - 항상 신청일시(appliedAt) 기준으로 정렬
+                """
     )
     ResponseEntity<ApiResponse<Page<ParticipantListResponse>>> getParticipants(
             @Parameter(description = "게시글 ID", required = true)
@@ -177,13 +182,13 @@ public interface ParticipationControllerDoc {
     );
 
     @Operation(
-            summary = "참여자 테스트 완료 처리",
+            summary = "참여자 피드백 완료 처리",
             description = """
-                  참여자 본인이 테스트를 완료 처리합니다.
-                  - APPROVED(진행중) 상태에서만 호출 가능
-                  - TEST_COMPLETED(테스트 완료) 상태로 변경
-                  - 이후 피드백을 제출해야 함
-                  """
+                참여자 본인이 피드백 제출을 완료 처리합니다.
+                - APPROVED(진행중) 상태에서만 호출 가능
+                - FEEDBACK_COMPLETED(피드백 완료) 상태로 변경
+                - 피드백 제출 후 호출해야 함
+                """
     )
     ResponseEntity<ApiResponse<Void>> completeTestByParticipant(
             @Parameter(description = "참가 신청 ID", required = true)

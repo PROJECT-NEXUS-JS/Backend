@@ -69,7 +69,7 @@ public class ParticipantReward {
     }
 
     public void markAsCompleted() {
-        this.completionStatus = ParticipationStatus.COMPLETED;
+        this.completionStatus = ParticipationStatus.TEST_COMPLETED;
         this.completedAt = LocalDateTime.now();
         this.rewardStatus = RewardStatus.PENDING;
     }
@@ -80,7 +80,7 @@ public class ParticipantReward {
     }
 
     public boolean isCompleted() {
-        return this.completionStatus == ParticipationStatus.COMPLETED;
+        return this.completionStatus == ParticipationStatus.TEST_COMPLETED;
     }
 
     public boolean isRewardPaid() {
