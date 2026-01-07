@@ -249,6 +249,7 @@ public class ParticipationService {
                 stats.approvedCount(),
                 stats.feedbackCompletedCount(),
                 stats.testCompletedCount(),
+                stats.paidCount(),
                 stats.rejectedCount()
         );
     }
@@ -380,7 +381,7 @@ public class ParticipationService {
         List<Object[]> resultList = participationRepository.getParticipationStatsByPostId(postId);
 
         if (resultList.isEmpty()) {
-            return new ParticipationStatsDto(0L, 0L, 0L, 0L, 0L);
+            return new ParticipationStatsDto(0L, 0L, 0L, 0L, 0L, 0L);
         }
 
         Object[] result = resultList.get(0);
@@ -389,8 +390,9 @@ public class ParticipationService {
                 extractLongValue(result[0]),  // pendingCount
                 extractLongValue(result[1]),  // approvedCount
                 extractLongValue(result[2]),  // feedbackCompletedCount
-                extractLongValue(result[3]),  // testCompletedCount
-                extractLongValue(result[4])   // rejectedCount
+                extractLongValue(result[3]),  // testCompletedCount (지급 대기)
+                extractLongValue(result[4]),  // paidCount (지급 완료)
+                extractLongValue(result[5])   // rejectedCount
         );
     }
 
