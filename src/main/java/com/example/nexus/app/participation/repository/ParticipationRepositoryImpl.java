@@ -90,7 +90,7 @@ public class ParticipationRepositoryImpl implements ParticipationRepositoryCusto
         }
 
         if (PAID_STATUS.equalsIgnoreCase(status)) {
-            return participation.status.eq(ParticipationStatus.COMPLETED)
+            return participation.status.eq(ParticipationStatus.TEST_COMPLETED)
                     .and(participation.isPaid.isTrue());
         }
 

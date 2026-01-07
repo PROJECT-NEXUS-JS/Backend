@@ -97,12 +97,8 @@ public class ParticipationService {
 
         Page<Participation> participations;
 
-        // status가 없으면 전체 조회
         if (statusParam == null || statusParam.isEmpty()) {
             participations = participationRepository.findByUserIdWithPost(userId, pageable);
-        } else if ("PAID".equalsIgnoreCase(statusParam)) {
-            participations = participationRepository.findByUserIdAndStatusAndIsPaidWithPost(
-                    userId, ParticipationStatus.COMPLETED, true, pageable);
         } else {
             ParticipationStatus status = ParticipationStatus.valueOf(statusParam.toUpperCase());
             participations = participationRepository.findByUserIdAndStatusWithPost(userId, status, pageable);
@@ -196,7 +192,7 @@ public class ParticipationService {
         Participation participation = getParticipation(participationId);
 
         validateParticipantOwnership(participation, userId);
-        validateNotAlreadyTestCompleted(participation);
+        validateNotAlreadyFeedbackCompleted(participation);
 
         participation.completeTest();
     }
@@ -251,8 +247,8 @@ public class ParticipationService {
         return ParticipationStatisticsResponse.of(
                 stats.pendingCount(),
                 stats.approvedCount(),
-                stats.completedCount(),
-                stats.paidCount(),
+                stats.feedbackCompletedCount(),
+                stats.testCompletedCount(),
                 stats.rejectedCount()
         );
     }
@@ -390,15 +386,21 @@ public class ParticipationService {
         Object[] result = resultList.get(0);
 
         return new ParticipationStatsDto(
-                extractLongValue(result[0]),
-                extractLongValue(result[1]),
-                extractLongValue(result[2]),
-                extractLongValue(result[3]),
-                extractLongValue(result[4])
+                extractLongValue(result[0]),  // pendingCount
+                extractLongValue(result[1]),  // approvedCount
+                extractLongValue(result[2]),  // feedbackCompletedCount
+                extractLongValue(result[3]),  // testCompletedCount
+                extractLongValue(result[4])   // rejectedCount
         );
     }
 
     private Long extractLongValue(Object value) {
         return value != null ? ((Number) value).longValue() : 0L;
+    }
+
+    private void validateNotAlreadyFeedbackCompleted(Participation participation) {
+        if (participation.isFeedbackCompleted() || participation.isTestCompleted()) {
+            throw new GeneralException(ErrorStatus.PARTICIPATION_ALREADY_FEEDBACK_COMPLETED);
+        }
     }
 }
