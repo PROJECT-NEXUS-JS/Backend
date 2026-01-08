@@ -39,14 +39,14 @@ public class ParticipantReward {
     private PostReward postReward;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "completion_status")
+    @Column(name = "completion_status", length = 50)
     private ParticipationStatus completionStatus = ParticipationStatus.APPROVED;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reward_status")
+    @Column(name = "reward_status", length = 50)
     private RewardStatus rewardStatus = RewardStatus.PENDING;
 
     @Column(name = "paid_at")

@@ -72,7 +72,7 @@ public class Participation {
     private ParticipantReward participantReward;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private ParticipationStatus status;
 
     @Column(name = "applicant_name", nullable = false, length = 10)

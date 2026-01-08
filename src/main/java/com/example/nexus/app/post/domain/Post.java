@@ -55,25 +55,26 @@ public class Post {
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_main_category", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "main_category", nullable = false)
+    @Column(name = "main_category", nullable = false, length = 50)
     @BatchSize(size = 100)
     private Set<MainCategory> mainCategory;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_platform_category", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "platform_category")
+    @Column(name = "platform_category", length = 50)
     @BatchSize(size = 100)
     private Set<PlatformCategory> platformCategory;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "post_genres", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "genre")
+    @Column(name = "genre", length = 50)
     @BatchSize(size = 100)
     private Set<GenreCategory> genreCategories = new HashSet<>();
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
     private PostStatus status;
 
     @Column(name = "qna_Method")
