@@ -23,7 +23,7 @@ public class PostReward {
     private Post post;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reward_type")
+    @Column(name = "reward_type", length = 50)
     private RewardType rewardType;
 
     @Column(name = "reward_description", columnDefinition = "TEXT")
