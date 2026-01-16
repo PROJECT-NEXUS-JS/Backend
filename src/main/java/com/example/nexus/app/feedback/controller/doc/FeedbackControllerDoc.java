@@ -76,8 +76,7 @@ public interface FeedbackControllerDoc {
 
     @Operation(
             summary = "내 피드백 상태 조회",
-            description = "특정 프로젝트에 대한 내 피드백 상태를 조회합니다.",
-            security = @SecurityRequirement(name = "Bearer Authentication")
+            description = "특정 프로젝트에 대한 내 피드백 상태를 조회합니다. 비로그인 시에는 미작성 상태로 반환합니다."
     )
     ResponseEntity<ApiResponse<MyFeedbackStatusResponse>> getMyFeedbackStatus(
             @Parameter(description = "프로젝트(게시글) ID") @RequestParam Long postId,
