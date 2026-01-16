@@ -81,7 +81,8 @@ public class FeedbackController implements FeedbackControllerDoc {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if (userDetails == null) {
-            throw new GeneralException(ErrorStatus.UNAUTHORIZED);
+            MyFeedbackStatusResponse response = MyFeedbackStatusResponse.notStarted(null);
+            return ResponseEntity.ok(ApiResponse.onSuccess(response));
         }
 
         MyFeedbackStatusResponse response = feedbackService.getMyFeedbackStatus(postId, userDetails.getUserId());
